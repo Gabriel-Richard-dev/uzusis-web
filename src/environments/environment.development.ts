@@ -1,6 +1,4 @@
 export const environment = {
-    production: false,
-    apiUrl: 'https://api.EST-REUTILIZAVEL-h.maracanau.ifce.edu.br/v1/',
-    sessionPrefix: 'EST-REUTILIZAVEL',
-    logging: true,
-  };
+  //apiUrl: 'http://localhost:3000/',
+  apiUrl:'https://8c31-200-17-32-208.ngrok-free.app/'
+};

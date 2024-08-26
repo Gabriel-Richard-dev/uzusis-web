@@ -6,17 +6,19 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { NavbarComponent } from './navbar/navbar.component';
+import { MaterialModule } from '../material.module';
+import { PesquisarComponent } from './pesquisar/pesquisar.component';
+import { FooterComponent } from './footer/footer.component';
 
 
 
 
 @NgModule({
   declarations: [
-
-    
-  
-  
+    NavbarComponent,
+    PesquisarComponent,
+    FooterComponent
   ],
   imports: [
     CommonModule,
@@ -26,12 +28,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatProgressSpinnerModule,
     MatSelectModule,
     FormsModule,
-    
+    MaterialModule,
     
   ],
   exports: [
-
-     
+  NavbarComponent,
+  PesquisarComponent,
+  FooterComponent
+  
   ], providers: [
    
   ]

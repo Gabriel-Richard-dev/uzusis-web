@@ -1,0 +1,25 @@
+<div class="navbar">
+  <div class="conteudo">
+    <img src="../../../../assets/pencil-svgrepo-com.svg" alt="" width="20px">
+    <div class="itensFlex">
+      <div class="item" *ngFor="let categoria of categorias; let i = index" (click)="handleClick(categoria, i)">{{categoria}}</div>
+      <button mat-button [matMenuTriggerFor]="menu">outras categorias<img #dropdownImage src="../../../../assets/dropdown-removebg-preview.png" width="25px" height="25px"></button>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item *ngFor="let option of Options; let i = index" (click)="handleClick(option, i+5)">{{option}}</button>
+      </mat-menu>
+    </div>
+  </div>
+  <div class="conteudo">
+    <div class="itensFlex">
+      <div class="search-container">
+        <form>
+          <app-pesquisar></app-pesquisar>
+        </form>
+      </div>
+      <div class="account">
+        <img src="../../../../assets/pessoas.png" alt="" width="20px"> minha conta
+      </div>
+      <img src="../../../../assets/carrinho.svg" alt="" width="25px" height="25px">
+    </div>
+  </div>
+</div>

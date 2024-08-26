@@ -1,6 +1,6 @@
 export const environment = {
     production: false,
-    apiUrl: 'https://api.EST-REUTILIZAVEL-h.maracanau.ifce.edu.br/v1/',
+    apiUrl: 'http://localhost:3000/',
     sessionPrefix: 'EST-REUTILIZAVEL',
     logging: true,
   };

@@ -1,0 +1,30 @@
+<app-navbar />
+<div class="escopo">
+  <div class="content col-6">
+  <ngb-carousel
+#carousel
+[interval]="5000"
+[pauseOnHover]="pauseOnHover"
+[pauseOnFocus]="pauseOnFocus"
+(slide)="onSlide($event)"
+> 
+<ng-template ngbSlide *ngFor="let img of images; index as i">
+<div class="carousel-caption">
+<h3>{{img.caption}}</h3>
+</div>
+<div class="picsum-img-wrapper">
+  <img src="assets/{{img.name}}" alt="img.caption"/>
+</div>
+</ng-template>
+</ngb-carousel>
+
+
+  
+</div>
+<h1 class="title">Inserir Titulo</h1>
+<app-allfotos></app-allfotos>
+</div>
+
+
+
+<app-footer></app-footer>

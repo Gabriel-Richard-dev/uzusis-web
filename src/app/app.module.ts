@@ -7,6 +7,12 @@ import {SharedModule} from './shared/shared.module';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { CommonModule } from '@angular/common';
+import { ComponentsModule } from './shared/components/components.module';
+import { InitialPageComponent } from './features/initial-page/initial-page.component';
+import { FeaturesModule } from './features/features.module';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
 
 
 
@@ -16,6 +22,8 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
     declarations: [
         AppComponent,
         
+        
+      
        
     ],
     imports: [
@@ -26,6 +34,9 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
         SharedModule,
         FormsModule,
         ReactiveFormsModule ,
+        ComponentsModule,
+        FeaturesModule,
+        NgbModule
         
         
       

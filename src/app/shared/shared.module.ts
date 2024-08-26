@@ -13,14 +13,12 @@ import {ComponentsModule} from "./components/components.module";
         FormsModule,
         DomainTypesModule,
         ComponentsModule,
-       
     ],
     exports: [
         MaterialModule,
         FormsModule,
         DomainTypesModule,
-        ComponentsModule,
-       
+        ComponentsModule,    
     ]
 })
 export class SharedModule {

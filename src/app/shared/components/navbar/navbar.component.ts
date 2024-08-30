@@ -27,7 +27,8 @@ export class NavbarComponent {
   ){}
 
   handleClick(Categoria:string, index:number, ){
-    this.navbarService.setCategoria(Categoria)
+     const indexString=index.toString()
+    this.navbarService.setCategoria(indexString)
     console.log(`Categoria clicada: ${Categoria} ${index}`)
     }
   }

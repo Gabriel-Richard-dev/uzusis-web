@@ -7,11 +7,12 @@ export interface produto{
   nome:string;
   descricao:string;
   nomePessoa:string;
-  categoria:string;
+  categoria:number;
   preco:number;
   id:number;
-  tamanhos:string[];
+  tamanhos:tamanhos[];
   quantidade:number;
+  categoriaNome:string;
 }
 // export interface produtos{
 //   fotoUrls:string[];
@@ -29,3 +30,9 @@ export interface produto{
 //   quantidadePaginas:number;
 //   produto:produtos[]
 // }
+
+export interface tamanhos{
+sigla:string;
+quantidade:number;
+}
+

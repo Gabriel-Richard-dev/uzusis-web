@@ -1,0 +1,21 @@
+<app-navbar />
+
+<div class="escopo">
+  <div class="content col-6">
+   <div class="container-border">
+    <form action="" [formGroup]="formLogin">
+      <input type="email"  formControlName="email" />
+      <input type="password" formControlName="senha" />
+      <button type="submit" (click) = "logar()">click</button>
+    </form>
+
+
+    <form [formGroup] = "formEnviarEmail">
+      <input type="text" formControlName="email">
+      <button type="submit"  (click) = "enviarEmail()">enviar</button>
+    </form>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

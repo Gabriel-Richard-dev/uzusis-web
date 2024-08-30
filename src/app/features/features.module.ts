@@ -6,6 +6,10 @@ import { InitialPageComponent } from './initial-page/initial-page.component';
 import { NgbCarousel } from '@ng-bootstrap/ng-bootstrap';
 import { AllfotosComponent } from './initial-page/components/allfotos/allfotos.component';
 import { ModalsComponent } from './initial-page/components/modals/modals.component';
+import { LoginComponent } from './auth/login/login/login.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ConfirmarSenhaComponent } from './auth/modal/confirmar-senha/confirmar-senha.component';
+
 
 
 
@@ -15,6 +19,8 @@ import { ModalsComponent } from './initial-page/components/modals/modals.compone
     InitialPageComponent,
     AllfotosComponent,
     ModalsComponent,
+    LoginComponent,
+    ConfirmarSenhaComponent,
 
 
   ],
@@ -23,7 +29,7 @@ import { ModalsComponent } from './initial-page/components/modals/modals.compone
     ComponentsModule,
     NgbModule,
     NgbCarousel,
-    
+    ReactiveFormsModule
   ],
   exports:[
    

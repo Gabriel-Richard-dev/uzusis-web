@@ -23,13 +23,14 @@ import { ConfirmarSenhaComponent } from './auth/modal/confirmar-senha/confirmar-
     ConfirmarSenhaComponent,
 
 
+
   ],
   imports: [
     CommonModule,
     ComponentsModule,
     NgbModule,
     NgbCarousel,
-    ReactiveFormsModule
+    ReactiveFormsModule,
   ],
   exports:[
    

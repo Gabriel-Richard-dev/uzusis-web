@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormGroup,FormControl, Validators} from '@angular/forms';
-import { IClienteEmail, IClienteauth } from 'src/app/core/interfaces/auth';
+import  {IClienteauth, IClienteEmail } from 'src/app/core/interfaces/auth';
 import { AuthService } from '../../auth.service';
 import Swal from 'sweetalert2';
 @Component({
@@ -42,7 +42,11 @@ export class LoginComponent {
       }
       this.authService.enviarEmail(enviarEmail)
     }
-  
+
+    const enviarEmail = <IClienteEmail>{
+      email: this.formEnviarEmail.value.email
+    }
+    this.authService.enviarEmail(enviarEmail)
   }
 
 

@@ -6,3 +6,7 @@ senha: string
 export interface IClienteEmail{
     email: string
 }
+
+export interface IClienteConfirmarEmail{
+    codigo: string
+}

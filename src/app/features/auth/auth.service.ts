@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { IClienteauth } from 'src/app/core/interfaces/auth';
+import { IClienteauth, IClienteEmail } from 'src/app/core/interfaces/auth';
 import { environment } from 'src/environments/environment.development';
 import { IToken } from 'src/app/core/interfaces/token';
-import { IClienteEmail } from 'src/app/core/interfaces/auth';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmarSenhaComponent } from './modal/confirmar-senha/confirmar-senha.component';
+import { Router } from '@angular/router';
 
 const urlAuth = `${environment.apiUrl}/clienteauth`
+const urlAuthEmail = `${environment.apiUrl}/clienteauth/confimarEmail`
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ const urlAuth = `${environment.apiUrl}/clienteauth`
 export class AuthService {
 
 
-  constructor(private http: HttpClient, private dialog: MatDialog ) { }
+  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router ) { }
   
 
   logar(auth: IClienteauth){
@@ -30,17 +31,18 @@ export class AuthService {
   }
 
   enviarEmail(email: IClienteEmail){
-
+    this.dialog.open(ConfirmarSenhaComponent)
     this.http.post<any>(`${urlAuth}/enviar-confirmacao-email`, email).subscribe({
       next: res =>{
         if(res.status === 200){
           this.dialog.open(ConfirmarSenhaComponent)
+          const enviarEmail = email.toString()
+          localStorage.setItem("email", enviarEmail)
 
         }
       },
       error: err =>{
         if(err.status === 200){
-          this.dialog.open(ConfirmarSenhaComponent)
           console.log("eu abri o erro?")
   
          
@@ -49,7 +51,19 @@ export class AuthService {
           alert(err)
 
         }
-      
+
+      }
+    })
+  }
+
+  enviarCodigoEmail(codigo: string){
+    this.http.post<any>(urlAuthEmail,codigo).subscribe({
+      next: res =>{
+        this.dialog.closeAll()
+        this.router.navigate(['/cadastro'])
+      },
+      error: err =>{
+        localStorage.removeItem("email")
       }
     })
   }

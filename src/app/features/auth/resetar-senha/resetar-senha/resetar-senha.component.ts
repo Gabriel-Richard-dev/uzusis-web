@@ -14,7 +14,7 @@ export class ResetarSenhaComponent implements OnInit {
   }
 
   
-  formEnviarEmail = new FormGroup({
+  formResetarSenha = new FormGroup({
     senha: new FormControl('', [
       Validators.required,
       Validators.minLength(6)
@@ -25,11 +25,11 @@ export class ResetarSenhaComponent implements OnInit {
     ])
   })
 
-enviarEmailResetarSenha(){
-  if(this.formEnviarEmail.valid){
+resetarSenha(){
+  if(this.formResetarSenha.valid){
     const resetarSenha = <IResetarSenha>{
-      senha: this.formEnviarEmail.value.senha,
-      confirmarSenha: this.formEnviarEmail.value.confirmarSenha
+      senha: this.formResetarSenha.value.senha,
+      confirmarSenha: this.formResetarSenha.value.confirmarSenha
     }
     this.authService.resetarSenha(resetarSenha)
     

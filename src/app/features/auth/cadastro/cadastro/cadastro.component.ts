@@ -26,6 +26,7 @@ export class CadastroComponent implements OnInit {
     ]),
 
     senha: new FormControl('', [Validators.required]),
+    confirmarSenha: new FormControl('', [Validators.required]),
 
     cpf: new FormControl('', [
       Validators.required,
@@ -119,6 +120,7 @@ export class CadastroComponent implements OnInit {
       nome: this.formCadastrar.value.nome || "",
       email: this.formCadastrar.value.email || "",
       senha: this.formCadastrar.value.senha || "",
+      confirmarSenha: this.formCadastrar.value.senha || "",
       cpf: this.formCadastrar.value.cpf || "",
       celular: this.formCadastrar.value.celular || "",
       dataNascimento: this.formCadastrar.value.dataNascimento || "",

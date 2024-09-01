@@ -30,6 +30,7 @@ export interface IEndereco {
     nome: string;
     email: string;
     senha: string;
+    confirmarSenha: string
     cpf: string;
     celular: string;
     dataNascimento: string; // Use uma string para datas ISO 8601

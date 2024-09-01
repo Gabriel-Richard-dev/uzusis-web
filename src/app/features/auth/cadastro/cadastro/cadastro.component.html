@@ -11,7 +11,8 @@
           <input 
             id="nome" 
             formControlName="nome" 
-            [ngClass]="{'invalid-field': formCadastrar.get('nome')?.invalid && formularioEnviarError}" 
+            [ngClass]="{'invalid-field': formCadastrar.get('nome')?.invalid && formularioEnviarError}"
+            placeholder="Ex: Igor Valente"
           />
         </div>
 
@@ -32,6 +33,19 @@
             type="password" 
             formControlName="senha" 
             [ngClass]="{'invalid-field': formCadastrar.get('senha')?.invalid && formularioEnviarError}" 
+            placeholder="*****"
+          />
+        </div>
+
+
+        <div>
+          <label for="senha">Confirmar Senha:</label>
+          <input 
+            id="senha" 
+            type="password" 
+            formControlName="confirmarSenha" 
+            [ngClass]="{'invalid-field': formCadastrar.get('senha')?.invalid && formularioEnviarError}" 
+            placeholder="*****"
           />
         </div>
 
@@ -59,9 +73,9 @@
           <label for="dataNascimento">Data de Nascimento:</label>
           <input 
             id="dataNascimento" 
-            type="date" 
             formControlName="dataNascimento" 
             [ngClass]="{'invalid-field': formCadastrar.get('dataNascimento')?.invalid && formularioEnviarError}" 
+            placeholder="xx/xx/xxxx"
           />
         </div>
 

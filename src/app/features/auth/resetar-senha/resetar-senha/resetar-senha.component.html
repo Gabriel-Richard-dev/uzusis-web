@@ -5,10 +5,11 @@
    <div class="container-border">
 
 
-    <form [formGroup] = "formEnviarEmail">
-      <label for="">Enviar email para recuperar senha</label>
-      <input type="text" formControlName="email">
-      <button type="submit"  (click) = "enviarEmailResetarSenha()">enviar</button>
+    <form [formGroup] = "formResetarSenha">
+      <label for="">Redefina sua senha</label>
+      <input type="password" formControlName="senha">
+      <input type="password" formControlName="confirmarSenha">
+      <button type="submit"  (click) = "resetarSenha()">enviar</button>
       <a href="/login"> voltar</a>
     </form>
     </div>

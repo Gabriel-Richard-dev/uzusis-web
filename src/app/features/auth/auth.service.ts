@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { IClienteauth, IClienteEmail, IResetarSenha } from 'src/app/core/interfaces/auth';
+import { ICadastro, IClienteauth, IClienteEmail, IResetarSenha } from 'src/app/core/interfaces/auth';
 import { environment } from 'src/environments/environment.development';
 import { IToken } from 'src/app/core/interfaces/token';
 import { MatDialog } from '@angular/material/dialog';
-import { ConfirmarSenhaComponent } from './modal/confirmar-senha/confirmar-senha.component';
+import { ConfirmarCodigoComponent } from './modal/confirmar-codigo/confirmar-codigo.component';
 import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
-import { ResetarSenhaComponent } from './resetar-senha/resetar-senha/resetar-senha.component';
+import { ICEP } from 'src/app/core/interfaces/cep';
+import { Observable } from 'rxjs';
 
 
 //MUDAR URL DEPOIS
 const urlAuth = `${environment.apiUrl}/clienteauth`
+
+ 
 
 // NESSA FAIXA
 
@@ -20,9 +23,8 @@ const urlAuth = `${environment.apiUrl}/clienteauth`
 })
 export class AuthService {
 
-
-  constructor(private http: HttpClient, private dialog: MatDialog, private router: Router ) { }
-  
+guardarConfirmarEmail: any = ""
+constructor(private http: HttpClient, private dialog: MatDialog, private router: Router ) { }
 
   logar(auth: IClienteauth){
       this.http.post<IToken>(`${urlAuth}/login`, auth).subscribe({
@@ -35,12 +37,19 @@ export class AuthService {
       })
   }
 
-  enviarCodigoConfirmarEmail(email: IClienteEmail){
-    this.dialog.open(ConfirmarSenhaComponent)
+  enviarCodigoConfirmarEmail(email: IClienteEmail
+  ){
+//APAGAR DEPOIS:
+this.dialog.open(ConfirmarCodigoComponent)
+this.guardarConfirmarEmail = email.email
+
     this.http.post<any>(`${urlAuth}/enviar-confirmacao-email`, email).subscribe({
       next: res =>{
         if(res.status === 200){
-          this.dialog.open(ConfirmarSenhaComponent)
+          this.guardarConfirmarEmail = email.toString()
+          this.dialog.open(ConfirmarCodigoComponent)
+
+         
         }
       },
       error: err =>{
@@ -69,7 +78,7 @@ export class AuthService {
     this.http.post<any>(`${urlAuth}/enviar-email-resetar-senha`, email).subscribe({
       next: res =>{
         if(res.status === 200){
-
+        
           Swal.fire({
             position: 'center',
             icon: 'success',
@@ -122,7 +131,7 @@ export class AuthService {
 
 
   enviarCodigoEmailCadastro(codigo: string){
-    
+    localStorage.setItem("email", this.guardarConfirmarEmail)      
     this.router.navigate(['/cadastro'])
     this.dialog.closeAll()
     //APAGAR DEPOIS
@@ -133,14 +142,52 @@ export class AuthService {
       next: res =>{
         this.router.navigate(['/cadastro'])
         this.dialog.closeAll()
-       
+        localStorage.setItem("email", this.guardarConfirmarEmail)      
       },
       error: err =>{
-        localStorage.removeItem("email")
+       
       }
     })
   }
 
   
+  enviarCep(cep: string): Observable<any>{
+  return  this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`)
+  }
+
+
+  cadastrar(cadastro: ICadastro){
+    this.http.post(`${urlAuth}/cadastrar`, cadastro).subscribe({
+      next: res =>{
+        Swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: 'OK',
+          text: 'Usuario cadastrado com sucesso, logue-se para acessar o sistema',
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
+        this.router.navigate(["login"])
+      },
+      error: err =>{
+
+  // fazer validações para caso eu esteja mandando um dado que o back nao aceita
+
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Ops...',
+          text: 'Não foi possivel fazer o seu cadastro tente novamente',
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
+      }
+    })
+
+  }
+
+
 
 }

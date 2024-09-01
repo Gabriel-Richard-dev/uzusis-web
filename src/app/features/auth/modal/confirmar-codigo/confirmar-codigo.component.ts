@@ -7,8 +7,8 @@ import { AuthService } from '../../auth.service';
   templateUrl: './confirmar-senha.component.html',
   styleUrls: ['./confirmar-senha.component.scss']
 })
-export class ConfirmarSenhaComponent {
-  constructor(dialogRef: DialogRef<ConfirmarSenhaComponent>, private authService: AuthService){
+export class ConfirmarCodigoComponent {
+  constructor(dialogRef: DialogRef<ConfirmarCodigoComponent>, private authService: AuthService){
     
     this.form = this.toFormGroup(this.formInput);
 

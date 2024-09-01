@@ -43,10 +43,6 @@ export class LoginComponent {
       this.authService.enviarCodigoConfirmarEmail(enviarEmail)
     }
 
-    const enviarEmail = <IClienteEmail>{
-      email: this.formEnviarEmail.value.email
-    }
-    this.authService.enviarCodigoConfirmarEmail(enviarEmail)
   }
 
 

@@ -40,7 +40,8 @@ export class ConfirmarSenhaComponent {
     const concatenatedValuesLenght = concatenatedValues.length
     
     if(concatenatedValuesLenght === 5){
-      this.authService.enviarCodigoEmail(concatenatedValues)
+      this.authService.enviarCodigoEmailCadastro(concatenatedValues)
+  
     }
     
    }

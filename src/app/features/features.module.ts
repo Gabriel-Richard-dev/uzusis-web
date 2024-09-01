@@ -9,8 +9,9 @@ import { ModalsComponent } from './initial-page/components/modals/modals.compone
 import { LoginComponent } from './auth/login/login/login.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ConfirmarSenhaComponent } from './auth/modal/confirmar-senha/confirmar-senha.component';
-
-
+import { ResetarSenhaComponent } from './auth/resetar-senha/resetar-senha/resetar-senha.component';
+import { CadastroComponent } from './auth/cadastro/cadastro/cadastro.component';
+import { EnviarEmailResetarSenhaComponent } from './auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component';
 
 
 
@@ -21,6 +22,10 @@ import { ConfirmarSenhaComponent } from './auth/modal/confirmar-senha/confirmar-
     ModalsComponent,
     LoginComponent,
     ConfirmarSenhaComponent,
+    ResetarSenhaComponent,
+    CadastroComponent,
+    EnviarEmailResetarSenhaComponent
+    
 
 
 

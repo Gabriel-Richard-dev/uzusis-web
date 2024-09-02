@@ -36,3 +36,9 @@ export interface IEndereco {
     dataNascimento: string; // Use uma string para datas ISO 8601
     endereco: IEndereco;
   }
+  
+
+  export interface ICodigoEmail{
+    codigo: string;
+    email: string
+  }

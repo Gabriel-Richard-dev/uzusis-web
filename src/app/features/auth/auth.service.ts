@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICadastro, IClienteauth, IClienteEmail, IResetarSenha } from 'src/app/core/interfaces/auth';
+import { ICadastro, IClienteauth, IClienteEmail, ICodigoEmail, IResetarSenha } from 'src/app/core/interfaces/auth';
 import { environment } from 'src/environments/environment.development';
 import { IToken } from 'src/app/core/interfaces/token';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,28 +32,16 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
           localStorage.setItem("token", res.token)
         },
         error: err =>{
-          console.error(err.status)
         }
       })
   }
 
   enviarCodigoConfirmarEmail(email: IClienteEmail
   ){
-//APAGAR DEPOIS:
-this.dialog.open(ConfirmarCodigoComponent)
-this.guardarConfirmarEmail = email.email
 
-    this.http.post<any>(`${urlAuth}/enviar-confirmacao-email`, email).subscribe({
+    this.http.post<any>(`${urlAuth}/enviar-confirmacao-email`, email, { responseType: 'text' as 'json' }).subscribe({
       next: res =>{
-        if(res.status === 200){
-          this.guardarConfirmarEmail = email.toString()
-          this.dialog.open(ConfirmarCodigoComponent)
 
-         
-        }
-      },
-      error: err =>{
-        if(err.status === 200){
           Swal.fire({
             position: 'center',
             icon: 'success',
@@ -62,13 +50,22 @@ this.guardarConfirmarEmail = email.email
             showConfirmButton: false,
             timer: 1500,
           });
-  
-         
-        }
-        if(err.status === 400){
-          alert(err)
+          this.guardarConfirmarEmail = email.toString()
+          this.dialog.open(ConfirmarCodigoComponent)
+      
+      },
+      error: err =>{
 
-        }
+   
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Ops..',
+          text: `Ja foi enviado um email de validação`,
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
 
       }
     })
@@ -131,21 +128,32 @@ this.guardarConfirmarEmail = email.email
 
 
   enviarCodigoEmailCadastro(codigo: string){
-    localStorage.setItem("email", this.guardarConfirmarEmail)      
-    this.router.navigate(['/cadastro'])
-    this.dialog.closeAll()
-    //APAGAR DEPOIS
+
+    const params = new HttpParams().
+    set("email", this.guardarConfirmarEmail).
+    set("codigo", codigo)
+
+    const options = {
+      params
+    }
     
-    
-    
-    this.http.post<any>(`${urlAuth}/codigo-valido`,codigo).subscribe({
+    this.http.get<any>(`${urlAuth}/codigo-valido`,options).subscribe({
       next: res =>{
         this.router.navigate(['/cadastro'])
         this.dialog.closeAll()
         localStorage.setItem("email", this.guardarConfirmarEmail)      
       },
       error: err =>{
-       
+        console.log(err.error)
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Ops...',
+          text: `${err.error[0]}`,
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
       }
     })
   }
@@ -171,14 +179,11 @@ this.guardarConfirmarEmail = email.email
         this.router.navigate(["login"])
       },
       error: err =>{
-
-  // fazer validações para caso eu esteja mandando um dado que o back nao aceita
-
         Swal.fire({
           position: 'center',
           icon: 'error',
           title: 'Ops...',
-          text: 'Não foi possivel fazer o seu cadastro tente novamente',
+          text: `${err.error[0]}`,
           showConfirmButton: false,
           timer: 1500,
      

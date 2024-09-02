@@ -1,4 +1,4 @@
-import { Component, OnInit, numberAttribute } from "@angular/core";
+import { Component, OnInit} from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ICadastro } from "src/app/core/interfaces/auth";
 import { AuthService } from "../../auth.service";

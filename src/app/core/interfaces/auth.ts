@@ -4,6 +4,7 @@ senha: string
 }
 
 export interface IResetarSenha{
+codigo: string;
 senha: string,
 confirmarSenha: string
 }
@@ -13,7 +14,8 @@ export interface IClienteEmail{
 }
 
 export interface IClienteConfirmarEmail{
-    codigo: string
+    
+  codigo: string
 }
 
 
@@ -39,6 +41,7 @@ export interface IEndereco {
   
 
   export interface ICodigoEmail{
-    codigo: string;
     email: string
+    codigo: string;
+
   }

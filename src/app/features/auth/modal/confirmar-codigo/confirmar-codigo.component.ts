@@ -2,6 +2,7 @@ import { Component, Input, ViewChildren } from '@angular/core';
 import { DialogRef } from '@angular/cdk/dialog';
 import { FormControl, FormGroup, Validators } from '@angular/forms'
 import { AuthService } from '../../auth.service';
+import { ICodigoEmail } from 'src/app/core/interfaces/auth';
 @Component({
   selector: 'app-confirmar-senha',
   templateUrl: './confirmar-senha.component.html',
@@ -40,6 +41,7 @@ export class ConfirmarCodigoComponent {
     const concatenatedValuesLenght = concatenatedValues.length
     
     if(concatenatedValuesLenght === 5){
+
       this.authService.enviarCodigoEmailCadastro(concatenatedValues)
   
     }

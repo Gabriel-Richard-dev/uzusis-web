@@ -7,6 +7,7 @@
 
     <form [formGroup] = "formResetarSenha">
       <label for="">Redefina sua senha</label>
+      <input type="text" formControlName = "codigo">
       <input type="password" formControlName="senha">
       <input type="password" formControlName="confirmarSenha">
       <button type="submit"  (click) = "resetarSenha()">enviar</button>

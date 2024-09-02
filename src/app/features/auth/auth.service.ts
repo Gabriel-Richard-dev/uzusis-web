@@ -112,8 +112,8 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
     })
   }
 
-  resetarSenha(Senhas: IResetarSenha){
-    this.http.post(`${urlAuth}/resetar-senha`, Senhas).subscribe({
+  resetarSenha(formResetarSenha: IResetarSenha){
+    this.http.post(`${urlAuth}/resetar-senha`, formResetarSenha).subscribe({
       next: res =>{
         Swal.fire({
           position: 'center',
@@ -143,17 +143,24 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
 
 
   enviarCodigoEmailCadastro(codigo: string){
+    const confirmarCodigoEmail =<ICodigoEmail> {
+      codigo,
+      email: this.guardarConfirmarEmail
 
-    const params = new HttpParams().
-    set("email", this.guardarConfirmarEmail).
-    set("codigo", codigo)
-
-    const options = {
-      params
     }
-    
-    this.http.get<any>(`${urlAuth}/codigo-valido`,options).subscribe({
+   
+     this.http.post<any>(`${urlAuth}/codigo-valido`,confirmarCodigoEmail).subscribe({
       next: res =>{
+
+        Swal.fire({
+          position: 'center',
+          icon: 'success',
+          title: 'OK',
+          text: `Código Verificado `,
+          showConfirmButton: false,
+          timer: 1000,
+     
+        });
         this.router.navigate(['/cadastro'])
         this.dialog.closeAll()
         localStorage.setItem("email", this.guardarConfirmarEmail)      
@@ -164,7 +171,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
           position: 'center',
           icon: 'error',
           title: 'Ops...',
-          text: `código invaido`,
+          text: `código invaiido`,
           showConfirmButton: false,
           timer: 1500,
      
@@ -175,7 +182,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
 
   
   enviarCep(cep: string): Observable<any>{
-  return  this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`)
+  return this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`)
   }
 
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, numberAttribute } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ICadastro } from "src/app/core/interfaces/auth";
 import { AuthService } from "../../auth.service";
@@ -115,10 +115,14 @@ export class CadastroComponent implements OnInit {
   }
 
   onSubmit() {
+     
+
+
+
     this.formularioEnviarError = false
     const cliente: ICadastro = {
       nome: this.formCadastrar.value.nome || "",
-      email: this.formCadastrar.value.email || "",
+      email: localStorage.getItem("email") || "",
       senha: this.formCadastrar.value.senha || "",
       confirmarSenha: this.formCadastrar.value.senha || "",
       cpf: this.formCadastrar.value.cpf || "",

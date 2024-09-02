@@ -21,10 +21,7 @@ export class LoginComponent {
     ]),
     senha: new FormControl('',[
       Validators.required,
-      Validators.minLength(8),
-      Validators.pattern(
-        '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&áãâàäåæçéèêëíìîïóòôõöøúùûü])[A-Za-z\\d@$!%*?&áãâàäåæçéèêëíìîïóòôõöøúùûü]{8,}$'
-      ),
+ 
     ])
   })
 

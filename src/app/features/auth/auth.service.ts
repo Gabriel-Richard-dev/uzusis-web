@@ -30,6 +30,21 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
       this.http.post<IToken>(`${urlAuth}/login`, auth).subscribe({
         next: res =>{
           localStorage.setItem("token", res.token)
+          
+          Swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: 'Ok',
+            text: `Login realizado com sucesso`,
+            showConfirmButton: false,
+            timer: 1500,
+       
+          });
+  
+
+          this.router.navigate(['/'])
+
+
         },
         error: err =>{
         }
@@ -50,7 +65,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
             showConfirmButton: false,
             timer: 1500,
           });
-          this.guardarConfirmarEmail = email.toString()
+          this.guardarConfirmarEmail = email.email
           this.dialog.open(ConfirmarCodigoComponent)
       
       },
@@ -149,7 +164,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
           position: 'center',
           icon: 'error',
           title: 'Ops...',
-          text: `${err.error[0]}`,
+          text: `código invaido`,
           showConfirmButton: false,
           timer: 1500,
      

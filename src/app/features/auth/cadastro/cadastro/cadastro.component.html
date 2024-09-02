@@ -72,6 +72,7 @@
         <div>
           <label for="dataNascimento">Data de Nascimento:</label>
           <input 
+          type="date"
             id="dataNascimento" 
             formControlName="dataNascimento" 
             [ngClass]="{'invalid-field': formCadastrar.get('dataNascimento')?.invalid && formularioEnviarError}" 

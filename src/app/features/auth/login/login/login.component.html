@@ -3,14 +3,18 @@
 <div class="escopo">
   <div class="content col-6">
    <div class="container-border">
+ 
     <form action="" [formGroup]="formLogin">
+      <label for="">Logue-se</label>
       <input type="email"  formControlName="email" />
       <input type="password" formControlName="senha" />
       <button type="submit" (click) = "logar()">click</button>
+      <a href="/enviarEmail">esqueci minha senha</a>
     </form>
 
 
     <form [formGroup] = "formEnviarEmail">
+      <label for="">Enviar email</label>
       <input type="text" formControlName="email">
       <button type="submit"  (click) = "enviarEmail()">enviar</button>
     </form>

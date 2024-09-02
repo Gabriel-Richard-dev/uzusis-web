@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormGroup,FormControl, Validators} from '@angular/forms';
-import { IClienteEmail, IClienteauth } from 'src/app/core/interfaces/auth';
+import  {IClienteauth, IClienteEmail } from 'src/app/core/interfaces/auth';
 import { AuthService } from '../../auth.service';
 import Swal from 'sweetalert2';
 @Component({
@@ -21,10 +21,7 @@ export class LoginComponent {
     ]),
     senha: new FormControl('',[
       Validators.required,
-      Validators.minLength(8),
-      Validators.pattern(
-        '^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&áãâàäåæçéèêëíìîïóòôõöøúùûü])[A-Za-z\\d@$!%*?&áãâàäåæçéèêëíìîïóòôõöøúùûü]{8,}$'
-      ),
+ 
     ])
   })
 
@@ -40,9 +37,9 @@ export class LoginComponent {
       const enviarEmail = <IClienteEmail>{
         email: this.formEnviarEmail.value.email
       }
-      this.authService.enviarEmail(enviarEmail)
+      this.authService.enviarCodigoConfirmarEmail(enviarEmail)
     }
-  
+
   }
 
 

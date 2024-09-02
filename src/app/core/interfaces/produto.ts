@@ -36,3 +36,8 @@ sigla:string;
 quantidade:number;
 }
 
+export interface Carrinho{
+  produtoId:number,
+  sigla:string,
+  quantidade:number
+}

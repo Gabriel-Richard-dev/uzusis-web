@@ -134,3 +134,7 @@ input[type="number"] {
   font-family: Open Sans !important;
   font-size: 15px !important;
 }
+
+::ng-deep .swal2-actions{
+  gap: 20px;
+}

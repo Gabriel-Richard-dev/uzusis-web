@@ -1,7 +1,9 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { NgbCarousel, NgbSlideEvent, NgbSlideEventSource } from '@ng-bootstrap/ng-bootstrap';
 import { produto } from 'src/app/core/interfaces/produto';
+import { ModalService } from './modal.service';
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -12,7 +14,8 @@ import { produto } from 'src/app/core/interfaces/produto';
 export class ModalsComponent {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data:produto,
-	
+		public dialog:MatDialog,
+		private modalService:ModalService,
   ){}	
   quantidade:number=1;
 	Visible:boolean=false;
@@ -61,7 +64,7 @@ export class ModalsComponent {
 		this.Visible=true
     this.selectedSize=size
 		
-		console.log(this.estoque)
+		
 		switch(size){
 			case 'P':
 				this.disponivel=this.P
@@ -114,4 +117,38 @@ export class ModalsComponent {
       this.quantidade++;
     }
   }
+Adicionar(){
+	const token = localStorage.getItem('token')
+	
+	if(!token){
+	const swalWithBootstrapButtons = Swal.mixin({
+		customClass: {
+			confirmButton: "btn btn-success",
+			cancelButton: "btn btn-danger"
+		},
+		buttonsStyling: false
+	});
+	swalWithBootstrapButtons.fire({
+		title: "Você não está logado!",
+		text: "Deseja criar uma conta ou se cadastrar para adicionar ao carrinho?",
+		icon: "warning",
+		showCancelButton: true,
+		confirmButtonText: "Sim",
+		cancelButtonText: "Não",
+		reverseButtons: true
+	}).then((result) => {
+		if (result.isConfirmed) {
+			
+			
+		} else if (
+			result.dismiss === Swal.DismissReason.cancel
+		) {
+			this.dialog.closeAll()
+		}
+	});
+	}
+	else{
+		
+	}
+}
 }

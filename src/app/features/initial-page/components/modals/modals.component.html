@@ -40,7 +40,7 @@
               <input type="number" [(ngModel)]="quantidade" min="1" [max]="disponivel" class="quantidade-input" disabled>
               <button class="btn-increase" (click)="increaseQuantity()">+</button>
             </div>
-            <button class="adicionar" *ngIf="auxiliar">Adicionar ao carrinho</button>
+            <button class="adicionar" *ngIf="auxiliar" (click)="Adicionar()">Adicionar ao carrinho</button>
           </div>
         </div>
         <p class="estoque" *ngIf="!auxiliar">

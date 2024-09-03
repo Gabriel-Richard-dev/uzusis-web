@@ -4,8 +4,7 @@ import { BehaviorSubject, Observable, map } from 'rxjs';
 import { produto } from 'src/app/core/interfaces/produto'; // Ajuste conforme necessário
 import { environment } from 'src/environments/environment.development';
 
-const api = 'https://8c31-200-17-32-208.ngrok-free.app/';
-const key = '';
+
 
 @Injectable({
   providedIn: 'root'
@@ -24,25 +23,36 @@ export class NavbarService {
     getCategoria(): Observable<string | null>{
       return this.categorias
     }
-  apiurl = `${api}`;
-  key = `${key}`;
+  apiurl = environment.apiUrl;
+
 
   lista(pag: number,id:any): Observable<produto[]> {
-    return this.http.get<{ produtos: produto[] }>(`http://10.50.12.44:5141/produto/${pag}?categoriaProduto=${id}`)
+    return this.http.get<{ produtos: produto[] }>(`${this.apiurl}/produto/${pag}?categoriaProduto=${id}`)
       .pipe(map(response => response.produtos));
-  }
-  //google-chrome --disable-web-security --user-data-dir="/tmp/"
+    }
+    //google-chrome --disable-web-security --user-data-dir="/tmp/"
+    pesquisarProdutos(nome: string): Observable<produto[]> {
+      if(nome.length>0){
+        return this.http.get<produto[]>(`${this.apiurl}/produto/nome?nome=${nome}`)
+      }
+      else{
+        return this.http.get<{ produtos: produto[] }>(`${this.apiurl}/produto/1?categoriaProduto=`)
+      .pipe(map(response => response.produtos));
+      }
+    
+    }
 
  
 
   getQuantidadePaginas(): Observable<number> {
-    return this.http.get<{ quantidadePaginas: number }>(`http://10.50.12.44:5141/produto/1`)
+    return this.http.get<{ quantidadePaginas: number }>(`${this.apiurl}/produto/1`)
       .pipe(map(response => response.quantidadePaginas));
   }
 
   updateProdutos(produtos: produto[]): void {
     this.produtosSubject.next(produtos);
   }
+
 }
 
 

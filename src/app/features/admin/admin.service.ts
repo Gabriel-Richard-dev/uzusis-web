@@ -37,7 +37,7 @@ autenticar(auth: IClienteauth){
       });
 
 
-      this.router.navigate(['/'])
+      this.router.navigate(['admin'])
 
 
     },

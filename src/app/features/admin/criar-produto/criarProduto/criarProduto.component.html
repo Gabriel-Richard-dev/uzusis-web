@@ -1,4 +1,6 @@
-<app-navbar/>
+
+<div class="flex d-flex">
+<app-sidebar></app-sidebar>
 
 <div class="escopo">
   <div class="content col-6">
@@ -11,12 +13,11 @@
       <input type="number" formControlName="QuantidadeP" />
       <input type="number" formControlName="QuantidadeM" />
       <input type="number" formControlName="QuantidadeG" />
-      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFIles" multiple/>
+      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
       <input type="text" formControlName="Categoria" />
       <button type="submit" (click) = "cadastrarFoto()">click</button>
       </form>
     </div>
   </div>
 </div>
-
-  <app-footer></app-footer>
+</div>

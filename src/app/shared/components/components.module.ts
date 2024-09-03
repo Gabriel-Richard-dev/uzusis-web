@@ -10,6 +10,7 @@ import { MaterialModule } from '../material.module';
 import { PesquisarComponent } from './pesquisar/pesquisar.component';
 import { FooterComponent } from './footer/footer.component';
 import { CriarProdutoComponent } from 'src/app/features/admin/criar-produto/criarProduto/criarProduto.component';
+import { LoginAdmComponent } from 'src/app/features/admin/tela-adm-logar/login-adm/login-adm.component';
 
 
 
@@ -19,7 +20,8 @@ import { CriarProdutoComponent } from 'src/app/features/admin/criar-produto/cria
     NavbarComponent,
     PesquisarComponent,
     FooterComponent,
-    CriarProdutoComponent
+    CriarProdutoComponent,
+    LoginAdmComponent
   ],
   imports: [
     CommonModule,

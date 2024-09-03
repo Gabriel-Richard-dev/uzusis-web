@@ -1,0 +1,18 @@
+<app-navbar />
+
+<div class="escopo">
+  <div class="content col-6">
+   <div class="container-border">
+ 
+    <form action="" [formGroup]="formLogin">
+      <label for="">Logue-se como administrador</label>
+      <input type="email"  formControlName="email" />
+      <input type="password" formControlName="senha" />
+      <button type="submit" (click) = "logar()">click</button>
+    </form>
+
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

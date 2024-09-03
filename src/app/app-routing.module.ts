@@ -6,6 +6,7 @@ import { ResetarSenhaComponent } from "./features/auth/resetar-senha/resetar-sen
 import { CadastroComponent } from "./features/auth/cadastro/cadastro/cadastro.component";
 import { EnviarEmailResetarSenhaComponent } from "./features/auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component";
 import { CriarProdutoComponent } from "./features/admin/criar-produto/criarProduto/criarProduto.component";
+import { LoginAdmComponent } from "./features/admin/tela-adm-logar/login-adm/login-adm.component";
 
 
 
@@ -29,6 +30,11 @@ const routes: Routes = [
   {
     path: "cadastro",
     component:CadastroComponent
+  },
+
+  {
+    path: "login-admin",
+    component: LoginAdmComponent
   },
   {
     path: "enviarEmail",

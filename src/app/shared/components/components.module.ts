@@ -9,6 +9,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { MaterialModule } from '../material.module';
 import { PesquisarComponent } from './pesquisar/pesquisar.component';
 import { FooterComponent } from './footer/footer.component';
+import { CriarProdutoComponent } from 'src/app/features/admin/criar-produto/criarProduto/criarProduto.component';
 
 
 
@@ -17,7 +18,8 @@ import { FooterComponent } from './footer/footer.component';
   declarations: [
     NavbarComponent,
     PesquisarComponent,
-    FooterComponent
+    FooterComponent,
+    CriarProdutoComponent
   ],
   imports: [
     CommonModule,
@@ -36,7 +38,7 @@ import { FooterComponent } from './footer/footer.component';
   FooterComponent
   
   ], providers: [
-   
+
   ]
 })
 export class ComponentsModule { }

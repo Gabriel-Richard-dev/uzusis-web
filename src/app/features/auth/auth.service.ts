@@ -47,6 +47,15 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
 
         },
         error: err =>{
+          Swal.fire({
+            position: 'center',
+            icon: 'error',
+            title: 'Ops...',
+            text: `${err.error[0]}`,
+            showConfirmButton: false,
+            timer: 1500,
+       
+          });
         }
       })
   }

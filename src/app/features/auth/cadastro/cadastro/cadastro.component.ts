@@ -13,6 +13,10 @@ import Swal from "sweetalert2";
 export class CadastroComponent implements OnInit {
   email: string = localStorage.getItem("email") || "";
   formularioEnviarError: boolean = false
+  rua: string = ""
+  cidade: string = ""
+  bairro: string = ""
+  estado: string = ""
   constructor(private AuthService: AuthService) {}
 
   ngOnInit() {}
@@ -97,6 +101,12 @@ export class CadastroComponent implements OnInit {
     if (cep.length === 8 || cep.length === 9) {
       this.AuthService.enviarCep(cep).subscribe({
         next: (res: ICEP) => {
+          this.rua = res.logradouro;
+          this.bairro = res.bairro;
+          this.cidade = res.localidade;
+          this.estado = res.estado
+
+
           if(res.erro != "true"){
           this.formCadastrar.patchValue({
             rua: res.logradouro,
@@ -120,7 +130,7 @@ export class CadastroComponent implements OnInit {
 
 
     this.formularioEnviarError = false
-    const cliente: ICadastro = {
+    const cliente = <ICadastro>{
       nome: this.formCadastrar.value.nome || "",
       email: localStorage.getItem("email") || "",
       senha: this.formCadastrar.value.senha || "",
@@ -130,11 +140,11 @@ export class CadastroComponent implements OnInit {
       dataNascimento: this.formCadastrar.value.dataNascimento || "",
       endereco: {
         cep: this.formCadastrar.value.cep || "",
-        rua: this.formCadastrar.value.rua || "",
+        rua: this.rua,
+        bairro: this.bairro,
+        cidade: this.cidade,
+        estado: this.estado,
         numero: this.formCadastrar.value.numero || "",
-        bairro: this.formCadastrar.value.bairro || "",
-        cidade: this.formCadastrar.value.cidade || "",
-        estado: this.formCadastrar.value.estado || "",
       },
     };
 

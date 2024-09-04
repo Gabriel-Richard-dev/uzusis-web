@@ -13,3 +13,8 @@ export interface IAdicionarProduto {
   export interface IAdicionarFoto{
     FotoFiles: File[]
   }
+
+  export interface Categoria {
+    categoria: number;
+    nomeCategoria: string;
+  }

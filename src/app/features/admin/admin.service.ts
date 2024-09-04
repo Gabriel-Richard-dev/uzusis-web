@@ -1,6 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import { Observable } from 'rxjs/internal/Observable';
 import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
 import { IClienteauth } from 'src/app/core/interfaces/auth';
 import { IToken } from 'src/app/core/interfaces/token';
@@ -9,6 +10,7 @@ import Swal from 'sweetalert2';
 
 const apiUrlProduto = `${environment.apiUrl}/produto`
 const apiUrlAdm = `${environment.apiUrl}/administradorauth`
+const apiUrlCompra = `${environment.apiUrl}/compra`
 
 
 
@@ -71,13 +73,32 @@ adicionarProduto(adicionarProduto: IAdicionarProduto){
   formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao)
 
 console.log(adicionarProduto.FotoUrls)
- adicionarProduto.FotoUrls.forEach((file, index) =>{
-
-  formDataAdicionarProduto.append(`FotoFiles[${index}]`,file)
+ adicionarProduto.FotoUrls.forEach((file) =>{
+  formDataAdicionarProduto.append(`FotoFiles`,file)
     console.log(file)
   })
+
+
  
 this.http.post(`${apiUrlProduto}/adicionar`,formDataAdicionarProduto).subscribe()
 
 }
+
+
+pedidosPendentes() :Observable<any>{
+
+
+
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${localStorage.getItem("token")}`
+  })
+
+  const options = {
+    headers
+  }
+
+  return this.http.get<any>(`${apiUrlCompra}/administrador/dashboard`,options)
+
+}
+
 }

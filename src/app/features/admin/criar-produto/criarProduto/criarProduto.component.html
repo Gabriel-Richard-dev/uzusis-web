@@ -32,9 +32,10 @@
     </div>
     <mat-form-field style="width: 50%;">
       <mat-label>Categoria</mat-label>
-      <mat-select  [(value)]="selecionado">
-        <mat-option value="0">Calça</mat-option>
-        <mat-option value="1">Blusa</mat-option>
+      <mat-select [(value)]="selecionado">
+        <mat-option *ngFor="let categoria of categorias" [value]="categoria.categoria">
+          {{ categoria.nomeCategoria }}
+        </mat-option>
       </mat-select>
     </mat-form-field>
     <input style="height: 100px;" type="text"  formControlName="Descricao" placeholder="Descricao" />

@@ -4,7 +4,9 @@
   <div class="escopo">
     <div class="content col-6">
      <div class="container-border">
-
+        <div *ngFor="let pedido of pedidosPendentes">
+          {{pedido.id}}
+        </div>
       </div>
     </div>
   </div>

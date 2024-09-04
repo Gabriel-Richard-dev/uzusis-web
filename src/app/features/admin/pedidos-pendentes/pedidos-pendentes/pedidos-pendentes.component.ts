@@ -1,4 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { AdminService } from '../../admin.service';
+import { pipe } from 'rxjs';
+
+
 
 @Component({
   selector: 'app-pedidos-pendentes',
@@ -7,9 +11,20 @@ import { Component, OnInit } from '@angular/core';
 })
 export class PedidosPendentesComponent implements OnInit {
 
-  constructor() { }
+pedidosPendentes =<any>[]
+  
+  constructor(private adminService: AdminService) { }
 
-  ngOnInit() {
+  ngOnInit() {  
+    this.adminService.pedidosPendentes().subscribe({
+      next: res =>{
+    res.forEach((element: any) => {
+        console.log(element)
+      });
+        this.pedidosPendentes = res
+      }
+    })
+
   }
 
 }

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
+import { Categoria, IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
 import { AdminService } from '../../admin.service';
 
 @Component({
@@ -10,6 +10,17 @@ import { AdminService } from '../../admin.service';
 })
 export class CriarProdutoComponent implements OnInit {
   selecionado!: number
+  categorias: Categoria[] = [
+    { categoria: 0, nomeCategoria: 'Calça' },
+    { categoria: 1, nomeCategoria: 'Short' },
+    { categoria: 2, nomeCategoria: 'Saia' },
+    { categoria: 3, nomeCategoria: 'Cropped' },
+    { categoria: 4, nomeCategoria: 'Conjuntos' },
+    { categoria: 5, nomeCategoria: 'Blusão' },
+    { categoria: 6, nomeCategoria: 'Body' },
+    { categoria: 7, nomeCategoria: 'Blusa' },
+    { categoria: 8, nomeCategoria: 'Acessórios' }
+  ];
 
   constructor(private adminService: AdminService) { }
 
@@ -72,9 +83,7 @@ export class CriarProdutoComponent implements OnInit {
 
     onFilesSelected(event: any){
       this.produto.FotoFiles = Array.from(event.target.files)
-      
-      
-      
+      console.log(this.produto.FotoFiles)
     }
 
 

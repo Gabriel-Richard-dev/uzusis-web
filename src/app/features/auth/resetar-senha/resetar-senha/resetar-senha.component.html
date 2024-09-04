@@ -1,0 +1,20 @@
+<app-navbar/>
+
+<div class="escopo">
+  <div class="content col-6">
+   <div class="container-border">
+
+
+    <form [formGroup] = "formResetarSenha">
+      <label for="">Redefina sua senha</label>
+      <input type="text" formControlName = "codigo">
+      <input type="password" formControlName="senha">
+      <input type="password" formControlName="confirmarSenha">
+      <button type="submit"  (click) = "resetarSenha()">enviar</button>
+      <a href="/login"> voltar</a>
+    </form>
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

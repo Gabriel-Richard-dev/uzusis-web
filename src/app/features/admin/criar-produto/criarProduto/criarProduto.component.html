@@ -1,0 +1,23 @@
+
+<div class="flex d-flex">
+<app-sidebar></app-sidebar>
+
+<div class="escopo">
+  <div class="content col-6">
+   <div class="container-border">
+ 
+    <form action="" [formGroup]="criarProduto">
+      <label for="">Crie um novo produto</label>
+      <input type="text"  formControlName="Nome" />
+      <input type="number" formControlName="Preco" />
+      <input type="number" formControlName="QuantidadeP" />
+      <input type="number" formControlName="QuantidadeM" />
+      <input type="number" formControlName="QuantidadeG" />
+      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
+      <input type="text" formControlName="Categoria" />
+      <button type="submit" (click) = "cadastrarFoto()">click</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>

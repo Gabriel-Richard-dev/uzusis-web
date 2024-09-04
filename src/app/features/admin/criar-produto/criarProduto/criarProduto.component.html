@@ -7,22 +7,41 @@
    <div class="container-border">
  
     <form action="" [formGroup]="criarProduto">
+      
+      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
+      
+      
       <label for="">Crie um novo produto</label>
       <input type="text"  formControlName="Nome" placeholder="nome do produto" />
       <label for="">Preço de venda</label>
       <input type="number" formControlName="Preco"  placeholder="R$ 00,00"/>
       <label for="">Adicionar tamanhos</label>  
       <div class="quantidade d-flex">
-        
-      <input type="number" formControlName="QuantidadeP" />
-      <input type="number" formControlName="QuantidadeM" />
-      <input type="number" formControlName="QuantidadeG" />
+      <div>
+        <label for="">P</label>  
+      <input type="number" formControlName="QuantidadeP"/>
     </div>
-<select name="" id="0">oi</select>
+    <div>
+      <label for="">M</label>    
+      <input type="number" formControlName="QuantidadeM"/>
+    </div>
+    <div>
+      <label for="">G</label>    
+      <input type="number" formControlName="QuantidadeG"/>
+    </div>
+    </div>
+    <mat-form-field style="width: 50%;">
+      <mat-label>Categoria</mat-label>
+      <mat-select  [(value)]="selecionado">
+        <mat-option value="0">Calça</mat-option>
+        <mat-option value="1">Blusa</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <input style="height: 100px;" type="text"  formControlName="Descricao" placeholder="Descricao" />
 
-      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
 
-      <button type="submit" (click) = "cadastrarFoto()">click</button>
+
+      <button type="submit" (click) = "cadastrarProduto()">click</button>
       </form>
     </div>
   </div>

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IClienteauth } from 'src/app/core/interfaces/auth';
-import { AdminService } from '../admin.service';
+import { AdminService } from 'src/app/features/admin/admin.service';
+
 import Swal from 'sweetalert2';
 
 @Component({

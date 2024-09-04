@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
+import { AdminService } from '../../admin.service';
 
 @Component({
   selector: 'app-criarProduto',
@@ -8,8 +9,9 @@ import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdic
   styleUrls: ['./criarProduto.component.css']
 })
 export class CriarProdutoComponent implements OnInit {
+  selecionado!: number
 
-  constructor() { }
+  constructor(private adminService: AdminService) { }
 
   ngOnInit() {
   }
@@ -53,13 +55,26 @@ export class CriarProdutoComponent implements OnInit {
   });
 
 
-  cadastrarFoto(){
-    
+  cadastrarProduto(){
+  
+    const produtoValues = {
+      Nome: this.criarProduto.value.Nome || '', // Valor padrão se Nome for null ou undefined
+      Preco: this.criarProduto.value.Preco ?? 0, // Valor padrão se Preco for null ou undefined
+      QuantidadeP: this.criarProduto.value.QuantidadeP ?? 0,
+      QuantidadeM: this.criarProduto.value.QuantidadeM ?? 0,
+      QuantidadeG: this.criarProduto.value.QuantidadeG ?? 0,
+      FotoUrls: this.produto.FotoFiles, // Assumindo que FotoFiles é um array de arquivos
+      Categoria: this.criarProduto.value.Categoria ?? 0,
+      Descricao: this.criarProduto.value.Descricao || ''
+    };;
+    this.adminService.adicionarProduto(produtoValues)
   }
 
     onFilesSelected(event: any){
       this.produto.FotoFiles = Array.from(event.target.files)
-      console.log(this.produto.FotoFiles)
+      
+      
+      
     }
 
 

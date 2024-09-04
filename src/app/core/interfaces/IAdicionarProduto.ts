@@ -5,7 +5,8 @@ export interface IAdicionarProduto {
     QuantidadeM: number;    // Quantidade do tamanho médio
     QuantidadeG: number;    // Quantidade do tamanho grande
     Categoria: number;      // ID da categoria do produto
-    Descricao: string;      // Descrição do produto
+    Descricao: string;  
+    FotoUrls: File[]    // Descrição do produto
   }
   
 

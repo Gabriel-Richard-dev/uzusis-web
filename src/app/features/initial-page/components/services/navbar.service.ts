@@ -28,7 +28,7 @@ export class NavbarService {
   key = `${key}`;
 
   lista(pag: number,id:any): Observable<produto[]> {
-    return this.http.get<{ produtos: produto[] }>(`http://10.50.12.44:5141/produto/${pag}?categoriaProduto=${id}`)
+    return this.http.get<{ produtos: produto[] }>(`${api}produto/${pag}?categoriaProduto=${id}`)
       .pipe(map(response => response.produtos));
   }
   //google-chrome --disable-web-security --user-data-dir="/tmp/"
@@ -36,7 +36,7 @@ export class NavbarService {
  
 
   getQuantidadePaginas(): Observable<number> {
-    return this.http.get<{ quantidadePaginas: number }>(`http://10.50.12.44:5141/produto/1`)
+    return this.http.get<{ quantidadePaginas: number }>(`${api}produto/1`)
       .pipe(map(response => response.quantidadePaginas));
   }
 

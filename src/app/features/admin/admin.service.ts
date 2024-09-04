@@ -1,13 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
+import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
 import { IClienteauth } from 'src/app/core/interfaces/auth';
 import { IToken } from 'src/app/core/interfaces/token';
 import { environment } from 'src/environments/environment.development';
 import Swal from 'sweetalert2';
 
-const apiUrl = `${environment}/produto`
+const apiUrlProduto = `${environment.apiUrl}/produto`
 const apiUrlAdm = `${environment.apiUrl}/administradorauth`
 
 
@@ -61,6 +61,23 @@ uploadFiles(imagens: File[]){
 }
 
 adicionarProduto(adicionarProduto: IAdicionarProduto){
+  const formDataAdicionarProduto = new FormData()
+  formDataAdicionarProduto.append("Nome", adicionarProduto.Nome);
+  formDataAdicionarProduto.append("Preco", adicionarProduto.Preco.toString())
+  formDataAdicionarProduto.append("QuantidadeP", adicionarProduto.QuantidadeP.toString())
+  formDataAdicionarProduto.append("QuantidadeM", adicionarProduto.QuantidadeM.toString())
+  formDataAdicionarProduto.append("QuantidadeG", adicionarProduto.QuantidadeG.toString())
+  formDataAdicionarProduto.append("Categoria", adicionarProduto.Categoria.toString())
+  formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao)
+
+console.log(adicionarProduto.FotoUrls)
+ adicionarProduto.FotoUrls.forEach((file, index) =>{
+
+  formDataAdicionarProduto.append(`FotoFiles[${index}]`,file)
+    console.log(file)
+  })
+ 
+this.http.post(`${apiUrlProduto}/adicionar`,formDataAdicionarProduto).subscribe()
 
 }
 }

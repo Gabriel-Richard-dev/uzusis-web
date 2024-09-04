@@ -7,25 +7,20 @@ export interface produto{
   nome:string;
   descricao:string;
   nomePessoa:string;
-  categoria:string;
+  categoria:number;
   preco:number;
   id:number;
-  tamanhos:string[];
+  tamanhos:tamanhos[];
   quantidade:number;
+  categoriaNome:string;
+}  
+export interface tamanhos{
+sigla:string;
+quantidade:number;
 }
-// export interface produtos{
-//   fotoUrls:string[];
-//   nome:string;
-//   descricao:string;
-//   nomePessoa:string;
-//   categoria:string;
-//   preco:number;
-//   id:number;
-//   tamanhos:string[];
-//   quantidade:number;
-// }
 
-// export interface produto{
-//   quantidadePaginas:number;
-//   produto:produtos[]
-// }
+export interface Carrinho{
+  produtoId:number,
+  sigla:string,
+  quantidade:number
+}

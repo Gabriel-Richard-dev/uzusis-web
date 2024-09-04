@@ -37,7 +37,7 @@ autenticar(auth: IClienteauth){
       });
 
 
-      this.router.navigate(['admin'])
+      this.router.navigate(['admin/criar-produto'])
 
 
     },

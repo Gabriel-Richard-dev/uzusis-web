@@ -8,13 +8,20 @@
  
     <form action="" [formGroup]="criarProduto">
       <label for="">Crie um novo produto</label>
-      <input type="text"  formControlName="Nome" />
-      <input type="number" formControlName="Preco" />
+      <input type="text"  formControlName="Nome" placeholder="nome do produto" />
+      <label for="">Preço de venda</label>
+      <input type="number" formControlName="Preco"  placeholder="R$ 00,00"/>
+      <label for="">Adicionar tamanhos</label>  
+      <div class="quantidade d-flex">
+        
       <input type="number" formControlName="QuantidadeP" />
       <input type="number" formControlName="QuantidadeM" />
       <input type="number" formControlName="QuantidadeG" />
+    </div>
+<select name="" id="0">oi</select>
+
       <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
-      <input type="text" formControlName="Categoria" />
+
       <button type="submit" (click) = "cadastrarFoto()">click</button>
       </form>
     </div>

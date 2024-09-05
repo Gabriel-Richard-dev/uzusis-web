@@ -1,17 +1,47 @@
-<app-navbar/>
+
+
+
+
+<app-navbar />
 
 <div class="escopo">
+ <div class="margin-left"> <h1>Esqueceu sua senha?</h1>
+<p>insira o codigo enviado no seu email</p>
+</div>
   <div class="content col-6">
-   <div class="container-border">
+     
+
+   <div class="container-border d-flex mt-3">
 
 
-    <form [formGroup] = "formResetarSenha">
-      <label for="">Redefina sua senha</label>
-      <input type="password" formControlName="senha">
-      <input type="password" formControlName="confirmarSenha">
-      <button type="submit"  (click) = "resetarSenha()">enviar</button>
-      <a href="/login"> voltar</a>
+<div class="container-form-login">
+    <form [formGroup]="formResetarSenha" class="" >
+      <div class="border-bottom border-black mb-3">
+        <span><strong> Insira os dados:</strong></span>
+      </div>
+
+      <div class="form-group d-flex mb-3">
+        <label class="mt-1" for="exampleInputPassword1">Codigo:</label>
+        <input formControlName="codigo" type="text" class="form-control" id="exampleInputPassword1" >
+      </div>
+
+      <div class="form-group d-flex mb-3">
+        <label class="mt-1" for="exampleInputPassword1">Senha:</label>
+        <input formControlName="senha" type="password" class="form-control" id="exampleInputPassword1" >
+      </div>
+
+      <div class="form-group d-flex mb-3">
+        <label class="mt-1" for="exampleInputPassword1">Confirmar</label>
+        <input formControlName="confirmarSenha" type="password" class="form-control" id="exampleInputPassword1" >
+        
+      </div> 
+      <button  (click) ="resetarSenha()"  type="submit" class="btn btn-primary">Enviar:</button>
     </form>
+  </div>
+
+
+
+
     </div>
   </div>
 </div>

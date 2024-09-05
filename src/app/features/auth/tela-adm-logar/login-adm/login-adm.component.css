@@ -1,0 +1,38 @@
+.content{
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  align-items: center;
+  margin-top: 20px;
+ 
+
+}
+.title{
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+  margin-top: 50px;
+}
+
+form{
+  background-color: #e1ded8;
+  margin-top: 20%;
+  gap: 5%;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 200px;
+}
+
+
+.escopo{
+  width: 1300px;
+  margin: 0 auto;
+  margin-top: 100px;
+
+  .container-border{
+      border: black;
+  }
+}

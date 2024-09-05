@@ -9,15 +9,30 @@ import { NavbarComponent } from './navbar/navbar.component';
 import { MaterialModule } from '../material.module';
 import { PesquisarComponent } from './pesquisar/pesquisar.component';
 import { FooterComponent } from './footer/footer.component';
-
-
+import { CriarProdutoComponent } from 'src/app/features/admin/criar-produto/criarProduto/criarProduto.component';
+import { SidebarComponent } from 'src/app/features/admin/components-admin/sidebar/sidebar.component';
+import { HistoricoPedidosComponent } from 'src/app/features/admin/historicos-de-pedidos/historico-pedidos/historico-pedidos.component';
+import { PedidosPendentesComponent } from 'src/app/features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component';
+import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component';
+import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
 
 
 @NgModule({
   declarations: [
     NavbarComponent,
     PesquisarComponent,
-    FooterComponent
+    FooterComponent,
+    LoginAdmComponent,
+    SidebarComponent,
+    CriarProdutoComponent,
+    HistoricoPedidosComponent,
+    PedidosPendentesComponent,
+    PegarProdutosComponent,
+
+    
+
+
+   
   ],
   imports: [
     CommonModule,
@@ -28,15 +43,18 @@ import { FooterComponent } from './footer/footer.component';
     MatSelectModule,
     FormsModule,
     MaterialModule,
+
+  
     
   ],
   exports: [
   NavbarComponent,
   PesquisarComponent,
-  FooterComponent
+  FooterComponent,
+  SidebarComponent
   
   ], providers: [
-   
+
   ]
 })
 export class ComponentsModule { }

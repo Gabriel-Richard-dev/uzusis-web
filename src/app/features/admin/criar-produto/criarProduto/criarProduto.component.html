@@ -1,0 +1,50 @@
+
+<div class="flex d-flex">
+<app-sidebar></app-sidebar>
+
+<div class="escopo">
+  <div class="content col-6">
+   <div class="container-border">
+ 
+    <form action="" [formGroup]="criarProduto">
+      
+      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
+      
+      
+      <label for="">Crie um novo produto</label>
+      <input type="text"  formControlName="Nome" placeholder="nome do produto" />
+      <label for="">Preço de venda</label>
+      <input type="number" formControlName="Preco"  placeholder="R$ 00,00"/>
+      <label for="">Adicionar tamanhos</label>  
+      <div class="quantidade d-flex">
+      <div>
+        <label for="">P</label>  
+      <input type="number" formControlName="QuantidadeP"/>
+    </div>
+    <div>
+      <label for="">M</label>    
+      <input type="number" formControlName="QuantidadeM"/>
+    </div>
+    <div>
+      <label for="">G</label>    
+      <input type="number" formControlName="QuantidadeG"/>
+    </div>
+    </div>
+    <mat-form-field style="width: 50%;">
+      <mat-label>Categoria</mat-label>
+      <mat-select [(value)]="selecionado">
+        <mat-option *ngFor="let categoria of categorias" [value]="categoria.categoria">
+          {{ categoria.nomeCategoria }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <input style="height: 100px;" type="text"  formControlName="Descricao" placeholder="Descricao" />
+
+
+
+      <button type="submit" (click) = "cadastrarProduto()">click</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>

@@ -15,6 +15,11 @@ export class ResetarSenhaComponent implements OnInit {
 
   
   formResetarSenha = new FormGroup({
+    codigo: new FormControl('', [
+      Validators.required,
+      Validators.minLength(5),
+      Validators.maxLength(5)
+    ]),
     senha: new FormControl('', [
       Validators.required,
       Validators.minLength(6)
@@ -28,7 +33,8 @@ export class ResetarSenhaComponent implements OnInit {
 resetarSenha(){
   if(this.formResetarSenha.valid){
     const resetarSenha = <IResetarSenha>{
-      senha: this.formResetarSenha.value.senha,
+      codigoRecuperacao: this.formResetarSenha.value.codigo,
+      novaSenha: this.formResetarSenha.value.senha,
       confirmarSenha: this.formResetarSenha.value.confirmarSenha
     }
     this.authService.resetarSenha(resetarSenha)

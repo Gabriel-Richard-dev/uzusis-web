@@ -90,7 +90,8 @@ pedidosPendentes() :Observable<any>{
 
 
   const headers = new HttpHeaders({
-    Authorization: `Bearer ${localStorage.getItem("token")}`
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    "ngrok-skip-browser-warning": "69420"
   })
 
   const options = {

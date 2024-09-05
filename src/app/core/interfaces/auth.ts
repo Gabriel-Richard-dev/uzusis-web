@@ -4,10 +4,16 @@ senha: string
 }
 
 export interface IResetarSenha{
-codigo: string;
-senha: string,
+codigoRecuperacao: string;
+novaSenha: string,
 confirmarSenha: string
 }
+
+export interface IResetarSenhaCodigo extends IResetarSenha{
+  email: string
+}
+
+
 
 export interface IClienteEmail{
     email: string

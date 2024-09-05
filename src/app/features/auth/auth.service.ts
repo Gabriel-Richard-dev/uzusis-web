@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { ICadastro, IClienteauth, IClienteEmail, ICodigoEmail, IResetarSenha } from 'src/app/core/interfaces/auth';
+import { ICadastro, IClienteauth, IClienteEmail, ICodigoEmail, IResetarSenha, IResetarSenhaCodigo } from 'src/app/core/interfaces/auth';
 import { environment } from 'src/environments/environment.development';
 import { IToken } from 'src/app/core/interfaces/token';
 import { MatDialog } from '@angular/material/dialog';
@@ -22,8 +22,10 @@ const urlAuth = `${environment.apiUrl}/clienteauth`
   providedIn: 'root'
 })
 export class AuthService {
+ 
 
-guardarConfirmarEmail: any = ""
+guardarConfirmarEmail: string = ""
+guardarResetarSenhaEmail: string = ""
 constructor(private http: HttpClient, private dialog: MatDialog, private router: Router ) { }
 
   logar(auth: IClienteauth){
@@ -96,7 +98,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
   }
 
   enviarEmailResetarSenha(email: IClienteEmail){
-    this.http.post<any>(`${urlAuth}/enviar-email-resetar-senha`, email).subscribe({
+    this.http.post<any>(`${urlAuth}/enviar-recuperacao-senha`, email).subscribe({
       next: res =>{
         if(res.status === 200){
         
@@ -109,20 +111,48 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
             timer: 1500,
        
           });
-          this.router.navigate([""])
+          this.router.navigate(["/resetar-senha"])
+          this.guardarResetarSenhaEmail = email.email
+          localStorage.setItem("emailGuardar", this.guardarResetarSenhaEmail)
+          console.log(this.guardarResetarSenhaEmail)
   
 
 
         }
       },
       error: err =>{
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Ops...',
+          text: `${err.error}`,
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
 
+        //apagardepois
+        this.guardarResetarSenhaEmail = email.email
+        localStorage.setItem("emailGuardar", this.guardarResetarSenhaEmail)
       }
     })
   }
 
   resetarSenha(formResetarSenha: IResetarSenha){
-    this.http.post(`${urlAuth}/resetar-senha`, formResetarSenha).subscribe({
+    
+    
+    const formResetarSenhaCodigo = <IResetarSenhaCodigo>  {
+      codigoRecuperacao: formResetarSenha.codigoRecuperacao,
+      novaSenha: formResetarSenha.novaSenha,
+      confirmarSenha: formResetarSenha.confirmarSenha,
+      email: localStorage.getItem("emailGuardar") 
+      
+    }
+
+
+
+
+    this.http.post(`${urlAuth}/recuperar-senha`, formResetarSenhaCodigo).subscribe({
       next: res =>{
         Swal.fire({
           position: 'center',
@@ -133,6 +163,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
           timer: 1500,
      
         });
+        localStorage.removeItem("emailGuardar")
       },
       error: err =>{
         Swal.fire({
@@ -207,6 +238,7 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
           timer: 1500,
      
         });
+        localStorage.removeItem("email")
         this.router.navigate(["login"])
       },
       error: err =>{
@@ -224,6 +256,13 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
 
   }
 
+  getConfirmarEmail(){
+    return this.guardarConfirmarEmail
+  }
+
+  getResetarSenhaEmail(){
+    return this.guardarResetarSenhaEmail
+  }
 
 
 }

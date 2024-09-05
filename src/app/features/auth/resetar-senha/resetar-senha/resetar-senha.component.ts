@@ -33,8 +33,8 @@ export class ResetarSenhaComponent implements OnInit {
 resetarSenha(){
   if(this.formResetarSenha.valid){
     const resetarSenha = <IResetarSenha>{
-      codigo: this.formResetarSenha.value.codigo,
-      senha: this.formResetarSenha.value.senha,
+      codigoRecuperacao: this.formResetarSenha.value.codigo,
+      novaSenha: this.formResetarSenha.value.senha,
       confirmarSenha: this.formResetarSenha.value.confirmarSenha
     }
     this.authService.resetarSenha(resetarSenha)

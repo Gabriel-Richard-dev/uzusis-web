@@ -34,12 +34,12 @@ export class LoginComponent {
 
   enviarEmail(){
     if(this.formEnviarEmail.valid){
+     
       const enviarEmail = <IClienteEmail>{
         email: this.formEnviarEmail.value.email
       }
       this.authService.enviarCodigoConfirmarEmail(enviarEmail)
     }
-
   }
 
 
@@ -50,6 +50,7 @@ export class LoginComponent {
     }
     
 if(this.formLogin.valid){
+
     this.authService.logar(DadosLogin)
   }
   else{

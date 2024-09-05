@@ -17,8 +17,6 @@ import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/peg
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
 
 
-
-
 @NgModule({
   declarations: [
     NavbarComponent,
@@ -29,7 +27,8 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
     CriarProdutoComponent,
     HistoricoPedidosComponent,
     PedidosPendentesComponent,
-    PegarProdutosComponent
+    PegarProdutosComponent,
+
     
 
 
@@ -44,6 +43,8 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
     MatSelectModule,
     FormsModule,
     MaterialModule,
+
+  
     
   ],
   exports: [

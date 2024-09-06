@@ -17,6 +17,7 @@ import Swal from "sweetalert2";
 import { ICEP } from "src/app/core/interfaces/cep";
 import { finalize, Observable } from "rxjs";
 import { SpinnerService } from "src/app/core/service/spinner.service";
+import { RouteService } from "src/app/core/service/route.service";
 
 const urlAuth = `${environment.apiUrl}/clienteauth`;
 let desativarBotao: boolean = false;
@@ -31,7 +32,8 @@ export class AuthService {
     private http: HttpClient,
     private dialog: MatDialog,
     private router: Router,
-    private spinnerService: SpinnerService
+    private spinnerService: SpinnerService,
+    private routerService: RouteService
   ) {}
 
   logar(auth: IClienteauth) {
@@ -74,8 +76,10 @@ export class AuthService {
   }
 
   enviarCodigoConfirmarEmail(email: IClienteEmail) {
-
+  
     if (!desativarBotao) {
+
+      this.spinnerService.showSpinner()
       desativarBotao = true;
 
       this.http
@@ -84,11 +88,12 @@ export class AuthService {
         })
         .pipe(
           finalize(() => {
-            this.spinnerService.hideSpinner();
+            
             console.log(this.spinnerService.situacaoSpinner$);
             this.guardarConfirmarEmail = email.email;
             this.dialog.open(ConfirmarCodigoComponent);
-            desativarBotao = false;
+            desativarBotao = false;      
+            this.spinnerService.hideSpinner()
           })
         )
         .subscribe({
@@ -118,43 +123,51 @@ export class AuthService {
   }
 
   enviarEmailResetarSenha(email: IClienteEmail) {
+    this.spinnerService.showSpinner()
     this.http
       .post<any>(`${urlAuth}/enviar-recuperacao-senha`, email, {
         responseType: "text" as "json",
-      })
+      }).pipe(finalize(() =>{
+        this.spinnerService.hideSpinner()
+      }))
       .subscribe({
         next: (res) => {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "OK",
-            text: "Email enviado com sucesso",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          this.router.navigate(["/resetar-senha"]);
+          if(res.foiEnviado === true){
+            Swal.fire({
+              position: "center",
+              icon: "error",
+              title: "Ops...",
+              text: `Ja foi enviado um codigo para esse email`,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+     
+          }
+
+          else{
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "OK",
+              text: `Você recebeu um codigo no seu email `,
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
           this.guardarResetarSenhaEmail = email.email;
           localStorage.setItem("emailGuardar", this.guardarResetarSenhaEmail);
-          console.log(this.guardarResetarSenhaEmail);
+          this.router.navigate(["resetar-senha"])
+         
         },
         error: (err) => {
-          const error = err.error
-            .replace('"', "")
-            .replace("[", "")
-            .replace("]", "")
-            .replace('"', "");
-
           Swal.fire({
             position: "center",
             icon: "error",
-            title: "Ops...",
-            text: `${error}`,
+            title: "ops...",
+            text: `Algo inesperado aconteceu `,
             showConfirmButton: false,
             timer: 1500,
           });
-
-          this.guardarResetarSenhaEmail = email.email;
-          localStorage.setItem("emailGuardar", this.guardarResetarSenhaEmail);
         },
       });
   }
@@ -248,6 +261,7 @@ export class AuthService {
         });
         localStorage.removeItem("email");
         this.router.navigate(["login"]);
+        this.routerService
       },
       error: (err) => {
         Swal.fire({

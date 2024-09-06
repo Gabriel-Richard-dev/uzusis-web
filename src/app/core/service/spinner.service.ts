@@ -6,7 +6,7 @@
   })
   export class SpinnerService {
 
-  private loadingSubject = new BehaviorSubject<boolean>(true)
+  private loadingSubject = new BehaviorSubject<boolean>(false)
   situacaoSpinner$ = this.loadingSubject.asObservable()
 
     constructor() { }

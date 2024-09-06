@@ -11,7 +11,7 @@ import { Observable, tap } from "rxjs";
   styleUrls: ["./login.component.scss"],
 })
 export class LoginComponent {
-  spinnerSituacao = false;
+  spinnerSituacao = true;
   
   constructor(
     private authService: AuthService,
@@ -19,7 +19,14 @@ export class LoginComponent {
   ) {}
 
 
-
+ngOnInit(){
+  this.spinnerService.situacaoSpinner$.subscribe({
+    next: res =>{
+     this.spinnerSituacao = res
+     console.log(res)
+    }
+  })
+}
 
 
   formLogin = new FormGroup({
@@ -38,7 +45,6 @@ export class LoginComponent {
         email: this.formEnviarEmail.value.email,
       };
       this.authService.enviarCodigoConfirmarEmail(enviarEmail);
-      this.spinnerSituacao = false
     }
   }
 

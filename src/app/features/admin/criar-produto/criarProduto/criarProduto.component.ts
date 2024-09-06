@@ -9,6 +9,9 @@ import { AdminService } from '../../admin.service';
   styleUrls: ['./criarProduto.component.css']
 })
 export class CriarProdutoComponent implements OnInit {
+  backgroundImageUrl1: string = '../../../../../assets/icons8-adicionar-50.png';
+  backgroundImageUrl2: string = '../../../../../assets/icons8-adicionar-50.png';
+  backgroundImageUrl3: string = '../../../../../assets/icons8-adicionar-50.png';
   enviarFoto = false
   selecionado!: number
   categorias: Categoria[] = [
@@ -85,6 +88,11 @@ export class CriarProdutoComponent implements OnInit {
       Descricao: this.criarProduto.value.Descricao || ''
     };;
     this.adminService.adicionarProduto(produtoValues)
+  }
+
+  fileClick1(event: any){
+    
+
   }
 
     onFilesSelected(event: any){

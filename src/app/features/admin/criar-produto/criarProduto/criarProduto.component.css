@@ -24,7 +24,7 @@
 
   }
 
-  form{
+  .formCriarProduto{
  
     gap: 5%;
     display: flex;
@@ -51,32 +51,54 @@
 
 .box-images{
   background-color: white;
+  border: solid 1px black;
+  padding: 40px;
+  form{
+    width: 200px;
+    height: 200px;
+  }
+  label{
+    width: 50%;
+    height: 50%;
+  }
 }
 
 
 .caixa-imagem{
   background-color: #e1ded8;
-  width: 140px;
-  height: 150px;
-}
-
-.caixa-imagem-grande{
 
 }
 
 
 .file-upload-div{
-input[type="file"]{
-  display: none;
+  input[type="file"]{
+    display: none;
+    
+  }
+  label{
+    cursor: pointer;
+    position: relative;
+    background-color: #e1ded8;
+    &::before {
+      position: absolute;
+      content: '';
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+  }
 }
-label{
-  width: 300px;
-  width: 300px;
-  height: 200px;
-  background-color: #e1ded8;
+
+
+.botao-salvar{
+  padding: 5px 70px;
+  border: none;
+  background-color: black;
+  color: white;
+  margin-left: 25%
 }
-img{
-  width: 500px;
-}
-}
+
+
 

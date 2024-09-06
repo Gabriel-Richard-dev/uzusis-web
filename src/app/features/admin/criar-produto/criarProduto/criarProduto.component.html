@@ -5,10 +5,12 @@
 <div class="escopo">
   <div class="content col-6">
    <div class="container-border">
- 
-    <form action="" [formGroup]="criarProduto">
+    <h1 style="color: black;">Cadastrar produto</h1>
+    <form *ngIf="!enviarFoto"  action="" [formGroup]="criarProduto">
       
-      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
+      <div style="width: 200px; height:  300px;" (click)="trocarParaOEnviarImagem()">
+        AAAAAAAAAAAAAAAAAAAAAAAAAAA
+      </div>
       
       
       <label for="">Crie um novo produto</label>
@@ -44,6 +46,24 @@
 
       <button type="submit" (click) = "cadastrarProduto()">click</button>
       </form>
+<form  *ngIf="enviarFoto" action="">
+<div class="box-images d-flex justify-content-center">
+  <div>
+  <div class="caixa-imagem-grande"><input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles"/></div>
+  <div style="gap: 20px;" class="d-flex mt-2">
+  <div class="caixa-imagem"><input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles"/></div>
+  <div class="caixa-imagem"><input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles"/></div>
+  <form class="file-upload-div">
+    <label for="file-upload">Escolher arquivo</label>
+    <input type="file" id="file-upload" name = "file-upload">
+    <img src="/src/assets/icons8-adicionar-50.png" alt="">
+</form>
+
+</div>
+</div>
+</div>
+</form>
+
     </div>
   </div>
 </div>

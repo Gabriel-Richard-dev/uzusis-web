@@ -1,54 +1,75 @@
 <app-navbar />
 
 <div class="escopo">
- <div class="margin-left"> <h1>Identificação</h1>
-<p>Faça o seu login ou crie uma conta caso ainda não possua cadastro</p>
-</div>
+  <div class="margin-left">
+    <h1>Identificação</h1>
+    <p>Faça o seu login ou crie uma conta caso ainda não possua cadastro</p>
+  </div>
   <div class="content col-6">
-     
+    <div class="container-border d-flex mt-3">
+      <div class="container-form-login">
+        <form [formGroup]="formLogin" class="">
+          <div class="border-bottom border-black mb-3">
+            <span><strong> Já sou cadastrado:</strong></span>
+          </div>
 
-   <div class="container-border d-flex mt-3">
-
-
-<div class="container-form-login">
-    <form [formGroup]="formLogin" class="" >
-      <div class="border-bottom border-black mb-3">
-        <span><strong> Já sou cadastrado:</strong></span>
+          <div class="form-group d-flex mb-3">
+            <label class="mt-1" for="exampleInputEmail1">Email:</label>
+            <input
+              formControlName="email"
+              type="email"
+              class="form-control"
+              id="exampleInputEmail1"
+              aria-describedby="emailHelp"
+            />
+          </div>
+          <div class="form-group d-flex mb-3">
+            <label class="mt-1" for="exampleInputPassword1">Senha:</label>
+            <input
+              formControlName="senha"
+              type="password"
+              class="form-control"
+              id="exampleInputPassword1"
+            />
+            <button (click)="logar()" type="submit" class="btn btn-primary">
+              Prosseguir:
+            </button>
+          </div>
+          <a style="color: black" href="/enviarEmail"> esqueceu sua senha?</a>
+        </form>
       </div>
 
-      <div  class="form-group d-flex mb-3">
-        <label class="mt-1" for="exampleInputEmail1">Email:</label>
-        <input  formControlName="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-      </div>
-      <div class="form-group d-flex mb-3">
-        <label class="mt-1" for="exampleInputPassword1">Senha:</label>
-        <input formControlName="senha" type="password" class="form-control" id="exampleInputPassword1" >
-        <button  (click) ="logar()"  type="submit" class="btn btn-primary">Prosseguir:</button>
-      </div>
-      <a style="color: black;" href="/enviarEmail"> esqueceu sua senha?</a>
-    
-    </form>
-  </div>
+      <div class="container-form-email">
+        <form class="" [formGroup]="formEnviarEmail">
+          <div class="border-bottom border-black mb-3">
+            <span><strong> Ainda não possuo cadastro:</strong></span>
+          </div>
 
-
-  <div class="container-form-email">
-    <form class=""  [formGroup] = "formEnviarEmail">
-      <div class="border-bottom border-black mb-3">
-        <span><strong> Ainda não possuo cadastro:</strong></span>
+          <div class="form-group mb-3">
+            <label class="mt-1" for="exampleInputEmail1"
+              >Digita o email que deseja cadastrar</label
+            >
+            <div class="d-flex mt-3">
+              <input
+                formControlName="email"
+                type="email"
+                class="form-control"
+                id="exampleInputEmail1"
+                aria-describedby="emailHelp"
+                placeholder="Enter email"
+              />
+              <button
+                (click)="enviarEmail()"
+                type="submit"
+                class="btn btn-primary"
+              >
+                <span *ngIf="!spinnerSituacao">Cadastrar:</span>
+                <mat-spinner *ngIf="spinnerSituacao"></mat-spinner>
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-
-      <div class="form-group  mb-3">
-        <label class="mt-1" for="exampleInputEmail1">Digita o email que deseja cadastrar</label>
-       <div class="d-flex mt-3">
-        <input  formControlName="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        <button (click) = "enviarEmail()" type="submit" class="btn btn-primary">Cadastrar:</button>
-      </div>
-      </div>
-    
-    </form>
-  </div>
-
-
     </div>
   </div>
 </div>

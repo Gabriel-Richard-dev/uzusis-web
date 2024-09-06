@@ -9,6 +9,7 @@ import { AdminService } from '../../admin.service';
   styleUrls: ['./criarProduto.component.css']
 })
 export class CriarProdutoComponent implements OnInit {
+  enviarFoto = false
   selecionado!: number
   categorias: Categoria[] = [
     { categoria: 0, nomeCategoria: 'Calça' },
@@ -64,6 +65,11 @@ export class CriarProdutoComponent implements OnInit {
       Validators.maxLength(500)  // Máximo de 500 caracteres, ajuste conforme necessário
     ])
   });
+
+  trocarParaOEnviarImagem(){
+    this.enviarFoto = true
+
+  }
 
 
   cadastrarProduto(){

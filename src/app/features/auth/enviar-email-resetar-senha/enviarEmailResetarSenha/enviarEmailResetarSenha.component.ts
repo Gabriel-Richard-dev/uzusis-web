@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../auth.service';
 import { IClienteEmail } from 'src/app/core/interfaces/auth';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-enviarEmailResetarSenha',
@@ -9,6 +10,12 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
   styleUrls: ['./enviarEmailResetarSenha.component.css']
 })
 export class EnviarEmailResetarSenhaComponent implements OnInit {
+
+
+  public semSpinner = true
+ 
+
+
 
   constructor(private authService: AuthService) { }
 

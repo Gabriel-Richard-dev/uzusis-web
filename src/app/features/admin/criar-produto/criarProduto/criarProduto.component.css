@@ -5,10 +5,13 @@
     margin-left: auto;
     margin-right: auto;
     align-items: center;
-    margin-top: 20px;
+    background-color:#efeded;
+    padding: 30px;
+    width: 100vh;
 
 
-    .quantidade{
+
+.quantidade{
  gap: 20px;
     }
    
@@ -18,26 +21,26 @@
     display: flex;
     flex-direction: row;
     justify-content: left;
-    margin-top: 50px;
+
   }
 
   form{
  
-    margin-top: 20%;
     gap: 5%;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    background-color: gray;
+    width: 90vh;
+    height: 100vh;
+    background-color: rgb(255, 255, 255);
     padding: 50px;
   
   }
   
 
   .escopo{
-    width: 1300px;
+  
     margin: 0 auto;
-    margin-top: 100px;
+
 
   }
 
@@ -45,3 +48,35 @@
 .invalid-field {
   border: 1px solid red;
 }
+
+.box-images{
+  background-color: white;
+}
+
+
+.caixa-imagem{
+  background-color: #e1ded8;
+  width: 140px;
+  height: 150px;
+}
+
+.caixa-imagem-grande{
+
+}
+
+
+.file-upload-div{
+input[type="file"]{
+  display: none;
+}
+label{
+  width: 300px;
+  width: 300px;
+  height: 200px;
+  background-color: #e1ded8;
+}
+img{
+  width: 500px;
+}
+}
+

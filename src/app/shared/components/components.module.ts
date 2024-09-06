@@ -15,6 +15,8 @@ import { HistoricoPedidosComponent } from 'src/app/features/admin/historicos-de-
 import { PedidosPendentesComponent } from 'src/app/features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component';
 import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component';
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
+import { LoginComponent } from 'src/app/features/auth/login/login/login.component';
+
 
 
 @NgModule({
@@ -28,6 +30,7 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
     HistoricoPedidosComponent,
     PedidosPendentesComponent,
     PegarProdutosComponent,
+ 
 
     
 

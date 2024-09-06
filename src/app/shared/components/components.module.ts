@@ -14,6 +14,9 @@ import { SidebarComponent } from 'src/app/features/admin/components-admin/sideba
 import { HistoricoPedidosComponent } from 'src/app/features/admin/historicos-de-pedidos/historico-pedidos/historico-pedidos.component';
 import { PedidosPendentesComponent } from 'src/app/features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component';
 import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component';
+import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
+import { LoginComponent } from 'src/app/features/auth/login/login/login.component';
+
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';;
 import {SidebarModule} from 'primeng/sidebar'
 import { ButtonModule } from 'primeng/button';
@@ -30,6 +33,12 @@ import { ButtonModule } from 'primeng/button';
     HistoricoPedidosComponent,
     PedidosPendentesComponent,
     PegarProdutosComponent,
+ 
+
+    
+
+
+   
   ],
   imports: [
     CommonModule,

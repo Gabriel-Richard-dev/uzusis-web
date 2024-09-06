@@ -12,7 +12,7 @@ import { ConfirmarCodigoComponent } from './auth/modal/confirmar-codigo/confirma
 import { ResetarSenhaComponent } from './auth/resetar-senha/resetar-senha/resetar-senha.component';
 import { CadastroComponent } from './auth/cadastro/cadastro/cadastro.component';
 import { EnviarEmailResetarSenhaComponent } from './auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component';
-import { FormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @NgModule({
@@ -24,7 +24,9 @@ import { FormsModule } from '@angular/forms';
     ConfirmarCodigoComponent,
     ResetarSenhaComponent,
     CadastroComponent,
-    EnviarEmailResetarSenhaComponent
+    EnviarEmailResetarSenhaComponent,
+
+   
     
 
 
@@ -36,11 +38,13 @@ import { FormsModule } from '@angular/forms';
     NgbModule,
     NgbCarousel,
     ReactiveFormsModule,
-    FormsModule
+    MatProgressSpinnerModule
+
   ],
   exports:[
    
-    AllfotosComponent
+    AllfotosComponent,
+  
   ]
 })
 export class FeaturesModule { }

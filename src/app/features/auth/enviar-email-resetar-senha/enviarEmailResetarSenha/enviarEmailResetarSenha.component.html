@@ -20,9 +20,12 @@
         <label class="mt-1" for="exampleInputEmail1">Digite o email para recuperar sua senha</label>
        <div class="d-flex mt-3">
         <input  formControlName="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        <button (click) = "enviarEmailResetarSenha()" type="submit" class="btn btn-primary">Cadastrar:</button>
+        <button  (click) = "enviarEmailResetarSenha()" type="submit" class="btn btn-primary"><span *ngIf="!semSpinner">Cadastrar: </span> <mat-spinner *ngIf = "semSpinner"></mat-spinner></button>
+        
       </div>
+      
       </div>
+      <a href="/login">Voltar</a>
     
     </form>
   </div>

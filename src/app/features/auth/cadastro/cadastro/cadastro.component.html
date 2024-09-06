@@ -2,9 +2,11 @@
 
 <div class="escopo">
   <div class="content col-6">
+    <h2 class="mt-3">Cadastre-se</h2>
+    <p>Cadastre-se informando seus dados</p>
     <div class="container-border">
       <form class="mb-3" [formGroup]="formCadastrar" (ngSubmit)="onSubmit()">
-        <h2>Cadastre-se</h2>
+   
 
         <div class="form-row">
           
@@ -47,7 +49,6 @@
         </div>
        
         </div>
-
         <div class="form-row">
     
           <div class="form-group col-md-6">
@@ -103,7 +104,7 @@
             />
           </div>
         </div>
-
+      
         <fieldset>
           <legend>Endereço</legend>
 
@@ -175,6 +176,7 @@
             </div>
           </div>
         </fieldset>
+
 
         <button  type="submit" class="btn btn-primary mt-3">Cadastrar</button>
       </form>

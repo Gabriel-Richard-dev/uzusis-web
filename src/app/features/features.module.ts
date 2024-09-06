@@ -7,7 +7,7 @@ import { NgbCarousel } from '@ng-bootstrap/ng-bootstrap';
 import { AllfotosComponent } from './initial-page/components/allfotos/allfotos.component';
 import { ModalsComponent } from './initial-page/components/modals/modals.component';
 import { LoginComponent } from './auth/login/login/login.component';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ConfirmarCodigoComponent } from './auth/modal/confirmar-codigo/confirmar-codigo.component';
 import { ResetarSenhaComponent } from './auth/resetar-senha/resetar-senha/resetar-senha.component';
 import { CadastroComponent } from './auth/cadastro/cadastro/cadastro.component';
@@ -38,7 +38,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     NgbModule,
     NgbCarousel,
     ReactiveFormsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    FormsModule
 
   ],
   exports:[

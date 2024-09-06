@@ -25,3 +25,12 @@ export interface Carrinho{
   sigla:string,
   quantidade:number
 }
+
+export interface Pedido{
+  id:number
+  produtoId:number;
+  quantidade:number
+  valorPedido:number
+  sigla:string
+}
+

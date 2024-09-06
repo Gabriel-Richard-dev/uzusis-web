@@ -13,8 +13,8 @@ import { CriarProdutoComponent } from 'src/app/features/admin/criar-produto/cria
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
 import { SidebarComponent } from 'src/app/features/admin/components-admin/sidebar/sidebar.component';
 import { AdminComponent } from 'src/app/features/admin/admin/admin.component';
-
-
+import {SidebarModule} from 'primeng/sidebar'
+import { ButtonModule } from 'primeng/button';
 
 
 @NgModule({
@@ -36,6 +36,8 @@ import { AdminComponent } from 'src/app/features/admin/admin/admin.component';
     MatSelectModule,
     FormsModule,
     MaterialModule,
+    SidebarModule,
+    ButtonModule
     
   ],
   exports: [

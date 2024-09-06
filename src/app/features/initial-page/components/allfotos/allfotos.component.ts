@@ -53,6 +53,7 @@ export class AllfotosComponent implements OnInit {
       });
     } else {
       this.hasMore = false;
+      
     }
   }
 

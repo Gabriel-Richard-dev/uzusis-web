@@ -4,6 +4,8 @@ import { NgbCarousel, NgbSlideEvent, NgbSlideEventSource } from '@ng-bootstrap/n
 import { produto } from 'src/app/core/interfaces/produto';
 import { ModalService } from './modal.service';
 import Swal from 'sweetalert2';
+import { Router, RouterLinkActive } from '@angular/router';
+import { NavbarService } from '../services/navbar.service';
 
 
 @Component({
@@ -16,6 +18,8 @@ export class ModalsComponent {
     @Inject(MAT_DIALOG_DATA) public data:produto,
 		public dialog:MatDialog,
 		private modalService:ModalService,
+		private router:Router,
+		private navbarService:NavbarService,
   ){}	
   quantidade:number=1;
 	Visible:boolean=false;
@@ -119,7 +123,6 @@ export class ModalsComponent {
   }
 Adicionar(){
 	const token = localStorage.getItem('token')
-	
 	if(!token){
 	const swalWithBootstrapButtons = Swal.mixin({
 		customClass: {
@@ -130,7 +133,7 @@ Adicionar(){
 	});
 	swalWithBootstrapButtons.fire({
 		title: "Você não está logado!",
-		text: "Deseja criar uma conta ou se cadastrar para adicionar ao carrinho?",
+		text: "Deseja se cadastrar para adicionar ao carrinho?",
 		icon: "warning",
 		showCancelButton: true,
 		confirmButtonText: "Sim",
@@ -138,8 +141,8 @@ Adicionar(){
 		reverseButtons: true
 	}).then((result) => {
 		if (result.isConfirmed) {
-			
-			
+			 this.router.navigate(['login'])
+			 this.dialog.closeAll()
 		} else if (
 			result.dismiss === Swal.DismissReason.cancel
 		) {
@@ -148,7 +151,37 @@ Adicionar(){
 	});
 	}
 	else{
-		
+		this.modalService.adicionarCarrinho(this.data.id, this.selectedSize, this.quantidade).subscribe({
+			next: res => {
+				Swal.fire({
+					position: 'center',
+					icon: 'success',
+					title: 'Produto Adicionado',
+					text: `O produto foi adicionado ao carrinho com sucesso.`,
+					showConfirmButton: false,
+					timer: 1500,
+				});
+				
+			},
+			error: err => {
+				console.error('Erro ao adicionar produto ao carrinho', err.error);
+			console.log(err.error)
+			if(err.error.title){
+				this.router.navigate(['login'])
+				this.dialog.closeAll()
+			}
+			else{
+				Swal.fire({
+					position: 'center',
+					icon: 'error',
+					title: 'Erro',
+					text: `${err.error}`,
+					showConfirmButton: false,
+					timer: 2500,
+				});
+			}
+			}
+		});
 	}
 }
 }

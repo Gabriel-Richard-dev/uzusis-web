@@ -1,7 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Scope+One&display=swap");
 
 
-
+::ng-deep .p-sidebar-content {
+background-color: white;
+}
 .navbar {
   -webkit-box-shadow: 0px 4px 13px -3px rgba(0,0,0,0.73);
   -moz-box-shadow: 0px 4px 13px -3px rgba(0,0,0,0.73);
@@ -26,8 +28,15 @@
   font-family: Scope One;
   font-weight: 100;
   font-size: 20.3px;
-
+    img{
+      cursor: pointer;
+    }
+ 
 }
+.carrinhoSidenav{
+  background-color: white;
+}
+
 }
 .itensFlex{
   display: flex;
@@ -51,12 +60,16 @@
 .account{
   font-family: Scope One;
   font-size: 16px;
+  cursor: pointer;
   img{
     width: 25px;
     height: 25px;
     margin-left: 5px;
     margin-bottom: 5px;
   }
+}
+.carrinho{
+  cursor: pointer;
 }
 
 form{
@@ -72,4 +85,104 @@ form{
 }
 .item{
   cursor: pointer;
+}
+
+::ng-deep p-button{
+  border: none;
+  button{
+    border:  none !important;
+  }
+  .carrinho{
+    border: none;
+  }
+}
+
+::ng-deep .swal2-actions{
+  gap: 20px;
+}
+::ng-deep .p-icon-wrapper{
+  position: absolute;
+  z-index: 3000000;
+  left: 450px;
+  top: 17px;
+}
+.carrinhoSidenav{
+  h3{
+    margin-left: 30px;
+    font-family: Scope One;
+    margin-top: 10px;
+    position: relative;
+  }
+}
+.img{
+ 
+  object-fit: cover;
+  img{
+    width: 100px;
+    height: 150px;
+    object-fit: cover;
+  }
+}
+
+.carrinhoProdutos{
+  margin-left: 10px;
+}
+.flex{
+  display: flex;
+  flex-direction: column;
+}
+
+.carrinhoProdutos{
+  display: flex;
+  flex-direction: row;
+  gap: 50px;
+  img{
+    margin-bottom: 40px;
+  }
+  h5,label{
+    font-size: 15px;
+    font-family: Scope One;
+  }
+  input{
+    border: none;
+  }
+}
+.itens{
+  span{
+  font-family: Scope One;
+  }
+}
+.informacoes{
+  button{
+    height: 30px;
+    width: 30px;
+    border: none;
+  }
+}
+.flex-preco{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  font-family: Scope One;
+  margin: 50px 20px;
+  font-weight: 800;
+}
+.finalizar{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  font-family: Scope One;
+  background-color: #292b2e;
+  border-radius: 10px;
+  color: white;
+  margin: 0 20px;
+  cursor: pointer;
+  height: 40px;
+  div{
+    margin-left: 20px;
+  }
+  span{
+    margin-right: 20px;
+  }
 }

@@ -1,11 +1,44 @@
+<p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}">
+  <h3>Carrinho</h3>
+  <hr>
+  <div *ngFor="let produto of produtos">
+    <div class="carrinhoProdutos">
+      <div class="img">
+        <img [src]="produto.fotoUrls[0]" [alt]="produto.descricao">
+      </div>
+      <div class="flex">
+        <h5>{{produto.nome}}</h5>
+        <h5>{{produto.categoriaNome}}</h5>
+        <label>Quantidade: {{quantidadeProduto[produto.id] || 0}}</label>
+      </div>
+
+      <div class="informacoes">
+        <h5>R${{produto.preco}}</h5>
+        <button class="apagar" (click)="apagarCarrinho(carrinhoId[produto.id])"><img src="../../../../assets/lixeira.png" alt="" width="30px" height="30px"></button>
+      </div>
+
+    </div>
+  </div>
+  <hr>
+  <div class="flex">
+    <div class="flex-preco">
+      <span>Subtotal</span>
+      <span>R${{valorTotal}}</span>
+    </div>
+    <div class="finalizar" (click)="comprar()">
+      <div>FINALIZAR PEDIDO </div>
+      <span>R${{valorTotal}}</span>
+    </div>
+  </div>
+</p-sidebar>
 <div class="navbar">
   <div class="conteudo">
-    <img src="../../../../assets/pencil-svgrepo-com.svg" alt="" width="20px">
+    <img src="../../../../assets/logo.PNG" alt="" width="55px" height="55px" (click)="handleClick('')">
     <div class="itensFlex">
-      <div class="item" *ngFor="let categoria of categorias; let i = index" (click)="handleClick(categoria, i)">{{categoria}}</div>
+      <div class="item" *ngFor="let categoria of categorias; let i = index" (click)="handleClick(i)">{{categoria}}</div>
       <button mat-button [matMenuTriggerFor]="menu">outras categorias<img #dropdownImage src="../../../../assets/dropdown-removebg-preview.png" width="25px" height="25px"></button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item *ngFor="let option of Options; let i = index" (click)="handleClick(option, i+5)">{{option}}</button>
+        <button mat-menu-item *ngFor="let option of Options; let i = index" (click)="handleClick(i+5)" class="itens"><span> {{option}}</span></button>
       </mat-menu>
     </div>
   </div>
@@ -19,7 +52,8 @@
       <div class="account">
         <img src="../../../../assets/pessoas.png" alt="" width="20px"> minha conta
       </div>
-      <img src="../../../../assets/carrinho.svg" alt="" width="25px" height="25px">
+
+      <p-button (onClick)="adicionarCarrinho()"> <img class="carrinho" src="../../../../assets/carrinho.svg" (onClick)="sidebarVisible = true" alt="" width="25px" height="25px"> </p-button>
     </div>
   </div>
 </div>

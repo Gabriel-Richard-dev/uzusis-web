@@ -13,26 +13,20 @@ export class ModalService {
   constructor(private http: HttpClient) { 
 
   }
-  private readonly token = getLocalStorage({key :"token"})
+  private readonly token = localStorage.getItem('token')
   
   apiurl = environment.apiUrl;
   adicionarCarrinho(id:number, tamanho:string | null, quantidade:number){
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.token}` // Adicionando o token no cabeçalho Authorization
+      'Authorization': `Bearer ${this.token}` 
     });
       const body={
         produtoId:id,
         sigla:tamanho,
         quantidade:quantidade
       }
-
       return this.http.post<Carrinho>(`${this.apiurl}/carrinho/adicionar-ao-carrinho`,body,{headers})
-      .pipe(
-        catchError(error => {
-          console.error('Erro ao adicionar ao carrinho', error);
-          return throwError(() => new Error('Erro ao adicionar ao carrinho. Tente novamente mais tarde.'));
-        })
-      );
+
   }
   }
 

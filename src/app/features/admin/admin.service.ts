@@ -38,6 +38,10 @@ autenticar(auth: IClienteauth){
 
 
       this.router.navigate(['admin'])
+      setTimeout(() => {
+        location.reload()
+        
+      }, 1000);
 
 
     },

@@ -58,13 +58,13 @@
                 aria-describedby="emailHelp"
                 placeholder="Enter email"
               />
-              <button
+              <button class="d-flex justify-content-center"
                 (click)="enviarEmail()"
                 type="submit"
                 class="btn btn-primary"
               >
                 <span *ngIf="!spinnerSituacao">Cadastrar:</span>
-                <mat-spinner *ngIf="spinnerSituacao"></mat-spinner>
+                <mat-spinner style="margin: 0 auto;" color="accent" class="custom-spinner" *ngIf="spinnerSituacao" [diameter]="20"></mat-spinner>
               </button>
             </div>
           </div>

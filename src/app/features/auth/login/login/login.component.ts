@@ -52,6 +52,7 @@ export class LoginComponent {
 if(this.formLogin.valid){
 
     this.authService.logar(DadosLogin)
+    
   }
   else{
     Swal.fire({

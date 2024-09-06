@@ -45,6 +45,13 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
   
 
           this.router.navigate(['/'])
+          
+          setTimeout(() => {
+            location.reload()
+            
+          }, 1000);
+
+
 
 
         },

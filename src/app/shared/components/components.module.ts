@@ -15,6 +15,10 @@ import { HistoricoPedidosComponent } from 'src/app/features/admin/historicos-de-
 import { PedidosPendentesComponent } from 'src/app/features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component';
 import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component';
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';
+import { SidebarComponent } from 'src/app/features/admin/components-admin/sidebar/sidebar.component';
+import { AdminComponent } from 'src/app/features/admin/admin/admin.component';
+import {SidebarModule} from 'primeng/sidebar'
+import { ButtonModule } from 'primeng/button';
 
 
 @NgModule({
@@ -43,8 +47,8 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
     MatSelectModule,
     FormsModule,
     MaterialModule,
-
-  
+    SidebarModule,
+    ButtonModule
     
   ],
   exports: [

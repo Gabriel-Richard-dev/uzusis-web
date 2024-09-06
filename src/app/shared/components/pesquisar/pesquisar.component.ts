@@ -36,13 +36,21 @@ export class PesquisarComponent implements OnInit{
   search(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchTerm = target.value;
-    this.filter();
+    this.filter(this.searchTerm);
   
   }
 
-  filter() {
-   this.filterProdutos=this.allProdutos.filter(item =>item.nome.toLowerCase().includes(this.searchTerm.toLowerCase()))
-   this.navbarService.updateProdutos(this.filterProdutos)
+  filter(searchTerm: string) {
+    if(searchTerm.length>0){
+      this.navbarService.pesquisarProdutos(searchTerm).subscribe((produtos: produto[]) => {
+        this.filterProdutos = produtos;  
+        console.log(this.filterProdutos)
+        this.navbarService.updateProdutos(this.filterProdutos);  
+      });
+    }
+    else{
+      this.navbarService.updateProdutos(this.allProdutos);  
+    }
   }
   
 }

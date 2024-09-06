@@ -1,0 +1,144 @@
+.modal_aberto{
+  width: 700px;
+  height: 500px;
+  overflow-x: hidden;
+  font-family: Scope One;
+}
+.container{
+  display: flex;
+  flex-direction: row;
+  margin-left: 50px;
+  margin-top: 50px;
+  gap: 1.875rem;
+}
+.informacoes{
+  width: 250px;
+  h3{
+    font-weight: bold;
+  }
+  p{
+    font-size: 20px;
+  }
+.subtitulo{
+  font-size: 15px;
+  font-weight: bold;
+}
+}
+.disponivel{
+  margin-bottom: 20px;
+  font-size: 15px;
+  margin-top: 10px;
+}
+.carrosel{
+  width: 250px;
+  border-radius: 13px;
+  img{
+    width: 250px;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 13px;
+    
+  }
+}
+.buttons{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  button{
+    width: 50px;
+    border: 1px solid black;
+    background-color: #EFEDED;
+    border-radius: 12px;
+  }
+}
+button.selected{
+  outline: 2px solid gray;
+}
+.compra{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  input{
+    width: 20px;
+    height: 30px;
+    border-radius: 10px;
+    outline: none;
+    text-align: center;
+    background-color: white;;
+  }
+  .adicionar{
+    width: 100%;
+    height: 34px;
+    border: none;
+    background-color: black;
+    color: white;
+    border-radius: 10px;
+
+  }
+}
+.disponivel{
+  opacity: 0.7;
+}
+.quantidade-input {
+  text-align: center;
+  width: 60px; 
+  padding: 5px;
+  border: none;
+  border-radius: 4px;
+}
+
+.btn-decrease, .btn-increase {
+  width: 20px;
+  height: 20px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s;
+  background-color: white;
+}
+
+
+.setQuantidade{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 12px;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.quantidade-input:disabled {
+  opacity: 1; 
+  color: black;
+  cursor: not-allowed; 
+}
+
+
+
+.estoque{
+  font-family: Open Sans !important;
+  font-size: 15px !important;
+}
+
+::ng-deep .swal2-actions{
+  gap: 20px;
+}
+.descricao{
+  margin-top: 10px;
+  font-size: 13px;
+}

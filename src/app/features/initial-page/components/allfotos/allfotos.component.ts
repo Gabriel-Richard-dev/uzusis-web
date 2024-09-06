@@ -30,12 +30,10 @@ export class AllfotosComponent implements OnInit {
       this.produtos = produtos;
     });
 
-    this.navbarService.getCategoria().subscribe(categoria => {
-      this.categoria = categoria || '';
-      this.gerar(); 
-    });
+  
+    }
 
-  }
+  
 
   gerar() {
     if (!(this.count >= this.paginas)) {
@@ -55,6 +53,7 @@ export class AllfotosComponent implements OnInit {
       });
     } else {
       this.hasMore = false;
+      
     }
   }
 
@@ -70,6 +69,7 @@ export class AllfotosComponent implements OnInit {
   openDialog(element: produto) {
     const dialogRef = this.dialog.open(ModalsComponent, {
       data: element,
+
     });
   }
 }

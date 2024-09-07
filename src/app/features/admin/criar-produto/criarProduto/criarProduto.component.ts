@@ -90,14 +90,13 @@ export class CriarProdutoComponent implements OnInit {
     this.adminService.adicionarProduto(produtoValues)
   }
 
-  fileClick1(event: any){
-    
-
-  }
+  salvar(){
+    this.enviarFoto = false
+}
 
     onFilesSelected(event: any){
-      this.produto.FotoFiles = Array.from(event.target.files)
-      console.log(this.produto.FotoFiles)
+       this.produto.FotoFiles.push(event.target.files[0])
+       console.log(this.produto.FotoFiles)
     }
 
 

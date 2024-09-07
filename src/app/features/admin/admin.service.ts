@@ -77,7 +77,7 @@ adicionarProduto(adicionarProduto: IAdicionarProduto){
   formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao)
 
 console.log(adicionarProduto.FotoUrls)
- adicionarProduto.FotoUrls.forEach((file) =>{
+ adicionarProduto.FotoUrls.forEach((file: File) =>{
   formDataAdicionarProduto.append(`FotoFiles`,file)
     console.log(file)
   })

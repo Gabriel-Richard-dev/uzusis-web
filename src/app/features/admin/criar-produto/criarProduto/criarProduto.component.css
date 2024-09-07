@@ -57,6 +57,19 @@
     width: 200px;
     height: 200px;
   }
+
+  .fotoClose{
+
+    width: 20px;
+    height: 20px;
+ 
+    img{
+
+      max-width: 100%;
+    }
+  }
+
+
   label{
     width: 50%;
     height: 50%;

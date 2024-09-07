@@ -46,14 +46,17 @@
 
       <button type="submit" (click) = "cadastrarProduto()">click</button>
       </form>
-<form  *ngIf="enviarFoto" action="">
+    
+<form class="formCriarProduto"  *ngIf="enviarFoto" action="">
+ <div class="fotoClose"> <img class="fotoClose"  src="../../../../../assets/icons8-excluir-50.png" alt=""> </div>
 <div class="box-images d-flex justify-content-center">
+
   <div>
 
 
 <div style="width: 420px; height: 200px;" class="file-upload-div">
     <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl1+')',     'background-position': 'center','background-repeat': 'no-repeat',}" style="height: 100%; width: 100%;" for="file-upload"></label>
-    <input (click) = "fileClick1($event)"  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload1">
+    <input (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload1">
     <!-- <img width="500px" src="../../../../../assets/icons8-adicionar-50.png" alt=""> -->
 </div>
 <div style="gap: 20px;" class="d-flex mt-2">
@@ -70,7 +73,7 @@
 </div>
 </div>
 
-<button class="botao-salvar">Salvar</button>
+<button (click) = "salvar()" class="botao-salvar">Salvar</button>
 </div>
 
 </div>

@@ -50,23 +50,18 @@ export class CriarProdutoComponent implements OnInit {
       Validators.min(0)     // Preço não pode ser negativo
     ]),
     QuantidadeP: new FormControl(0, [
-      Validators.required,  // Quantidade pequena é obrigatória
-      Validators.min(0)     // Quantidade não pode ser negativa
+      
     ]),
     QuantidadeM: new FormControl(0, [
-      Validators.required,  // Quantidade média é obrigatória
-      Validators.min(0)     // Quantidade não pode ser negativa
+      
+    
     ]),
     QuantidadeG: new FormControl(0, [
-      Validators.required,  // Quantidade grande é obrigatória
-      Validators.min(0)     // Quantidade não pode ser negativa
+
+    
     ]),
-    FotoFiles: new FormControl([], [
-      Validators.required,  // Fotos são obrigatórias
-    ]),  // Este campo pode precisar de uma abordagem diferente dependendo de como você está lidando com uploads de arquivos
     Categoria: new FormControl(null, [
-      Validators.required,  // Categoria é obrigatória
-      Validators.min(1)     // Categoria deve ser um número positivo
+    
     ]),
     Descricao: new FormControl('', [
       Validators.required,  // Descrição é obrigatória
@@ -81,7 +76,8 @@ export class CriarProdutoComponent implements OnInit {
 
 
   cadastrarProduto(){
-  
+
+
     const produtoValues = {
       Nome: this.criarProduto.value.Nome || '', // Valor padrão se Nome for null ou undefined
       Preco: this.criarProduto.value.Preco ?? 0, // Valor padrão se Preco for null ou undefined
@@ -89,9 +85,10 @@ export class CriarProdutoComponent implements OnInit {
       QuantidadeM: this.criarProduto.value.QuantidadeM ?? 0,
       QuantidadeG: this.criarProduto.value.QuantidadeG ?? 0,
       FotoUrls: this.produto.FotoFiles, // Assumindo que FotoFiles é um array de arquivos
-      Categoria: this.criarProduto.value.Categoria ?? 0,
+      Categoria: this.selecionado ?? 0,
       Descricao: this.criarProduto.value.Descricao || ''
     };;
+  
     if(this.criarProduto.valid){
     this.adminService.adicionarProduto(produtoValues)
   }
@@ -131,7 +128,6 @@ fotoClose(){
   this.enviarFoto = false
   this.contadorFiles = 0
   this.produto.FotoFiles = []
-
 
 }
 

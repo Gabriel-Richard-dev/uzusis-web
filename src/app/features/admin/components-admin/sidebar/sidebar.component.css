@@ -1,4 +1,35 @@
-li{
-    display: flex;
-    flex-direction: column;
+
+.sidebar{
+    min-height: 100vh;
+height: 100%;
+width: 40vh;
+background-color: #efeded;
+    li{
+        
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        justify-content: center;
+        margin-top: 20%;
+a{
+color: black;
+min-width: 200px;
+text-align: center;
+margin: 0 auto;
+text-decoration: none;
+background-color: white;
+}
+
+    }
+
+
+    .titulo-image{
+        gap: 20px;
+        border-bottom: solid 1px rgb(53, 53, 53);
+    }
+    .logo-na-base{
+    margin-top: 50vh;
+
+    }
+    
 }

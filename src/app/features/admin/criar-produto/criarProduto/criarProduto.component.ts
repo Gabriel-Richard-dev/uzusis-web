@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Categoria, IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
 import { AdminService } from '../../admin.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-criarProduto',
@@ -14,6 +15,7 @@ export class CriarProdutoComponent implements OnInit {
   backgroundImageUrl3: string = '../../../../../assets/icons8-adicionar-50.png';
   enviarFoto = false
   selecionado!: number
+  contadorFiles = 0
   categorias: Categoria[] = [
     { categoria: 0, nomeCategoria: 'Calça' },
     { categoria: 1, nomeCategoria: 'Short' },
@@ -25,6 +27,9 @@ export class CriarProdutoComponent implements OnInit {
     { categoria: 7, nomeCategoria: 'Blusa' },
     { categoria: 8, nomeCategoria: 'Acessórios' }
   ];
+  quantidadeP = 0;
+  quantidadeM = 0;
+  quantidadeG = 0;
 
   constructor(private adminService: AdminService) { }
 
@@ -87,16 +92,103 @@ export class CriarProdutoComponent implements OnInit {
       Categoria: this.criarProduto.value.Categoria ?? 0,
       Descricao: this.criarProduto.value.Descricao || ''
     };;
+    if(this.criarProduto.valid){
     this.adminService.adicionarProduto(produtoValues)
+  }
+  else{
+    Swal.fire({
+      position: 'center',
+      icon: 'error',
+      title: 'Ops...',
+      text: 'Você não preencheu todas as informações.',
+      showConfirmButton: false,
+      timer: 1500,
+ 
+    });
+  }
   }
 
   salvar(){
+    console.log(this.contadorFiles)
+    if(this.contadorFiles === 3){
     this.enviarFoto = false
+    this.contadorFiles = 0
+  }
+  else{
+    Swal.fire({
+      position: 'center',
+      icon: 'error',
+      title: 'Ops...',
+      text: 'Você deve ter no minimo e no maximo três imagens.',
+      showConfirmButton: false,
+      timer: 1500,
+ 
+    });
+  }
+}
+
+fotoClose(){
+  this.enviarFoto = false
+  this.contadorFiles = 0
+  this.produto.FotoFiles = []
+
+
 }
 
     onFilesSelected(event: any){
-       this.produto.FotoFiles.push(event.target.files[0])
-       console.log(this.produto.FotoFiles)
+      
+      if(  this.contadorFiles < 3  ){
+    
+        this.produto.FotoFiles.push(event.target.files[0])
+       
+      
+        this.contadorFiles += 1
+        console.log(this.contadorFiles)
+      }
+
+      else{
+        Swal.fire({
+          position: 'center',
+          icon: 'error',
+          title: 'Ops...',
+          text: 'Você deve ter no maximo três imagens.',
+          showConfirmButton: false,
+          timer: 1500,
+     
+        });
+      }
+
+    }
+
+    decreaseQuantity(event: any) {
+      
+      if(event.target.name === "p" ){ 
+        this.quantidadeP--;
+      }
+
+      if(event.target.name === "g" ){ 
+        this.quantidadeG--;
+      }
+
+      if(event.target.name === "m" ){ 
+        this.quantidadeM--;
+      }
+    }
+   
+  
+  
+    increaseQuantity(event: any) {
+      if(event.target.name === "p" ){ 
+        this.quantidadeP++;
+      }
+
+      if(event.target.name === "g" ){ 
+        this.quantidadeG++;
+      }
+
+      if(event.target.name === "m" ){ 
+        this.quantidadeM++;
+      }
     }
 
 

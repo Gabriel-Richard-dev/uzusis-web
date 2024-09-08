@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminService } from '../../admin.service';
 import { pipe } from 'rxjs';
-
+import { IPedidoPendentes } from 'src/app/core/interfaces/IPedidosPendentes';
+import { MatDialog } from '@angular/material/dialog';
+import { InformacaoComponent } from '../../modalInformacoes/informacao/informacao.component';
 
 
 @Component({
@@ -11,20 +13,27 @@ import { pipe } from 'rxjs';
 })
 export class PedidosPendentesComponent implements OnInit {
 
-pedidosPendentes =<any>[]
-  
-  constructor(private adminService: AdminService) { }
+displayedColumns = ['id', 'valor-item', 'tamanho', 'informacoes'];
+dataSource = <IPedidoPendentes[]>[]
+
+  constructor(private adminService: AdminService, private Dialog: MatDialog) { }
 
   ngOnInit() {  
     this.adminService.pedidosPendentes().subscribe({
       next: res =>{
-    res.forEach((element: any) => {
-        console.log(element)
-      });
-        this.pedidosPendentes = res
+      this.dataSource = res
+      console.log(res)
       }
     })
 
+  
+
+  }
+
+  abriModalInformacao(element: IPedidoPendentes){
+  this.Dialog.open(InformacaoComponent, {
+    data: element
+  })
   }
 
 }

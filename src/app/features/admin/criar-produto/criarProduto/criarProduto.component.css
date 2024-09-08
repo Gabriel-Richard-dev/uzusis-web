@@ -1,17 +1,13 @@
 .content{
     display: flex;
-    justify-content: center;
-    align-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;
+
     background-color:#efeded;
-    padding: 30px;
+    padding: 1.875rem;
     width: 100vh;
 
 
 .quantidade{
- gap: 20px;
+ gap: 1.25rem;
     }
    
   
@@ -30,33 +26,27 @@
     width: 90vh;
     height: 100vh;
     background-color: rgb(255, 255, 255);
-    padding: 50px;
+    padding: 3.125rem;
   
   }
   
 
-  .escopo{
   
-    margin: 0 auto;
-
-
-  }
-
   /* styles.scss */
 .invalid-field {
-  border: 1px solid red;
+  border: .0625rem solid red;
 }
 
 .box-images{
   background-color: white;
-  border: solid 1px black;
-  padding: 40px;
+  border: solid .0625rem black;
+  padding: 2.5rem;
 
 
   .fotoClose{
 
-    width: 20px;
-    height: 20px;
+    width: 1.25rem;
+    height: 1.25rem;
  
     img{
 
@@ -101,18 +91,18 @@
 
 
 .botao-salvar{
-  padding: 5px 70px;
+  padding: .100rem 3rem;
   border: none;
   background-color: black;
   color: white;
-  margin-left: 25%
+  
 }
 
 
 .input-retangulo{
-  height: 60px;
+  height: 3.75rem;
   color: rgb(1, 8, 14);
-  border: solid 1px rgb(156, 156, 158)
+  border: solid .0625rem rgb(156, 156, 158)
 }
 
 
@@ -122,17 +112,17 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  border: 1px solid black;
+  border: .0625rem solid black;
   background-color: white;
-  border-radius: 12px;
+  border-radius: .75rem;
 }
 
 
 .btn-decrease, .btn-increase {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
   border: none;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -144,14 +134,14 @@
 
 .quantidade-input {
   text-align: center;
-  width: 60px; 
-  padding: 5px;
+  width: 3.75rem; 
+  padding: .3125rem;
   border: none;
-  border-radius: 4px;
+  border-radius: .25rem;
 }
 
 .cadastrar-produto{
-  padding: 5px 20px;
+  padding: .3125rem 1.25rem;
   border: none;
   background-color: black;
   color: white;

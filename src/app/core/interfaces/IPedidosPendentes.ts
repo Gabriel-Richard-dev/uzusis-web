@@ -1,4 +1,4 @@
-interface IPedidoPendentes {
+export interface IPedidoPendentes {
   id: number;
   produtoId: number;
   compraId: number;

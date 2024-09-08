@@ -1,0 +1,80 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <div class="tituloESubtitulo d-flex justify-content-center">
+      <h2 class="titulo">informações do pedido</h2>
+    
+    </div>
+    <div class="close-modal-img" (click)="fecharModal()">
+      <img src="../../../../../assets/icons8-excluir-50.png"alt="">
+    </div>
+  </div>
+  <div class="modal-content">
+    <div class="modal-inputs">
+      <td>
+        <mat-form-field
+          class="example-full-width input"
+          style="min-width: 31.25rem">
+          <h1>Resumo do pedido</h1>
+         <p>ID do pedido #{{data.id}}</p>
+        </mat-form-field>
+      </td>
+
+      <td class="container-dados-do-pedido">
+        <div class="d-flex">
+        
+          <div class="img-dados-pedido ">
+            <img src="../../../../../assets/imagemModalInformacao.png" alt="">
+          </div>
+          <div class="dados-pedido">
+              <p>Nome do produto:</p>
+              <p>Categoria:</p>
+              <p>Tamanho:</p>
+          </div>
+        </div>
+      </td>
+
+
+
+      <td>
+        <mat-form-field
+          class="example-full-width input"
+          style="min-width: 31.25rem">
+          <mat-label>Local</mat-label>
+          <input matInput disabled [value]="data.id" />
+        </mat-form-field>
+      </td>
+
+      <td>
+        <mat-form-field
+          class="example-full-width input"
+          style="min-width: 31.25rem">
+          <mat-label>Nome do Solicitante</mat-label>
+          <input matInput disabled [value]="data.id" />
+        </mat-form-field>
+      </td>
+
+      <td>
+        <mat-form-field
+          class="example-full-width input"
+          style="min-width: 31.25rem">
+          <mat-label>Tipo de Movimentação</mat-label>
+          <input matInput disabled [value]="data.id" />
+        </mat-form-field>
+      </td>
+
+      <td>
+        <mat-form-field
+          class="example-full-width input"
+          style="min-width: 31.25rem">
+          <mat-label>Data e hora</mat-label>
+          <input matInput disabled [value]="data.id" />
+        </mat-form-field>
+      </td>
+    </div>
+  </div>
+</div>
+<div class="modal-acoes">
+  <button (click)="fecharModal()" class="btn-fechar">
+    <div class="btn-fechar-title">Fechar</div>
+  </button>
+</div>

@@ -1,100 +1,237 @@
+<div class="flex d-flex gap-4">
+  <app-sidebar></app-sidebar>
 
-<div class="flex d-flex">
-<app-sidebar></app-sidebar>
+  <div class="escopo mt-3">
+    <div class="content col-6">
+      <div class="container-border">
+        <h1 style="color: black; font-size: larger" class="mb-3">
+          Cadastrar produto
+        </h1>
+        <div class="container-centralizar">
+          <form
+            class="formCriarProduto"
+            *ngIf="!enviarFoto"
+            action=""
+            [formGroup]="criarProduto"
+          >
+            <div class="adicionarImagem d-flex justify-content-center">
+              <img
+                (click)="trocarParaOEnviarImagem()"
+                style="cursor: pointer"
+                src="../../../../../assets/ADICIONAR IMAGEM.png"
+                alt=""
+              />
+            </div>
 
-<div class="escopo">
-  <div class="content col-6">
-   <div class="container-border">
-    <h1 style="color: black;">Cadastrar produto</h1>
-    <div class="container-centralizar justify-content-center">
-    <form class="formCriarProduto" *ngIf="!enviarFoto"  action="" [formGroup]="criarProduto">
-    
-      <div class="adicionarImagem d-flex justify-content-center" (click)="trocarParaOEnviarImagem()">
-        <img src="../../../../../assets/ADICIONAR IMAGEM.png" alt="">
+            <label for="">Crie um novo produto</label>
+            <input
+              class="input-retangulo"
+              type="text"
+              formControlName="Nome"
+              placeholder="  Nome do produto"
+            />
+            <label for="">Preço de venda</label>
+            <input
+              class="input-retangulo"
+              type="number"
+              formControlName="Preco"
+              placeholder="  R$ 00,00"
+            />
+            <label for="">Adicionar tamanhos</label>
+            <div class="quantidade d-flex">
+              <div class="setQuantidade">
+                <label for=""> P</label>
+                <button
+                  name="p"
+                  class="btn-decrease"
+                  (click)="decreaseQuantity($event)"
+                >
+                  -
+                </button>
+                <input
+                  formControlName="QuantidadeP"
+                  type="number"
+                  [(ngModel)]="quantidadeP"
+                  min="0"
+                  class="quantidade-input"
+                />
+                <button
+                  name="p"
+                  class="btn-increase"
+                  (click)="increaseQuantity($event)"
+                >
+                  +
+                </button>
+              </div>
+              <div class="setQuantidade">
+                <label for=""> M</label>
+                <button
+                  name="m"
+                  class="btn-decrease"
+                  (click)="decreaseQuantity($event)"
+                >
+                  -
+                </button>
+                <input
+                  formControlName="QuantidadeM"
+                  type="number"
+                  [(ngModel)]="quantidadeM"
+                  min="0"
+                  class="quantidade-input"
+                />
+                <button
+                  name="m"
+                  class="btn-increase"
+                  (click)="increaseQuantity($event)"
+                >
+                  +
+                </button>
+              </div>
+              <div class="setQuantidade">
+                <label for=""> G</label>
+                <button
+                  name="g"
+                  class="btn-decrease"
+                  (click)="decreaseQuantity($event)"
+                >
+                  -
+                </button>
+                <input
+                  formControlName="QuantidadeG"
+                  type="number"
+                  [(ngModel)]="quantidadeG"
+                  min="0"
+                  class="quantidade-input"
+                />
+                <button
+                  name="g"
+                  class="btn-increase"
+                  (click)="increaseQuantity($event)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <mat-form-field style="width: 50%">
+              <mat-label>Categoria</mat-label>
+              <mat-select [(value)]="selecionado">
+                <mat-option
+                  *ngFor="let categoria of categorias"
+                  [value]="categoria.categoria"
+                >
+                  {{ categoria.nomeCategoria }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <input
+              style="height: 100px"
+              type="text"
+              formControlName="Descricao"
+              placeholder="   Descricao"
+            />
+
+            <div class="botao d-flex justify-content-end">
+              <button
+                style="max-width: 40%; margin-left: 60%"
+                class="cadastrar-produto"
+                type="submit"
+                (click)="cadastrarProduto()"
+              >
+                Cadastrar produto
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <form class="formCriarProduto" *ngIf="enviarFoto" action="">
+          <div
+            
+            class="fotoClose d-flex justify-content-end"
+          >
+            <img
+            (click)="fotoClose()"
+              class="fotoClose"
+              src="../../../../../assets/icons8-excluir-50.png"
+              alt=""
+              style="cursor: pointer;"
+            />
+          </div>
+          <div class="box-images d-flex justify-content-center">
+            <div>
+              <div style="width: 420px; height: 200px" class="file-upload-div">
+                <label
+                  [ngStyle]="{'background-image': 'url('+backgroundImageUrl1+')',     'background-position': 'center','background-repeat': 'no-repeat',}"
+                  style="height: 100%; width: 100%"
+                  for="file-upload"
+                ></label>
+                <input
+                  (change)="onFilesSelected($event)"
+                  type="file"
+                  id="file-upload"
+                  name="file-upload1"
+                />
+                <!-- <img width="500px" src="../../../../../assets/icons8-adicionar-50.png" alt=""> -->
+              </div>
+              <div style="gap: 20px" class="d-flex mt-2">
+                <div
+                  style="width: 200px; height: 250px"
+                  class="file-upload-div"
+                >
+                  <label
+                    [ngStyle]="{
+                      'background-image': 'url(' + backgroundImageUrl2 + ')',
+                      'background-position': 'center',
+                      'background-repeat': 'no-repeat',
+                      width: '200px'
+                    }"
+                    style="width: 200px"
+                    for="file-upload"
+                  ></label>
+                  <input
+                    (change)="onFilesSelected($event)"
+                    type="file"
+                    id="file-upload"
+                    name="file-upload2"
+                  />
+                  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
+                </div>
+
+                <div
+                  style="width: 200px; height: 250px"
+                  class="file-upload-div"
+                >
+                  <label
+                    [ngStyle]="{
+                      'background-image': 'url(' + backgroundImageUrl3 + ')',
+                      'background-position': 'center',
+                      'background-repeat': 'no-repeat',
+                      width: '200px'
+                    }"
+                    for="file-upload"
+                  ></label>
+                  <input
+                    (change)="onFilesSelected($event)"
+                    type="file"
+                    id="file-upload"
+                    name="file-upload3"
+                  />
+                  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
+                </div>
+              </div>
+              <p class="mt-3">
+                Quantidade de fotos selecionadas: {{ contadorFiles }}
+              </p>
+
+              <div class="d-flex space-between gap-4">
+                <button (click)="apagarTodas()" class="botao-salvar">
+                  Limpar imagens
+                </button>
+                <button (click)="salvar()" class="botao-salvar">Salvar</button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
-      
-      
-      <label for="">Crie um novo produto</label>
-      <input class="input-retangulo" type="text"  formControlName="Nome" placeholder="  Nome do produto" />
-      <label for="">Preço de venda</label>
-      <input class="input-retangulo" type="number" formControlName="Preco"  placeholder="  R$ 00,00"/>
-      <label for="">Adicionar tamanhos</label>  
-      <div class="quantidade d-flex">
-        <div class="setQuantidade">
-          <label for=""> P</label>
-          <button name="p" class="btn-decrease" (click)="decreaseQuantity($event)">-</button>
-          <input  formControlName="QuantidadeP" type="number" [(ngModel)]="quantidadeP" min="1"  class="quantidade-input">
-          <button name="p" class="btn-increase" (click)="increaseQuantity($event)">+</button>
-        </div>
-        <div class="setQuantidade">
-          <label for=""> M</label>
-          <button name="m" class="btn-decrease" (click)="decreaseQuantity($event)">-</button>
-          <input  formControlName="QuantidadeM" type="number" [(ngModel)]="quantidadeM" min="1"  class="quantidade-input">
-          <button name="m" class="btn-increase" (click)="increaseQuantity($event)">+</button>
-        </div>
-        <div class="setQuantidade">
-          <label for=""> G</label>
-          <button name="g" class="btn-decrease" (click)="decreaseQuantity($event)">-</button>
-          <input formControlName="QuantidadeG" type="number" [(ngModel)]="quantidadeG" min="1"  class="quantidade-input">
-          <button name="g"  class="btn-increase" (click)="increaseQuantity($event)">+</button>
-        </div>
-    </div>
-    <mat-form-field style="width: 50%;">
-      <mat-label>Categoria</mat-label>
-      <mat-select [(value)]="selecionado">
-        <mat-option *ngFor="let categoria of categorias" [value]="categoria.categoria">
-          {{ categoria.nomeCategoria }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-    <input style="height: 100px;" type="text"  formControlName="Descricao" placeholder="   Descricao" />
-
-
-<div class="botao d-flex justify-content-end">
-      <button style="max-width: 40%; margin-left: 60%;" class="cadastrar-produto" type="submit" (click) = "cadastrarProduto()">Cadastrar produto</button>
-    </div>
-      </form>
-    </div>
-    
-<form class="formCriarProduto"  *ngIf="enviarFoto" action="">
- <div (click) = "fotoClose()" class="fotoClose d-flex justify-content-end"> <img class="fotoClose"  src="../../../../../assets/icons8-excluir-50.png" alt=""> </div>
-<div class="box-images d-flex justify-content-center">
-
-  <div>
-
-
-<div style="width: 420px; height: 200px;" class="file-upload-div">
-    <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl1+')',     'background-position': 'center','background-repeat': 'no-repeat',}" style="height: 100%; width: 100%;" for="file-upload"></label>
-    <input (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload1">
-    <!-- <img width="500px" src="../../../../../assets/icons8-adicionar-50.png" alt=""> -->
-</div>
-<div style="gap: 20px;" class="d-flex mt-2">
-<div style="width: 200px; height: 250px;" class="file-upload-div">
-  <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl2+')',     'background-position': 'center','background-repeat': 'no-repeat', 'width': '200px'}"  style="width: 200px;"  for="file-upload"></label>
-  <input  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload2">
-  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
-</div>
-
-<div style="width: 200px; height: 250px;" class="file-upload-div">
-  <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl3+')',     'background-position': 'center','background-repeat': 'no-repeat', 'width': '200px'}"  for="file-upload"></label>
-  <input  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload3">
-  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
-</div>
-</div>
-<p class="mt-3">Quantidade de fotos selecionadas: {{contadorFiles}}</p>
-<button (click) = "salvar()" class="botao-salvar">Salvar</button>
-
-</div>
-
-</div>
-</form>
-
     </div>
   </div>
 </div>
-</div>
-
-
-
-
-

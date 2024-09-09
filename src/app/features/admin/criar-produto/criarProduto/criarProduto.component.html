@@ -36,6 +36,7 @@
               type="number"
               formControlName="Preco"
               placeholder="  R$ 00,00"
+              min="0"
             />
             <label for="">Adicionar tamanhos</label>
             <div class="quantidade d-flex">
@@ -59,6 +60,7 @@
                   name="p"
                   class="btn-increase"
                   (click)="increaseQuantity($event)"
+                 
                 >
                   +
                 </button>

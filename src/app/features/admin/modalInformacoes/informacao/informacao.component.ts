@@ -1,7 +1,9 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { IPedidoPendentes } from 'src/app/core/interfaces/IPedidosPendentes';
+import { IPedidoPendentes, Iproduto } from 'src/app/core/interfaces/IPedidosPendentes';
 import { AdminService } from '../../admin.service';
+import { IUsuario } from 'src/app/core/interfaces/IUser';
+import { produto } from 'src/app/core/interfaces/produto';
 
 @Component({
   selector: 'app-informacao',
@@ -10,15 +12,19 @@ import { AdminService } from '../../admin.service';
 })
 export class InformacaoComponent implements OnInit {
 
-  clienteData = []
-  produtoData = []
-  constructor(@Inject(MAT_DIALOG_DATA) public data: IPedidoPendentes,private DialogRef: MatDialogRef<InformacaoComponent>, private adminService: AdminService) { }
-
-  ngOnInit() {
-    console.log(this.data)
+  clienteData!: IUsuario
+  produtoData!: Iproduto
+  constructor(@Inject(MAT_DIALOG_DATA) public data: IPedidoPendentes,private DialogRef: MatDialogRef<InformacaoComponent>, private adminService: AdminService) { 
     this.getCliente()
     this.getProduto()
+  }
+
+  ngOnInit() {
+    
+
+
     console.log(this.clienteData)
+
     console.log(this.produtoData)
   }
 
@@ -26,7 +32,8 @@ export class InformacaoComponent implements OnInit {
     this.adminService.getClente(this.data.clienteId).subscribe({
       next: res =>{
         this.clienteData = res
-        console.log(res)
+       
+     
       }
 
     })

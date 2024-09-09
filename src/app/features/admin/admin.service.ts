@@ -4,8 +4,10 @@ import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { Observable } from 'rxjs/internal/Observable';
 import { IAdicionarFoto, IAdicionarProduto } from 'src/app/core/interfaces/IAdicionarProduto';
-import { IPedidoPendentes } from 'src/app/core/interfaces/IPedidosPendentes';
+import { IPedidoPendentes, Iproduto } from 'src/app/core/interfaces/IPedidosPendentes';
+import { IUsuario } from 'src/app/core/interfaces/IUser';
 import { IClienteauth } from 'src/app/core/interfaces/auth';
+import { produto } from 'src/app/core/interfaces/produto';
 import { IToken } from 'src/app/core/interfaces/token';
 import { environment } from 'src/environments/environment.development';
 import Swal from 'sweetalert2';
@@ -137,23 +139,23 @@ pedidosPendentes() :Observable<IPedidoPendentes[]>{
 
 }
 
-getClente(id: number): Observable<any>{
+getClente(id: number): Observable<IUsuario>{
   const params = new HttpParams().set("id", id)
   const options = {
     params,
     headers: this.headers
   }
-  return this.http.get(`${apiUrlCLiente}/admin/obter-cliente`,options)
+  return this.http.get<IUsuario>(`${apiUrlCLiente}/admin/obter-cliente`,options)
 
 }
 
-getProduto(id:number): Observable<any>{
+getProduto(id:number): Observable<Iproduto>{
   const params = new HttpParams().set("produtoId", id)
   const options = {
     params,
     headers: this.headers
   }
-  return this.http.get(`${apiUrlProduto}/id`, options)
+  return this.http.get<Iproduto>(`${apiUrlProduto}/id`, options)
 }
 
 }

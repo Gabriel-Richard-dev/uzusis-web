@@ -156,17 +156,22 @@ export class CriarProdutoComponent implements OnInit {
 
   decreaseQuantity(event: any) {
     if (event.target.name === "p") {
+      if(this.quantidadeP >0)
       this.quantidadeP--;
     }
 
     if (event.target.name === "g") {
+      if(this.quantidadeG >0)
       this.quantidadeG--;
     }
 
     if (event.target.name === "m") {
+      if(this.quantidadeM >0)
       this.quantidadeM--;
     }
   }
+
+
 
   increaseQuantity(event: any) {
     if (event.target.name === "p") {

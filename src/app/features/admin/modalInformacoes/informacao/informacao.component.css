@@ -30,34 +30,7 @@
       }
     }
   }
-  .modal-acoes {
-    display: flex;
-    padding: 0.75rem 1.625rem;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 1.375rem;
-    align-self: stretch;
-    background-color: #f3f3f3;
-    .btn-fechar {
-      padding: 0.375rem 0.375rem 0.375rem 0.5rem;
-      justify-content: center;
-      align-items: center;
-      border-radius: 0.25rem;
-      border: 0.125rem solid black;
-      cursor: pointer;
-  
-    
-   
-  
-      letter-spacing: 0.078125rem;
-      .btn-fechar-title {
-        display: flex;
-        padding: 0.1875rem 0.375rem 0.1875rem 0.25rem;
-        align-items: flex-start;
-        gap: 0.625rem;
-      }
-    }
-  }
+
   .input {
     width: 14.75rem;
   }
@@ -72,7 +45,8 @@
 
   .container-dados-do-pedido{
 
-    border: solid 1px black;
+    border: solid 1px rgb(105, 105, 105, 20%);
+    ;
     height: 14vh;
     min-width: 31.25rem; 
     mat-form-field{
@@ -89,4 +63,87 @@
     img{
         height: 100%;
     }   
+
+   
+}
+
+.alinhar-elementos{
+  border: solid 1px rgb(105, 105, 105, 20%);
+  display: flex;
+  justify-content: space-between;
+  min-width: 31.25rem;
+  padding-top: 10px; 
+
+  .texto{
+    margin-left: auto;
+  }
+  .div-image{
+    margin-left: auto;
+  }
+}
+.modal-acoes {
+  display: flex;
+  padding: 0.75rem 1.625rem;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.375rem;
+  align-self: stretch;
+  background-color: #f3f3f3;
+  .btn-fechar {
+    padding: 0.375rem 0.375rem 0.375rem 0.5rem;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.25rem;
+    border: 0.125rem solid black;
+    cursor: pointer;
+
+  
+ 
+
+    letter-spacing: 0.078125rem;
+    .btn-fechar-title {
+      display: flex;
+      padding: 0.1875rem 0.375rem 0.1875rem 0.25rem;
+      align-items: flex-start;
+      gap: 0.625rem;
+    }
+  }
+}
+
+
+.div-valor{
+  margin-top: auto;
+  margin-left: auto;
+  margin-bottom: auto;
+  margin-right: 2%;
+
+  p{
+    margin: 0px;
+    padding: 0px;
+  }
+}
+
+.modal-content{
+  display: flex;
+  flex-direction: row;
+}
+
+h3{
+  color: rgb(107, 107, 107);
+}
+
+.textoH3{
+  margin-right: 20px;
+}
+
+.containerBege{
+  background-color: #cabcb1 ;
+  height: 20vh;
+  .padding-container-bege{
+    padding:10px;
+  }
+}
+
+br{
+  gap: 50px;
 }

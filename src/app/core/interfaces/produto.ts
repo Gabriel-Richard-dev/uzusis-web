@@ -13,6 +13,7 @@ export interface produto{
   tamanhos:tamanhos[];
   quantidade:number;
   categoriaNome:string;
+  quantidadePedida:number | undefined;
 }
 
 export interface tamanhos{

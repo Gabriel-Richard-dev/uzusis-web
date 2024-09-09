@@ -1,8 +1,11 @@
+import { Dialog } from '@angular/cdk/dialog';
 import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { Route, Router } from '@angular/router';
 import { Pedido, produto } from 'src/app/core/interfaces/produto';
 import { NavbarService } from 'src/app/features/initial-page/components/services/navbar.service';
 import Swal from 'sweetalert2';
+import { ModalPagamentoComponent } from './modal-pagamento/modal-pagamento.component';
 
 @Component({
   selector: 'app-navbar',
@@ -11,6 +14,7 @@ import Swal from 'sweetalert2';
 })
 export class NavbarComponent {
   @ViewChild('dropdownImage') dropdownImage!: ElementRef;
+ 
   categoria:string | null='';
   produtos:produto[]=[]
   dataSource:any;
@@ -26,7 +30,8 @@ export class NavbarComponent {
   valorTotal:number=0;
   constructor(
     private navbarService:NavbarService,
-    private router:Router
+    private router:Router,
+    private dialog:MatDialog
   ){}
   sidebarVisible: boolean = false;
   handleClick(index:any){
@@ -79,12 +84,14 @@ adicionarCarrinho(){
           for(var i=0;lista>i;i++){
             
             this.quantidadeProduto[this.idPedido[i]] = this.pedidos[i].quantidade;
+            
             this.carrinhoId[this.idPedido[i]] = this.pedidos[i].id;
             this.navbarService.getProdutoId(this.idPedido[i]).subscribe(res=>{        
             if (Array.isArray(res)) {
               this.produtos = [...this.produtos, ...res];
               
             } else {
+           
               this.produtos = [...this.produtos,res];   
             }
            
@@ -107,6 +114,7 @@ adicionarCarrinho(){
                this.router.navigate(['login']);
             }
           });
+          this.sidebarVisible = false;
         }
       });
       
@@ -120,19 +128,26 @@ this.navbarService.retirarCarrinho(id).subscribe(res=>{
 
 })
 }
-comprar(){
-  this.navbarService.comprar().subscribe(res=>{
-    Swal.fire({
-      title: "Concluida!",
-      text: "Produto comprado com sucesso!",
-      icon: "success",
-      confirmButtonText: "OK" 
-    }).then((result)=>{
-location.reload()
-    })
-   
-  })
+comprar(element: produto[]) {
+
+  const produtosComQuantidades = element.map(produto => {
+ 
+    const quantidade = this.quantidadeProduto[produto.id] || 0;
+
+    return {
+      ...produto,
+      quantidadePedida: quantidade
+    };
+  });
+
+  this.sidebarVisible = false;
+  const dialogRef = this.dialog.open(ModalPagamentoComponent, {
+    width: '100vw',
+    height: '100%',
+    data: produtosComQuantidades, 
+  });
 }
+
 }
   
 

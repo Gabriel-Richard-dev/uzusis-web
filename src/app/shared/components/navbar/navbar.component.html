@@ -1,4 +1,4 @@
-<p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}">
+<p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}" *ngIf="sidebarVisible">
   <h3>Carrinho</h3>
   <hr>
   <div *ngFor="let produto of produtos">
@@ -25,7 +25,7 @@
       <span>Subtotal</span>
       <span>R${{valorTotal}}</span>
     </div>
-    <div class="finalizar" (click)="comprar()">
+    <div class="finalizar" (click)="comprar(produtos)" *ngIf="valorTotal>0">
       <div>FINALIZAR PEDIDO </div>
       <span>R${{valorTotal}}</span>
     </div>

@@ -13,6 +13,8 @@ import { ResetarSenhaComponent } from './auth/resetar-senha/resetar-senha/reseta
 import { CadastroComponent } from './auth/cadastro/cadastro/cadastro.component';
 import { EnviarEmailResetarSenhaComponent } from './auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component';
 import { FormsModule } from '@angular/forms';
+import { UserComponent } from './user/user.component';
+import { PedidosComponent } from './user/pedidos/pedidos.component';
 
 
 @NgModule({
@@ -24,7 +26,9 @@ import { FormsModule } from '@angular/forms';
     ConfirmarCodigoComponent,
     ResetarSenhaComponent,
     CadastroComponent,
-    EnviarEmailResetarSenhaComponent
+    EnviarEmailResetarSenhaComponent,
+    UserComponent,
+    PedidosComponent
     
 
 

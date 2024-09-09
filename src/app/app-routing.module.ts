@@ -10,6 +10,7 @@ import { LoginAdmComponent } from "./features/auth/tela-adm-logar/login-adm/logi
 import { PedidosPendentesComponent } from "./features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component";
 import { HistoricoPedidosComponent } from "./features/admin/historicos-de-pedidos/historico-pedidos/historico-pedidos.component";
 import { PegarProdutosComponent } from "./features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component";
+import { PedidosComponent } from './features/user/pedidos/pedidos.component';
 
 
 
@@ -63,6 +64,10 @@ component: CriarProdutoComponent
   {
     path: "enviarEmail",
     component: EnviarEmailResetarSenhaComponent
+  },
+  {
+    path: "aaa",
+    component: PedidosComponent
   },
 
   // {

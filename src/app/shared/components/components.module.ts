@@ -17,6 +17,7 @@ import { PegarProdutosComponent } from 'src/app/features/admin/pegarProdutos/peg
 import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-adm/login-adm.component';;
 import {SidebarModule} from 'primeng/sidebar'
 import { ButtonModule } from 'primeng/button';
+import { ModalPagamentoComponent } from './navbar/modal-pagamento/modal-pagamento.component';
 
 
 @NgModule({
@@ -30,6 +31,7 @@ import { ButtonModule } from 'primeng/button';
     HistoricoPedidosComponent,
     PedidosPendentesComponent,
     PegarProdutosComponent,
+    ModalPagamentoComponent,
   ],
   imports: [
     CommonModule,

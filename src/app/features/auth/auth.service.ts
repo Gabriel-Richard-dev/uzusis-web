@@ -228,7 +228,8 @@ constructor(private http: HttpClient, private dialog: MatDialog, private router:
   }
 
   
-  enviarCep(cep: string): Observable<any>{
+  enviarCep(cep: any): Observable<any>{
+    console.log(cep)
   return this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`)
   }
 

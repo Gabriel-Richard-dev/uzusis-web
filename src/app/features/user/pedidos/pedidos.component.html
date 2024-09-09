@@ -1,0 +1,23 @@
+<div class="pedidos">
+  Meus pedidos
+</div>
+
+<div class="pedido">
+  <div *ngFor="let produto of produtos">
+    <div class="carrinhoProdutos">
+      <div class="img">
+        <img [src]="produto.fotoUrls[0]" [alt]="produto.descricao">
+      </div>
+      <div class="flex">
+        <h5>{{produto.nome}}</h5>
+        <h5>{{produto.categoriaNome}}</h5>
+      </div>
+
+      <div class="informacoes">
+        <h5>R${{produto.preco}}</h5>
+      </div>
+
+    </div>
+  </div>
+
+</div>

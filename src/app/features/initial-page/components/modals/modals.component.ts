@@ -164,18 +164,40 @@ Adicionar(){
 				
 			},
 			error: err => {
-				console.error('Erro ao adicionar produto ao carrinho', err.error);
-			console.log(err.error)
-			if(err.error.title){
-				this.router.navigate(['login'])
-				this.dialog.closeAll()
+				const swalWithBootstrapButtons = Swal.mixin({
+					customClass: {
+						confirmButton: "btn btn-success",
+						cancelButton: "btn btn-danger"
+					},
+					buttonsStyling: false
+				});
+			if(err.statusText==='Unauthorized'){
+				swalWithBootstrapButtons.fire({
+					title: "Você não está logado!",
+					text: "Deseja se cadastrar para adicionar ao carrinho?",
+					icon: "warning",
+					showCancelButton: true,
+					confirmButtonText: "Sim",
+					cancelButtonText: "Não",
+					reverseButtons: true
+				}).then((result) => {
+					if (result.isConfirmed) {
+						 this.router.navigate(['login'])
+						 this.dialog.closeAll()
+					} else if (
+						result.dismiss === Swal.DismissReason.cancel
+					) {
+						this.dialog.closeAll()
+					}
+				});
+				
 			}
 			else{
 				Swal.fire({
 					position: 'center',
 					icon: 'error',
-					title: 'Erro',
-					text: `${err.error}`,
+					title: 'Opss...',
+					text: `Você já tem o máximo deste produto no carrinho`,
 					showConfirmButton: false,
 					timer: 2500,
 				});

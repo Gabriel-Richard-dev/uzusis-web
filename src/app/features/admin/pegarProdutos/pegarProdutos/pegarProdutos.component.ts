@@ -13,11 +13,16 @@ export class PegarProdutosComponent implements OnInit {
   data!:IgetProduto[]
   constructor(private adminService: AdminService) { }
 
+
+
   ngOnInit() {
     this.adminService.getProdutosEditar().subscribe({
       next: res =>{
-        this.data = res[0]
-    
+        this.data = res
+        console.log(this.data)
+        this.data.forEach(element =>{
+          console.log(element)
+        })
       }
     })
   }

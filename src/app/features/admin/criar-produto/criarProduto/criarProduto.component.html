@@ -5,10 +5,12 @@
 <div class="escopo">
   <div class="content col-6">
    <div class="container-border">
- 
-    <form action="" [formGroup]="criarProduto">
+    <h1 style="color: black;">Cadastrar produto</h1>
+    <form class="formCriarProduto" *ngIf="!enviarFoto"  action="" [formGroup]="criarProduto">
       
-      <input (change) = "onFilesSelected($event)" type="file" formControlName="FotoFiles" multiple/>
+      <div style="width: 200px; height:  300px;" (click)="trocarParaOEnviarImagem()">
+        AAAAAAAAAAAAAAAAAAAAAAAAAAA
+      </div>
       
       
       <label for="">Crie um novo produto</label>
@@ -44,6 +46,36 @@
 
       <button type="submit" (click) = "cadastrarProduto()">click</button>
       </form>
+<form  *ngIf="enviarFoto" action="">
+<div class="box-images d-flex justify-content-center">
+  <div>
+
+
+<div style="width: 420px; height: 200px;" class="file-upload-div">
+    <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl1+')',     'background-position': 'center','background-repeat': 'no-repeat',}" style="height: 100%; width: 100%;" for="file-upload"></label>
+    <input (click) = "fileClick1($event)"  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload1">
+    <!-- <img width="500px" src="../../../../../assets/icons8-adicionar-50.png" alt=""> -->
+</div>
+<div style="gap: 20px;" class="d-flex mt-2">
+<div style="width: 200px; height: 250px;" class="file-upload-div">
+  <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl2+')',     'background-position': 'center','background-repeat': 'no-repeat', 'width': '200px'}"  style="width: 200px;"  for="file-upload"></label>
+  <input  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload2">
+  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
+</div>
+
+<div style="width: 200px; height: 250px;" class="file-upload-div">
+  <label  [ngStyle] = "{'background-image': 'url('+backgroundImageUrl3+')',     'background-position': 'center','background-repeat': 'no-repeat', 'width': '200px'}"  for="file-upload"></label>
+  <input  (change) = "onFilesSelected($event)" type="file" id="file-upload" name = "file-upload3">
+  <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
+</div>
+</div>
+
+<button class="botao-salvar">Salvar</button>
+</div>
+
+</div>
+</form>
+
     </div>
   </div>
 </div>

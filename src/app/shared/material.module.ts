@@ -19,7 +19,7 @@ import {MatNativeDateModule} from "@angular/material/core"
 import {MatRadioModule} from "@angular/material/radio"
 import {MatCheckboxModule} from "@angular/material/checkbox"
 import {MatDialogModule} from "@angular/material/dialog"
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 
 @NgModule({
     declarations: [],
@@ -45,7 +45,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         MatCheckboxModule,
         MatDialogModule,
         MatTableModule,
-        MatProgressSpinnerModule
+
     ],
     exports: [
         MatInputModule,
@@ -68,7 +68,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         MatCheckboxModule,
         MatDialogModule,
         MatTableModule,
-        MatProgressSpinnerModule
+
     ]
 })
 export class MaterialModule {

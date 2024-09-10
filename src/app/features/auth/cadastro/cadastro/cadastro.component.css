@@ -13,7 +13,7 @@
 
 input{
   border: solid 1px black ;
-  background-color:  #e1ded8;
+  background-color: white;
 }
 button{
   background-color: black;
@@ -26,10 +26,9 @@ button:hover{
  
   margin: 0 auto;
   margin-top: 150px;
-  border: solid 1px black;
-  padding: 20px;
-  width: 120vh;
-  height: 110vh;
+  background-color:#efeded;
+  width: 100vh;
+  height: 120vh;
   
 
 }
@@ -56,8 +55,10 @@ border-radius: 20px;
   
 
 form{
+  
   input{
     border-radius: 20px;
+    outline-color: rgb(10, 8, 8);
   }
 
   div{
@@ -85,3 +86,4 @@ form{
 .invalid-field {
   border: 1px solid red;
 }
+

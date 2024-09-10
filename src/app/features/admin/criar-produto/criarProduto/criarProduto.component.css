@@ -5,10 +5,13 @@
     margin-left: auto;
     margin-right: auto;
     align-items: center;
-    margin-top: 20px;
+    background-color:#efeded;
+    padding: 30px;
+    width: 100vh;
 
 
-    .quantidade{
+
+.quantidade{
  gap: 20px;
     }
    
@@ -18,26 +21,26 @@
     display: flex;
     flex-direction: row;
     justify-content: left;
-    margin-top: 50px;
+
   }
 
-  form{
+  .formCriarProduto{
  
-    margin-top: 20%;
     gap: 5%;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    background-color: gray;
+    width: 90vh;
+    height: 100vh;
+    background-color: rgb(255, 255, 255);
     padding: 50px;
   
   }
   
 
   .escopo{
-    width: 1300px;
+  
     margin: 0 auto;
-    margin-top: 100px;
+
 
   }
 
@@ -45,3 +48,57 @@
 .invalid-field {
   border: 1px solid red;
 }
+
+.box-images{
+  background-color: white;
+  border: solid 1px black;
+  padding: 40px;
+  form{
+    width: 200px;
+    height: 200px;
+  }
+  label{
+    width: 50%;
+    height: 50%;
+  }
+}
+
+
+.caixa-imagem{
+  background-color: #e1ded8;
+
+}
+
+
+.file-upload-div{
+  input[type="file"]{
+    display: none;
+    
+  }
+  label{
+    cursor: pointer;
+    position: relative;
+    background-color: #e1ded8;
+    &::before {
+      position: absolute;
+      content: '';
+      width: 100%;
+      height: 100%;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+  }
+}
+
+
+.botao-salvar{
+  padding: 5px 70px;
+  border: none;
+  background-color: black;
+  color: white;
+  margin-left: 25%
+}
+
+
+

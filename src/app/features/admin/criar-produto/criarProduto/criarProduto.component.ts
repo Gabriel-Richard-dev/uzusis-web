@@ -15,6 +15,9 @@ import { min } from "moment";
   styleUrls: ["./criarProduto.component.css"],
 })
 export class CriarProdutoComponent implements OnInit {
+  imageUrl1: string | ArrayBuffer | null | undefined = null;
+  imageUrl2: string | ArrayBuffer | null | undefined = null;
+  imageUrl3: string | ArrayBuffer | null | undefined = null;
   backgroundImageUrl1: string = "../../../../../assets/icons8-adicionar-50.png";
   backgroundImageUrl2: string = "../../../../../assets/icons8-adicionar-50.png";
   backgroundImageUrl3: string = "../../../../../assets/icons8-adicionar-50.png";
@@ -118,7 +121,7 @@ export class CriarProdutoComponent implements OnInit {
         position: "center",
         icon: "error",
         title: "Ops...",
-        text: "Você deve ter no minimo e no maximo três imagens.",
+        text: "Você deve ter exatamente três imagens.",
         showConfirmButton: false,
         timer: 1500,
       });
@@ -127,27 +130,61 @@ export class CriarProdutoComponent implements OnInit {
 
   apagarTodas() {
     this.produto.FotoFiles = [];
+    this.imageUrl1 = "";
+    this.imageUrl2 = "";
+    this.imageUrl3 = "";
     this.contadorFiles = 0;
   }
 
   fotoClose() {
     this.enviarFoto = false;
-    this.contadorFiles = 0;
-    this.produto.FotoFiles = [];
+    this.apagarTodas()
   }
 
-  onFilesSelected(event: any) {
+  onFilesSelected(event: any, uploadFiles: string) {
+    const file = event.target.files ? event.target.files[0] : null;
     if (this.contadorFiles < 3) {
-      this.produto.FotoFiles.push(event.target.files[0]);
+      if (file) {
+        this.produto.FotoFiles.push(event.target.files[0]);
 
-      this.contadorFiles += 1;
-      console.log(this.contadorFiles);
+        if (uploadFiles === "file-upload1") {
+          this.imageUrl1 = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            this.imageUrl1 = e.target?.result;
+          };
+          reader.readAsDataURL(file);
+          console.log( "imagem url 1:", uploadFiles);
+        } else if (uploadFiles === "file-upload2") {
+          this.imageUrl2 = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            this.imageUrl2 = e.target?.result;
+          };
+          reader.readAsDataURL(file);
+          console.log("imagem url 2:", uploadFiles);
+        } else if (uploadFiles === "file-upload3") {
+          this.imageUrl3 = event.target.files[0];
+          const reader = new FileReader();
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            this.imageUrl3 = e.target?.result;
+          };
+          reader.readAsDataURL(file);
+          console.log("imagem url 3:", uploadFiles);
+        } else {
+          console.log("entrei aqui?");
+        }
+      }
+
+
+      this.contadorFiles++;
+    
     } else {
       Swal.fire({
         position: "center",
         icon: "error",
         title: "Ops...",
-        text: "Você deve ter no maximo três imagens.",
+        text: "Você deve ter exatamente três imagens.",
         showConfirmButton: false,
         timer: 1500,
       });
@@ -156,22 +193,17 @@ export class CriarProdutoComponent implements OnInit {
 
   decreaseQuantity(event: any) {
     if (event.target.name === "p") {
-      if(this.quantidadeP >0)
-      this.quantidadeP--;
+      if (this.quantidadeP > 0) this.quantidadeP--;
     }
 
     if (event.target.name === "g") {
-      if(this.quantidadeG >0)
-      this.quantidadeG--;
+      if (this.quantidadeG > 0) this.quantidadeG--;
     }
 
     if (event.target.name === "m") {
-      if(this.quantidadeM >0)
-      this.quantidadeM--;
+      if (this.quantidadeM > 0) this.quantidadeM--;
     }
   }
-
-
 
   increaseQuantity(event: any) {
     if (event.target.name === "p") {

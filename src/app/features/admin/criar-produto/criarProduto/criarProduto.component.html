@@ -164,13 +164,13 @@
                 <label
                   [ngStyle]="{'background-image': 'url('+backgroundImageUrl1+')',     'background-position': 'center','background-repeat': 'no-repeat',}"
                   style="height: 100%; width: 100%"
-                  for="file-upload"
-                ></label>
+                  for="file-upload1"
+                ><img *ngIf = "imageUrl1"   [src]="imageUrl1" alt="Imagem Preview"></label>
                 <input
-                  (change)="onFilesSelected($event)"
+                  (change)="onFilesSelected($event, 'file-upload1')"
                   type="file"
-                  id="file-upload"
-                  name="file-upload1"
+                  id="file-upload1"
+                  name="file-upload"
                 />
                 <!-- <img width="500px" src="../../../../../assets/icons8-adicionar-50.png" alt=""> -->
               </div>
@@ -187,13 +187,13 @@
                       width: '200px'
                     }"
                     style="width: 200px"
-                    for="file-upload"
-                  ></label>
+                    for="file-upload2"
+                  ><img *ngIf = "imageUrl2"  [src]="imageUrl2" alt="Imagem Preview" ></label>
                   <input
-                    (change)="onFilesSelected($event)"
+                    (change)="onFilesSelected($event, 'file-upload2')"
                     type="file"
-                    id="file-upload"
-                    name="file-upload2"
+                    id="file-upload2"
+                    name="file-upload"
                   />
                   <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
                 </div>
@@ -203,19 +203,20 @@
                   class="file-upload-div"
                 >
                   <label
+                  
                     [ngStyle]="{
                       'background-image': 'url(' + backgroundImageUrl3 + ')',
                       'background-position': 'center',
                       'background-repeat': 'no-repeat',
                       width: '200px'
                     }"
-                    for="file-upload"
-                  ></label>
+                    for="file-upload3"
+                  ><img *ngIf = "imageUrl3"  [src]="imageUrl3" alt="Imagem Preview"></label>
                   <input
-                    (change)="onFilesSelected($event)"
+                    (change)="onFilesSelected($event, 'file-upload3')"
                     type="file"
-                    id="file-upload"
-                    name="file-upload3"
+                    id="file-upload3"
+                    name="file-upload"
                   />
                   <!-- <img src="/src/assets/icons8-adicionar-50.png" alt=""> -->
                 </div>

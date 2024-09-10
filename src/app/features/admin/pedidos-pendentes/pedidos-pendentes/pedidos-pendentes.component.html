@@ -47,6 +47,16 @@
                   
                 </mat-cell>
               </ng-container>
+
+              <ng-container matColumnDef="enviar">
+                <mat-header-cell *matHeaderCellDef> enviar </mat-header-cell>
+                <mat-cell *matCellDef="let element"> 
+                  
+                 <div (click) = "abriModalInformacao(element)"  class="div-img"> <img src="../../../../../assets/visualizador.png" alt=""></div>
+
+                  
+                </mat-cell>
+              </ng-container>
           
               <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
               <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>

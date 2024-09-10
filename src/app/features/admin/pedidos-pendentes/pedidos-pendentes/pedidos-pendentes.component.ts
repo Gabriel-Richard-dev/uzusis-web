@@ -13,7 +13,7 @@ import { InformacaoComponent } from '../../modalInformacoes/informacao/informaca
 })
 export class PedidosPendentesComponent implements OnInit {
 
-displayedColumns = ['id', 'valor-item', 'tamanho', 'informacoes'];
+displayedColumns = ['id', 'valor-item', 'tamanho', 'informacoes', 'enviar'];
 dataSource = <IPedidoPendentes[]>[]
 
   constructor(private adminService: AdminService, private Dialog: MatDialog) { }

@@ -40,8 +40,6 @@ export class CadastroComponent implements OnInit {
 
     celular: new FormControl("", [
       Validators.required,
-      Validators.minLength(10), // Celular pode ter 10 ou 11 dígitos
-      Validators.maxLength(12),
     ]),
 
     dataNascimento: new FormControl("", [Validators.required]),

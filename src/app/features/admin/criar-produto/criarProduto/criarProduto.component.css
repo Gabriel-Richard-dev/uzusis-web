@@ -158,3 +158,20 @@ max-height: 100%;
 max-width: 100%;
 object-fit: cover;
 }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+.setQuantidade label{
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right:solid .0625rem rgb(156, 156, 158)
+}

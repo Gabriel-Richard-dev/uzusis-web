@@ -19,31 +19,7 @@ constructor(
 
 }
   ngOnInit(): void {
-    this.navbarService.atualizarCarrinho().subscribe({
-      next: (pedidos) => {
-        let lista=0
-        this.pedidos = pedidos;
-        this.idPedido = pedidos.map(pedido => pedido.produtoId);
-        lista=this.idPedido.length
-        this.produtos=[]
-  
-        for(var i=0;lista>i;i++){
-          
-          this.carrinhoId[this.idPedido[i]] = this.pedidos[i].id;
-          this.navbarService.getProdutoId(this.idPedido[i]).subscribe(res=>{        
-          if (Array.isArray(res)) {
-            this.produtos = [...this.produtos, ...res];
-            
-          } else {
-            this.produtos = [...this.produtos,res];   
-          }
 
-        
-        })
-      
-      }
-  }
-    })
   }
 
   

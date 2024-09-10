@@ -1,11 +1,10 @@
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { BehaviorSubject } from "rxjs";
 import { Observable } from "rxjs/internal/Observable";
 import {
-  IAdicionarFoto,
   IAdicionarProduto,
+  IEditarProduto,
 } from "src/app/core/interfaces/IAdicionarProduto";
 import {
   IPedidoPendentes,
@@ -123,46 +122,48 @@ export class AdminService {
       });
   }
 
-  editarProduto(adicionarProduto: IAdicionarProduto) {
-    const formDataAdicionarProduto = new FormData();
-    formDataAdicionarProduto.append("Nome", adicionarProduto.Nome);
-    formDataAdicionarProduto.append("Preco", adicionarProduto.Preco.toString());
-    formDataAdicionarProduto.append(
+  editarProduto(editarProduto: IEditarProduto) {
+    const formDataeditarProduto = new FormData();
+    formDataeditarProduto.append("id", editarProduto.id.toString());
+    formDataeditarProduto.append("Nome", editarProduto.Nome);
+    formDataeditarProduto.append("Preco", editarProduto.Preco.toString());
+    formDataeditarProduto.append(
       "QuantidadeP",
-      adicionarProduto.QuantidadeP.toString()
+      editarProduto.QuantidadeP.toString()
     );
-    formDataAdicionarProduto.append(
+    formDataeditarProduto.append(
       "QuantidadeM",
-      adicionarProduto.QuantidadeM.toString()
+      editarProduto.QuantidadeM.toString()
     );
-    formDataAdicionarProduto.append(
+    formDataeditarProduto.append(
       "QuantidadeG",
-      adicionarProduto.QuantidadeG.toString()
+      editarProduto.QuantidadeG.toString()
     );
-    formDataAdicionarProduto.append(
+    formDataeditarProduto.append(
       "Categoria",
-      adicionarProduto.Categoria.toString()
+      editarProduto.Categoria.toString()
     );
-    formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao);
+    formDataeditarProduto.append("Descricao", editarProduto.Descricao);
 
-    console.log(adicionarProduto.FotoUrls);
-    adicionarProduto.FotoUrls.forEach((file: File) => {
-      formDataAdicionarProduto.append(`FotoFiles`, file);
+    console.log(editarProduto.FotoUrls);
+    editarProduto.FotoUrls.forEach((file: File) => {
+      formDataeditarProduto.append(`FotoFiles`, file);
       console.log(file);
     });
 
     this.http
-      .patch(`${apiUrlProduto}/atualizar`, formDataAdicionarProduto)
+      .patch(`${apiUrlProduto}/atualizar`, formDataeditarProduto)
       .subscribe({
         next: (res) => {
           Swal.fire({
             position: "center",
             icon: "success",
             title: "OK",
-            text: `O produto ${adicionarProduto.Nome} foi editado com sucesso`,
+            text: `O produto ${editarProduto.Nome} foi editado com sucesso`,
             showConfirmButton: false,
             timer: 1500,
           });
+          location.reload()
         },
         error: (err) => {
           Swal.fire({
@@ -177,9 +178,12 @@ export class AdminService {
       });
   }
 
-  pedidosPendentes(): Observable<IPedidoPendentes[]> {
+  pedidosPendentes(naoFoiEnviado: number = 1): Observable<IPedidoPendentes[]> {
+    const params = new HttpParams().set("pedidoQuery", naoFoiEnviado)
+    
     const options = {
       headers: this.headers,
+      params
     };
 
     return this.http.get<IPedidoPendentes[]>(

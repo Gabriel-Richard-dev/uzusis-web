@@ -92,6 +92,7 @@ export class PegarProdutosComponent implements OnInit {
       1;
 
     const produtoValues = {
+      id:  this.id,
       Nome: this.criarProduto.value.Nome || "", // Valor padrão se Nome for null ou undefined
       Preco: this.criarProduto.value.Preco ?? 0, // Valor padrão se Preco for null ou undefined
       QuantidadeP: this.criarProduto.value.QuantidadeP ?? 0,
@@ -104,7 +105,7 @@ export class PegarProdutosComponent implements OnInit {
 
     if (this.criarProduto.valid && minimoCategoria) {
       if (this.contadorFiles === 3) {
-        this.adminService.adicionarProduto(produtoValues);
+        this.adminService.editarProduto(produtoValues);
       } else {
         Swal.fire({
           position: "center",

@@ -60,6 +60,10 @@ export class AuthService {
               timer: 1500,
             });
             this.router.navigate(["/"]);
+            setInterval(()=>{
+              location.reload()
+            },500)
+           
           },
           error: (err) => {
             Swal.fire({

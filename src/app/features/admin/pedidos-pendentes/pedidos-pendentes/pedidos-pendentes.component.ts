@@ -20,7 +20,7 @@ dataSource = <IPedidoPendentes[]>[]
   constructor(private adminService: AdminService, private Dialog: MatDialog) { }
 
   ngOnInit() {  
-    this.adminService.pedidosPendentes().subscribe({
+    this.adminService.pedidosPendentes(1).subscribe({
       next: res =>{
       this.dataSource = res
       this.data = res

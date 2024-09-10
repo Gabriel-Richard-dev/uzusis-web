@@ -32,7 +32,16 @@ background-color: white;
     }
     .logo-na-base{
     margin-top: 50vh;
+    justify-content: space-between;
 
     }
-    
+    .logout{
+        margin-right: 1.875rem;
+
+    }
+    .logout img{
+        max-width: 80%;
+        margin-left: 0.5rem;
+        cursor: pointer;
+    }
 }

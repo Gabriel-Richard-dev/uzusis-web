@@ -123,6 +123,60 @@ export class AdminService {
       });
   }
 
+  editarProduto(adicionarProduto: IAdicionarProduto) {
+    const formDataAdicionarProduto = new FormData();
+    formDataAdicionarProduto.append("Nome", adicionarProduto.Nome);
+    formDataAdicionarProduto.append("Preco", adicionarProduto.Preco.toString());
+    formDataAdicionarProduto.append(
+      "QuantidadeP",
+      adicionarProduto.QuantidadeP.toString()
+    );
+    formDataAdicionarProduto.append(
+      "QuantidadeM",
+      adicionarProduto.QuantidadeM.toString()
+    );
+    formDataAdicionarProduto.append(
+      "QuantidadeG",
+      adicionarProduto.QuantidadeG.toString()
+    );
+    formDataAdicionarProduto.append(
+      "Categoria",
+      adicionarProduto.Categoria.toString()
+    );
+    formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao);
+
+    console.log(adicionarProduto.FotoUrls);
+    adicionarProduto.FotoUrls.forEach((file: File) => {
+      formDataAdicionarProduto.append(`FotoFiles`, file);
+      console.log(file);
+    });
+
+    this.http
+      .patch(`${apiUrlProduto}/atualizar`, formDataAdicionarProduto)
+      .subscribe({
+        next: (res) => {
+          Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "OK",
+            text: `O produto ${adicionarProduto.Nome} foi editado com sucesso`,
+            showConfirmButton: false,
+            timer: 1500,
+          });
+        },
+        error: (err) => {
+          Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Ops...",
+            text: `Algo inesperado aconteceu`,
+            showConfirmButton: false,
+            timer: 1500,
+          });
+        },
+      });
+  }
+
   pedidosPendentes(): Observable<IPedidoPendentes[]> {
     const options = {
       headers: this.headers,
@@ -184,5 +238,16 @@ export class AdminService {
 
   getProdutosEditar(): Observable<any>{
    return this.http.get<IgetProduto>(`${apiUrlProduto}/admin/dashboard`)
+  }
+
+
+  getId(id: number): Observable<any>{
+    const params = new HttpParams().set("produtoId" , id)
+    const options = {
+      params
+    }
+   return this.http.get<produto>(`${apiUrlProduto}/id`, options)
+      
+  
   }
 }

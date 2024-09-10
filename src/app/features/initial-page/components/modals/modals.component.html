@@ -18,7 +18,7 @@
     <div class="informacoes">
       <h3>{{data.categoriaNome}}</h3>
       <p class="info">{{data.nome}}</p>
-      <p class="info">R${{data.preco}}</p>
+      <p class="info">{{ data.preco | currency:'BRL':'symbol' }}</p>
       <span class="subtitulo">Tamanho</span>
       <div class="buttons">
         <button [ngClass]="{ 'selected': selectedSize === 'P' }" (click)="selectSize('P')">P

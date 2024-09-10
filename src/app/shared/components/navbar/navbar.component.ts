@@ -147,7 +147,6 @@ comprar(element: produto[]) {
     data: produtosComQuantidades, 
   });
 }
-
 }
   
 

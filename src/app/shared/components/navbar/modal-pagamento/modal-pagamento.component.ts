@@ -24,7 +24,6 @@ constructor(
   
   this.form = this.fb.group({
     pagamento: ['',Validators.required],  
-    nome:['',Validators.required],
     
     
   });
@@ -33,7 +32,7 @@ formCep = new FormGroup({
       cep: new FormControl('')
 })
 
-
+cpfInvalido=false;
 precoTotal:number=0
 preco:number[]=[]
 produtos:produto[]=[]
@@ -41,21 +40,24 @@ cep: string = '';
   ngOnInit(): void {
     this.produtos=[...this.data]
     this.preco=this.produtos.map(preco=>preco.preco)
-    console.log(this.preco)
     for(let i=0;i<this.preco.length;i++){
 this.precoTotal+=this.preco[i]
     }
   }
+  chave:any=0
 selected:string='';
 comprarTrue:boolean=false
 agoraPode:boolean=false
 onPaymentChange(event: Event): void {
- 
+  this.agoraPode=false;
   const selectElement = event.target as HTMLSelectElement;
   const selectedPayment = selectElement.value;
   if(selectedPayment!=''){
     this.comprarTrue=true
     this.selected=selectElement.value;
+  }
+  if(selectedPayment==='pix'){
+    this.chave=this.generateRandomKey(80)
   }
 }
 comprar(){
@@ -78,16 +80,32 @@ getNameValue(): string {
 }
 agorarealpode:boolean=false
 getCep(){
-this.agorarealpode=true
+this.cpfInvalido=true
   this.authService.enviarCep(this.formCep.value.cep).subscribe(res=>{
-    console.log(res.estado)
+    
     if(res.estado==='Ceará'){
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 10;
-      console.log(this.precoTotal)
+      this.agorarealpode=true
+      this.cpfInvalido=false
     }
     else{
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 40;
+      this.agorarealpode=true
+      this.cpfInvalido=false
     }
   })
 }
+generateRandomKey(length: number): string {
+  this.agoraPode=true
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  result='Uzusis'+result
+  return result;
 }
+}
+
+

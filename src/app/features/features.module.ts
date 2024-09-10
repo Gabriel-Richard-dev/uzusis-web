@@ -12,9 +12,9 @@ import { ConfirmarCodigoComponent } from './auth/modal/confirmar-codigo/confirma
 import { ResetarSenhaComponent } from './auth/resetar-senha/resetar-senha/resetar-senha.component';
 import { CadastroComponent } from './auth/cadastro/cadastro/cadastro.component';
 import { EnviarEmailResetarSenhaComponent } from './auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component';
-import { FormsModule } from '@angular/forms';
 import { UserComponent } from './user/user.component';
 import { PedidosComponent } from './user/pedidos/pedidos.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 
 @NgModule({
@@ -45,9 +45,7 @@ import { PedidosComponent } from './user/pedidos/pedidos.component';
 
   ],
   exports:[
-   
     AllfotosComponent,
-  
   ]
 })
 export class FeaturesModule { }

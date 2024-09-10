@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+
 .modal-flex{
   display: flex;
   flex-direction: row;
@@ -58,11 +60,18 @@ label{
   display: flex;
   flex-direction: row;
 }
-
+.flex-new{
+  display: flex;
+  flex-direction: column;
+}
 
 .info{
   display: flex;
   flex-direction: column;
+  align-items: left;
+  justify-content: center;
+  margin-top: 50px;
+  width: 200px;
   
   h5{
     margin-left: 10px;
@@ -72,7 +81,9 @@ label{
 }
 .resumo{
   color: #707070;
-  margin-top: 100px;
+  padding-top: 100px;
+  background-color: #b8afa8;
+  width: 100%;
  
   border-left: 1px solid black;
   p{
@@ -80,6 +91,9 @@ label{
   }
   .margem{
     margin-left: 30px;
+    p{
+      font-weight: bold;
+    }
   }
   label{
     margin: 0 !important;
@@ -95,26 +109,29 @@ label{
   }
   .flex-input{
     display: flex;
-    justify-content: center;
     align-items: center;
     gap: 20px;
   }
   .total{
     margin-top: 70px;
     display: flex;
-    justify-content: space-between;
+    gap: 300px;
+    span{
+      font-weight: bold;
+    }
   }
 }
 .checkout{
   p{
     font-size: 30px;
+    font-weight: bold;
   }
 }
 .flex{
   display: flex;
   flex-direction: row;
  .qnt{
-  margin:0 100px
+  margin-right:100px
  }
 }
 .produtos{
@@ -124,3 +141,29 @@ label{
   }
 }
 
+.title{
+  padding-bottom: 50px;
+
+}
+.center{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+}
+.titulos{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.blockquote{
+  border: 1px solid black;
+  width: 400px;
+  word-wrap: break-word; 
+  overflow-wrap: break-word; 
+  padding: 10px; 
+}
+.error{
+  color: red;
+  font-size: 12px;
+}

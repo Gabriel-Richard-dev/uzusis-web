@@ -1,5 +1,5 @@
 <p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}" *ngIf="sidebarVisible">
-  <h3>Carrinho</h3>
+  <h5>Carrinho</h5>
   <hr>
   <div *ngFor="let produto of produtos">
     <div class="carrinhoProdutos">
@@ -13,21 +13,22 @@
       </div>
 
       <div class="informacoes">
-        <h5>R${{produto.preco}}</h5>
+        <h5>{{ produto.preco | currency:'BRL':'symbol' }}</h5>
         <button class="apagar" (click)="apagarCarrinho(carrinhoId[produto.id])"><img src="../../../../assets/lixeira.png" alt="" width="30px" height="30px"></button>
       </div>
 
     </div>
+    <hr>
   </div>
-  <hr>
+
   <div class="flex">
     <div class="flex-preco">
       <span>Subtotal</span>
-      <span>R${{valorTotal}}</span>
+      <span>{{ valorTotal | currency:'BRL':'symbol' }}</span>
     </div>
     <div class="finalizar" (click)="comprar(produtos)" *ngIf="valorTotal>0">
       <div>FINALIZAR PEDIDO </div>
-      <span>R${{valorTotal}}</span>
+      <span>{{ valorTotal | currency:'BRL':'symbol' }}</span>
     </div>
   </div>
 </p-sidebar>

@@ -107,8 +107,7 @@ form{
   top: 17px;
 }
 .carrinhoSidenav{
-  h3{
-    margin-left: 30px;
+  h5{
     font-family: Scope One;
     margin-top: 10px;
     position: relative;
@@ -130,6 +129,8 @@ form{
 .flex{
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: left;
 }
 
 .carrinhoProdutos{

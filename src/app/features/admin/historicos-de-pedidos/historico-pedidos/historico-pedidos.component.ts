@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { IPedidoPendentes } from 'src/app/core/interfaces/IPedidosPendentes';
 import { AdminService } from '../../admin.service';
 import { MatDialog } from '@angular/material/dialog';
+import { HistoricoInformacaoComponent } from '../../modalInformacoes/historicoInformacao/historicoInformacao.component';
 
 @Component({
   selector: 'app-historico-pedidos',
@@ -10,7 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 })
 export class HistoricoPedidosComponent implements OnInit {
 
-  displayedColumns = ['id', 'valor-item', 'tamanho', 'informacoes'];
+  displayedColumns = ['id', 'valor-item', 'informacoes'];
   dataSource = <IPedidoPendentes[]>[]
   
     constructor(private adminService: AdminService, private Dialog: MatDialog) { }
@@ -22,8 +23,10 @@ export class HistoricoPedidosComponent implements OnInit {
         console.log(res)
         }
       })
-  
-    
-  
     }
+    abrirHistoricoPedidos(element: IPedidoPendentes){
+      this.Dialog.open(HistoricoInformacaoComponent, {
+        data: element
+      })
+      }
 }

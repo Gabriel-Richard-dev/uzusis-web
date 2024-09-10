@@ -31,16 +31,13 @@
                 <mat-cell *matCellDef="let element"> {{ element.valorItem | currency:'BRL':'symbol' }} </mat-cell>
               </ng-container>
           
-              <!-- Weight Column -->
-              <ng-container matColumnDef="tamanho">
-                <mat-header-cell *matHeaderCellDef> Tamanho </mat-header-cell>
-                <mat-cell *matCellDef="let element"> {{element.sigla}} </mat-cell>
-              </ng-container>
+            
+          
           
               <!-- Symbol Column -->
-              <ng-container matColumnDef="informacoes">
+              <ng-container   matColumnDef="informacoes">
                 <mat-header-cell *matHeaderCellDef> Detalhes </mat-header-cell>
-                <mat-cell *matCellDef="let element"> 
+                <mat-cell  *matCellDef="let element"> 
                   
                  <div (click) = "abriModalInformacao(element)"  class="div-img"> <img src="../../../../../assets/visualizador.png" alt=""></div>
 
@@ -49,11 +46,11 @@
               </ng-container>
 
               <ng-container matColumnDef="enviar">
-                <mat-header-cell *matHeaderCellDef> enviar </mat-header-cell>
-                <mat-cell *matCellDef="let element"> 
+                <mat-header-cell *matHeaderCellDef> Enviar pedido </mat-header-cell>
+                <mat-cell  *matCellDef="let element"> 
                   
-                 <div (click) = "abriModalInformacao(element)"  class="div-img"> <img src="../../../../../assets/visualizador.png" alt=""></div>
-
+                 <div *ngIf = "element.foiEnviado === false" (click) = "enviarProduto(element.id)"  class="div-img"> <img src="../../../../../assets/icons8-sent-50.png" alt=""></div>
+                 <div style="cursor: not-allowed;" *ngIf = "element.foiEnviado === true" (click) = "enviarProduto(element.id)"  class="div-img"> <img src="../../../../../assets/disableSend.png" alt=""></div>
                   
                 </mat-cell>
               </ng-container>

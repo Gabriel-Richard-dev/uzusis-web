@@ -18,6 +18,7 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
 import {SidebarModule} from 'primeng/sidebar'
 import { ButtonModule } from 'primeng/button';
 import { InformacaoComponent } from 'src/app/features/admin/modalInformacoes/informacao/informacao.component';
+import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInformacoes/historicoInformacao/historicoInformacao.component';
 
 
 @NgModule({
@@ -31,7 +32,8 @@ import { InformacaoComponent } from 'src/app/features/admin/modalInformacoes/inf
     HistoricoPedidosComponent,
     PedidosPendentesComponent,
     PegarProdutosComponent,
-    InformacaoComponent
+    InformacaoComponent,
+    HistoricoInformacaoComponent
  
 
     

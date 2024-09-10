@@ -13,6 +13,7 @@ import {
 } from "src/app/core/interfaces/IPedidosPendentes";
 import { IUsuario } from "src/app/core/interfaces/IUser";
 import { IClienteauth } from "src/app/core/interfaces/auth";
+import { IgetProduto } from "src/app/core/interfaces/getProdutos";
 import { produto } from "src/app/core/interfaces/produto";
 import { IToken } from "src/app/core/interfaces/token";
 import { environment } from "src/environments/environment.development";
@@ -21,6 +22,7 @@ import Swal from "sweetalert2";
 const apiUrlProduto = `${environment.apiUrl}/produto`;
 const apiUrlAdm = `${environment.apiUrl}/administradorauth`;
 const apiUrlCompra = `${environment.apiUrl}/compra`;
+const apiUrlCompraAdm = `${apiUrlCompra}/administrador`
 const apiUrlCLiente = `${environment.apiUrl}/cliente`;
 
 @Injectable({
@@ -127,12 +129,12 @@ export class AdminService {
     };
 
     return this.http.get<IPedidoPendentes[]>(
-      `${apiUrlCompra}/administrador/dashboard`,
+      `${apiUrlCompraAdm}/dashboard`,
       options
     );
   }
 
-  getClente(id: number): Observable<IUsuario> {
+  getCliente(id: number): Observable<IUsuario> {
     const params = new HttpParams().set("id", id);
     const options = {
       params,
@@ -151,5 +153,36 @@ export class AdminService {
       headers: this.headers,
     };
     return this.http.get<Iproduto>(`${apiUrlProduto}/id`, options);
+  }
+
+  enviarProduto(itemCompraId: number){
+    
+
+   
+    const params = new HttpParams().set("itemCompraId", itemCompraId)
+    const options = {
+      params,
+      headers: this.headers
+
+    }
+    this.http.patch(`${apiUrlCompraAdm}/dashboard/enviar-produto`,null, options).subscribe({
+      next: res =>{
+
+        Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "OK",
+          text: `Produto enviado com sucesso`,
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        location.reload()
+      }
+    })
+
+  }
+
+  getProdutosEditar(): Observable<any>{
+   return this.http.get<IgetProduto>(`${apiUrlProduto}/admin/dashboard`)
   }
 }

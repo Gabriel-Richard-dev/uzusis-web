@@ -1,20 +1,19 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { IPedidoPendentes, Iproduto } from 'src/app/core/interfaces/IPedidosPendentes';
-import { AdminService } from '../../admin.service';
 import { IUsuario } from 'src/app/core/interfaces/IUser';
-import { produto } from 'src/app/core/interfaces/produto';
+import { AdminService } from '../../admin.service';
 
 @Component({
-  selector: 'app-informacao',
-  templateUrl: './informacao.component.html',
-  styleUrls: ['./informacao.component.css']
+  selector: 'app-historicoInformacao',
+  templateUrl: './historicoInformacao.component.html',
+  styleUrls: ['./historicoInformacao.component.css']
 })
-export class InformacaoComponent implements OnInit {
+export class HistoricoInformacaoComponent implements OnInit {
 
   clienteData!: IUsuario
   produtoData!: Iproduto
-  constructor(@Inject(MAT_DIALOG_DATA) public data: IPedidoPendentes,private DialogRef: MatDialogRef<InformacaoComponent>, private adminService: AdminService) { 
+  constructor(@Inject(MAT_DIALOG_DATA) public data: IPedidoPendentes,private DialogRef: MatDialogRef<HistoricoInformacaoComponent>, private adminService: AdminService) { 
     this.getCliente()
     this.getProduto()
   }

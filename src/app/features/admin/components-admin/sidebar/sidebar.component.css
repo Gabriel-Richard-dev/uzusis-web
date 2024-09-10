@@ -8,24 +8,27 @@ background-color: #efeded;
         
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 1.875rem;
         justify-content: center;
         margin-top: 20%;
 a{
-color: black;
-min-width: 200px;
+color: rgb(139, 136, 136);
+min-width: 15.625rem;
+padding: 2rem px;
 text-align: center;
 margin: 0 auto;
 text-decoration: none;
+text-transform: uppercase;
 background-color: white;
+
 }
 
     }
 
 
     .titulo-image{
-        gap: 20px;
-        border-bottom: solid 1px rgb(53, 53, 53);
+        gap: 1.25rem;
+        border-bottom: solid .0625rem rgb(53, 53, 53);
     }
     .logo-na-base{
     margin-top: 50vh;

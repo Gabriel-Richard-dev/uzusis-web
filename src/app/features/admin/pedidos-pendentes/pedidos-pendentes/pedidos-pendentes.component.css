@@ -67,3 +67,7 @@ padding: 5px;
     border: solid 1px black;
 }
 
+ .mat-mdc-cell, .mat-mdc-table .mat-mdc-header-cell{
+    display: flex !important;
+    justify-content: center !important;
+  }

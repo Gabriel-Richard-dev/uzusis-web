@@ -2,11 +2,9 @@
   <div class="modal-header">
     <div class="tituloESubtitulo d-flex justify-content-center">
       <h2 class="titulo">Detalhes do pedido</h2>
-    
+   
     </div>
-    <div class="close-modal-img" (click)="fecharModal()">
-      <img src="../../../../../assets/icons8-excluir-50.png"alt="">
-    </div>
+   
   </div>
   <div class="modal-content">
     <div class="modal-inputs">
@@ -15,7 +13,7 @@
         <div
           class="example-full-width input"
           style="min-width: 31.25rem">
-          <h3>Resumo do pedido</h3>
+          <h3 class="grande">Resumo do pedido</h3>
          <p>ID do pedido #{{data.id}}</p>
         </div>
       </td>
@@ -27,9 +25,8 @@
             <img src="../../../../../assets/imagemModalInformacao.png" alt="">
           </div>
           <div class="dados-pedido">
-              <p>Nome do produto: {{produtoData.nome}}</p>
-              <p>Categoria: {{produtoData.categoriaNome}} </p>
-              <p>Tamanho: {{data.sigla}}</p>
+              <p> {{produtoData.nome}}</p>
+              <p> {{produtoData.categoriaNome}} - {{data.sigla}} </p>
           </div>
           <div class="div-valor">
             <p>Valor: {{data.valorItem | currency:'BRL':'symbol'}} </p>
@@ -46,7 +43,7 @@
 
     </div>
 <div>
-    <div class="textoH3"><h3>Dados cadastrais</h3></div>
+    <div class="textoH3"><h3 class="grande">Dados cadastrais</h3></div>
 
     <div class="containerBege">
       <div class="padding-container-bege">

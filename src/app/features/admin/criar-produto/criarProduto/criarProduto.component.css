@@ -173,5 +173,12 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right:solid .0625rem rgb(156, 156, 158)
+  border-right:solid .0625rem rgb(156, 156, 158);
+  padding-right: 3px;
+  margin-left: 3px;
+}
+::ng-deep .mdc-text-field--filled:not(.mdc-text-field--disabled){
+  background-color: white !important;
+  border: solid .0625rem rgb(156, 156, 158) !important;
+  box-shadow: none;
 }

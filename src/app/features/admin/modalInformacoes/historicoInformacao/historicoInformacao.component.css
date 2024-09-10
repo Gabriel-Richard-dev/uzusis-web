@@ -1,3 +1,6 @@
+.titulo{
+  font-size: 1.6rem;
+}
 .modal-container {
     width: 100vh;
     height: 70vh;
@@ -13,7 +16,7 @@
         margin-left: auto;
       }
       .tituloESubtitulo{
-      margin-left: auto;
+    margin: 0 auto;
 
       }
   
@@ -21,12 +24,15 @@
     .modal-content {
       display: flex;
       padding-bottom: 1rem;
+      
       .modal-inputs {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        flex: 1 0 0;
         gap: 1.25rem;
+        padding-right: 1.25rem;
+        border-right: solid .0625rem rgb(156, 156, 158);
+        margin-right: 1rem;
       }
     }
   }
@@ -117,10 +123,16 @@
   margin-bottom: auto;
   margin-right: 2%;
 
-  p{
-    margin: 0px;
-    padding: 0px;
-  }
+}
+.dados-pedido{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: left;
+}
+p{
+  margin: 0px;
+  padding: 0px;
 }
 
 .modal-content{
@@ -137,13 +149,38 @@ h3{
 }
 
 .containerBege{
-  background-color: #cabcb1 ;
+  background-color: #cabcb160 ;
   height: 20vh;
-  .padding-container-bege{
-    padding:10px;
-  }
+  margin-bottom: 2rem;
+  width: 24rem;
+}
+.padding-container-bege{
+  padding:10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-weight: bold;
+  
+}
+h3{
+  font-size: 1.4rem;
 }
 
 br{
   gap: 50px;
+}
+.modal-header{
+  border-bottom:solid .0625rem rgb(156, 156, 158);
+}
+.grande{
+  margin-top: 1rem;
+}
+.btn-fechar{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  color: white;
+  width: 10rem;
 }

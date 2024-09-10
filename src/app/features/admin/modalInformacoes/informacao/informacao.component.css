@@ -16,7 +16,7 @@
         margin-left: auto;
       }
       .tituloESubtitulo{
-      margin-left: auto;
+    margin: 0 auto;
 
       }
   
@@ -158,7 +158,7 @@ h3{
   padding:10px;
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: 14px;
   font-weight: bold;
   
 }

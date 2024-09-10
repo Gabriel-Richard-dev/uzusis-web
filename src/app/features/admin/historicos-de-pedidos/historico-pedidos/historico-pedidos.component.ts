@@ -17,7 +17,7 @@ export class HistoricoPedidosComponent implements OnInit {
     constructor(private adminService: AdminService, private Dialog: MatDialog) { }
   
     ngOnInit() {  
-      this.adminService.pedidosPendentes().subscribe({
+      this.adminService.pedidosPendentes(0).subscribe({
         next: res =>{
         this.dataSource = res
         console.log(res)

@@ -70,6 +70,11 @@ component: CriarProdutoComponent
     component: PedidosComponent
   },
 
+  {
+    path: "pedidos",
+    component: PedidosComponent
+  }
+
   // {
   //   path: "",
   //   children: [

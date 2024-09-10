@@ -66,7 +66,7 @@
           <form class="flex-input" [formGroup]="formCep">
             <input type="text" placeholder="CEP de Entrega*" required formControlName="cep" name="cep">
             <button class="calcular" (click)="getCep()">CALCULAR</button>
-            <div class="error" *ngIf="cpfInvalido">O cpf informado é invalido</div>
+            <div class="error" *ngIf="cpfInvalido">O cep informado é invalido</div>
           </form>
         </div>
         <hr>

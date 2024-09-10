@@ -80,9 +80,10 @@ getNameValue(): string {
 }
 agorarealpode:boolean=false
 getCep(){
-this.cpfInvalido=true
+this.cpfInvalido=false
   this.authService.enviarCep(this.formCep.value.cep).subscribe(res=>{
     
+   
     if(res.estado==='Ceará'){
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 10;
       this.agorarealpode=true
@@ -91,7 +92,10 @@ this.cpfInvalido=true
     else{
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 40;
       this.agorarealpode=true
-      this.cpfInvalido=false
+      this.cpfInvalido=false 
+    }
+    if(!this.agorarealpode){
+      this.cpfInvalido=true
     }
   })
 }

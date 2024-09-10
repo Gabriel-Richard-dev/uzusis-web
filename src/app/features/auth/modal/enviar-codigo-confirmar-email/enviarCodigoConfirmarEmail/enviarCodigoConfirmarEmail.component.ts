@@ -1,19 +1,22 @@
-import { Component, Input, ViewChildren } from '@angular/core';
+import { Component, OnInit, ViewChildren } from '@angular/core';
+import { AuthService } from '../../../auth.service';
 import { DialogRef } from '@angular/cdk/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms'
-import { AuthService } from '../../auth.service';
-import { ICodigoEmail } from 'src/app/core/interfaces/auth';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
+
 @Component({
-  selector: 'app-confirmar-senha',
-  templateUrl: './confirmar-senha.component.html',
-  styleUrls: ['./confirmar-senha.component.scss']
+  selector: 'app-enviarCodigoConfirmarEmail',
+  templateUrl: './enviarCodigoConfirmarEmail.component.html',
+  styleUrls: ['./enviarCodigoConfirmarEmail.component.css']
 })
-export class ConfirmarCodigoComponent {
-  constructor(dialogRef: DialogRef<ConfirmarCodigoComponent>, private authService: AuthService){
+export class EnviarCodigoConfirmarEmailComponent implements OnInit {
+  constructor(dialogRef: DialogRef<EnviarCodigoConfirmarEmailComponent>, private authService: AuthService){
     
     this.form = this.toFormGroup(this.formInput);
 
+  }
+  ngOnInit(): void {
+    throw new Error('Method not implemented.');
   }
   concatenatedValuesLenght = 0
   concatenedValue = ""
@@ -23,10 +26,6 @@ export class ConfirmarCodigoComponent {
   formInput = ['input1', 'input2', 'input3', 'input4', 'input5'];
   @ViewChildren('formRow') rows: any;
   
-  ngOnInit(){
-  this.email = localStorage.getItem("emailGuardar") || ""
-  }
-
   toFormGroup(elements: any) {
     const group: any = {};
     elements.forEach((key: string | number) => {
@@ -34,6 +33,8 @@ export class ConfirmarCodigoComponent {
     });
     return new FormGroup(group);
    }
+
+  
 
    keyUpEvent(event:any, index: number) {
     let pos = index;
@@ -81,6 +82,4 @@ export class ConfirmarCodigoComponent {
     });
    }
   }
-   
- 
 }

@@ -1,0 +1,69 @@
+.content{
+    display: flex;
+
+    background-color:#efeded;
+    padding: 1.875rem;
+    width: 100vh;
+
+
+
+   
+  
+  }
+  .title{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+
+  }
+
+  .formCriarProduto{
+    gap: 2%;
+    display: flex;
+    flex-direction: column;
+    width: 90vh;
+    height: 100vh;
+    background-color: #efeded;
+    padding: 3.125rem;
+  
+  }
+  
+
+
+
+
+.container-border{
+    .container-border{
+        height: 80%;
+    }
+    .pedidos{
+       
+        height: 15vh;
+        background-color: white;
+
+    }
+}
+
+.example-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 80dvh;
+  
+        max-height: 80vh; /* Ajuste conforme necessário */
+        overflow-y: auto;  /* Habilita a rolagem vertical quando o conteúdo excede a altura */
+      
+  }
+  
+img{
+max-width: 100%;
+padding: 5px;
+   
+}
+
+.div-img{
+    cursor: pointer;
+    border-radius: .3125rem;
+    max-width:  2rem;
+    border: solid 1px black;
+}
+

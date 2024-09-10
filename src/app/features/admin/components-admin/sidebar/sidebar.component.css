@@ -1,4 +1,38 @@
-li{
-    display: flex;
-    flex-direction: column;
+
+.sidebar{
+    min-height: 100vh;
+height: 100%;
+width: 40vh;
+background-color: #efeded;
+    li{
+        
+        display: flex;
+        flex-direction: column;
+        gap: 1.875rem;
+        justify-content: center;
+        margin-top: 20%;
+a{
+color: rgb(139, 136, 136);
+min-width: 15.625rem;
+padding: 2rem px;
+text-align: center;
+margin: 0 auto;
+text-decoration: none;
+text-transform: uppercase;
+background-color: white;
+
+}
+
+    }
+
+
+    .titulo-image{
+        gap: 1.25rem;
+        border-bottom: solid .0625rem rgb(53, 53, 53);
+    }
+    .logo-na-base{
+    margin-top: 50vh;
+
+    }
+    
 }

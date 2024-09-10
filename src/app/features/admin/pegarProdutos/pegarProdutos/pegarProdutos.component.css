@@ -1,42 +1,51 @@
 .content{
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;
-    margin-top: 20px;
-   
-  
-  }
-  .title{
-    display: flex;
-    flex-direction: row;
-    justify-content: left;
-    margin-top: 50px;
-  }
+  display: flex;
 
-  form{
+  background-color:#efeded;
+  padding: 1.875rem;
+  width: 100vh;
+
+
+
  
-    margin-top: 20%;
-    gap: 5%;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    background-color: gray;
-    padding: 50px;
-  
-  }
-  
 
-  .escopo{
-    width: 1300px;
-    margin: 0 auto;
-    margin-top: 100px;
+}
+.title{
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
 
-  }
+}
 
-  /* styles.scss */
-.invalid-field {
-  border: 1px solid red;
+.formCriarProduto{
+  gap: 2%;
+  display: flex;
+  flex-direction: column;
+  max-width: 100vh;
+  max-height: 60vh;
+  background-color: rgb(255, 255, 255);
+  padding: 3.125rem;
+  overflow-y: auto;
+
+}
+
+
+
+
+
+.teste{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Define 4 colunas com largura igual */
+ /* Define a altura mínima das linhas */
+  gap: 10px; /* Espaço entre os itens */
+ 
+
+
+}
+
+
+.card{
+  border: 1px solid rgb(15, 15, 15);
+  width: 150px;
+  height: 200px;
 }

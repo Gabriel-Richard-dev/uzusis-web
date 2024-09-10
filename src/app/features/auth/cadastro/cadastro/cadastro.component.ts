@@ -1,4 +1,4 @@
-import { Component, OnInit} from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import { ICadastro } from "src/app/core/interfaces/auth";
 import { AuthService } from "../../auth.service";
@@ -12,77 +12,74 @@ import Swal from "sweetalert2";
 })
 export class CadastroComponent implements OnInit {
   email: string = localStorage.getItem("email") || "";
-  formularioEnviarError: boolean = false
-  rua: string = ""
-  cidade: string = ""
-  bairro: string = ""
-  estado: string = ""
+  formularioEnviarError: boolean = false;
+  rua: string = "";
+  cidade: string = "";
+  bairro: string = "";
+  estado: string = "";
   constructor(private AuthService: AuthService) {}
 
   ngOnInit() {}
 
   formCadastrar = new FormGroup({
-    nome: new FormControl('', [Validators.required]),
+    nome: new FormControl("", [Validators.required]),
 
     email: new FormControl({ value: this.email, disabled: true }, [
       Validators.required,
       Validators.email,
     ]),
 
-    senha: new FormControl('', [Validators.required]),
-    confirmarSenha: new FormControl('', [Validators.required]),
+    senha: new FormControl("", [Validators.required]),
+    confirmarSenha: new FormControl("", [Validators.required]),
 
-    cpf: new FormControl('', [
+    cpf: new FormControl("", [
       Validators.required,
       Validators.minLength(11), // CPF geralmente tem 11 dígitos
       Validators.maxLength(11),
     ]),
 
-    celular: new FormControl('', [
+    celular: new FormControl("", [
       Validators.required,
-      Validators.minLength(10), // Celular pode ter 10 ou 11 dígitos
-      Validators.maxLength(12),
     ]),
 
-    dataNascimento: new FormControl('', [Validators.required]),
+    dataNascimento: new FormControl("", [Validators.required]),
 
-    cep: new FormControl('', [
+    cep: new FormControl("", [
       Validators.required,
       Validators.minLength(8), // CEP geralmente tem 8 dígitos
-      Validators.maxLength(9  ),
+      Validators.maxLength(9),
     ]),
 
-    rua: new FormControl('', [
+    rua: new FormControl("", [
       Validators.required,
       Validators.minLength(3), // Rua pode ter pelo menos 3 caracteres
       Validators.maxLength(100), // E até 100 caracteres
     ]),
 
-    numero: new FormControl('', [
+    numero: new FormControl("", [
       Validators.required,
       Validators.minLength(1), // Número deve ter pelo menos 1 dígito
       Validators.maxLength(10), // E pode ter até 10 dígitos
     ]),
 
-    bairro: new FormControl('', [
+    bairro: new FormControl("", [
       Validators.required,
       Validators.minLength(3), // Bairro deve ter pelo menos 3 caracteres
       Validators.maxLength(50), // E até 50 caracteres
     ]),
 
-    cidade: new FormControl('', [
+    cidade: new FormControl("", [
       Validators.required,
       Validators.minLength(3), // Cidade deve ter pelo menos 3 caracteres
       Validators.maxLength(50), // E até 50 caracteres
     ]),
 
-    estado: new FormControl('', [
+    estado: new FormControl("", [
       Validators.required,
       Validators.minLength(2), // Estado deve ter 2 caracteres (sigla)
       Validators.maxLength(2),
     ]),
   });
-
 
   puxarEndereco() {
     this.formCadastrar.get("rua")?.enable();
@@ -104,32 +101,27 @@ export class CadastroComponent implements OnInit {
           this.rua = res.logradouro;
           this.bairro = res.bairro;
           this.cidade = res.localidade;
-          this.estado = res.estado
+          this.estado = res.estado;
 
-
-          if(res.erro != "true"){
-          this.formCadastrar.patchValue({
-            rua: res.logradouro,
-            bairro: res.bairro,
-            cidade: res.localidade,
-            estado: res.estado,
-          });
-          this.formCadastrar.get("rua")?.disable();
-          this.formCadastrar.get("bairro")?.disable();
-          this.formCadastrar.get("cidade")?.disable();
-          this.formCadastrar.get("estado")?.disable();
-        }},
-        
+          if (res.erro != "true") {
+            this.formCadastrar.patchValue({
+              rua: res.logradouro,
+              bairro: res.bairro,
+              cidade: res.localidade,
+              estado: res.estado,
+            });
+            this.formCadastrar.get("rua")?.disable();
+            this.formCadastrar.get("bairro")?.disable();
+            this.formCadastrar.get("cidade")?.disable();
+            this.formCadastrar.get("estado")?.disable();
+          }
+        },
       });
     }
   }
 
   onSubmit() {
-     
-
-
-
-    this.formularioEnviarError = false
+    this.formularioEnviarError = false;
     const cliente = <ICadastro>{
       nome: this.formCadastrar.value.nome || "",
       email: localStorage.getItem("email") || "",
@@ -148,21 +140,18 @@ export class CadastroComponent implements OnInit {
       },
     };
 
-
-    if(this.formCadastrar.valid){
-    this.AuthService.cadastrar(cliente);
-  }
-  else{
-    Swal.fire({
-      position: 'center',
-      icon: 'error',
-      title: 'Ops...',
-      text: 'Você precisar preencher todos os campos corretamente',
-      showConfirmButton: false,
-      timer: 1500,
- 
-    });
-    this.formularioEnviarError = true
-  }
+    if (this.formCadastrar.valid) {
+      this.AuthService.cadastrar(cliente);
+    } else {
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Ops...",
+        text: "Você precisar preencher todos os campos corretamente",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      this.formularioEnviarError = true;
+    }
   }
 }

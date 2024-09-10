@@ -91,6 +91,7 @@ export class AuthService {
             
             console.log(this.spinnerService.situacaoSpinner$);
             this.guardarConfirmarEmail = email.email;
+            localStorage.setItem("guardarEmail",this.guardarConfirmarEmail)
             this.dialog.open(ConfirmarCodigoComponent);
             desativarBotao = false;      
             this.spinnerService.hideSpinner()

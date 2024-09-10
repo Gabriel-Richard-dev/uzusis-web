@@ -18,6 +18,8 @@ import { LoginAdmComponent } from 'src/app/features/auth/tela-adm-logar/login-ad
 import {SidebarModule} from 'primeng/sidebar'
 import { ButtonModule } from 'primeng/button';
 import { ModalPagamentoComponent } from './navbar/modal-pagamento/modal-pagamento.component';
+import { InformacaoComponent } from 'src/app/features/admin/modalInformacoes/informacao/informacao.component';
+import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInformacoes/historicoInformacao/historicoInformacao.component';
 
 
 @NgModule({
@@ -32,6 +34,15 @@ import { ModalPagamentoComponent } from './navbar/modal-pagamento/modal-pagament
     PedidosPendentesComponent,
     PegarProdutosComponent,
     ModalPagamentoComponent,
+    InformacaoComponent,
+    HistoricoInformacaoComponent
+ 
+
+    
+
+
+   
+
   ],
   imports: [
     CommonModule,

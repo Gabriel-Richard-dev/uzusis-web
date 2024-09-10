@@ -46,6 +46,17 @@ ngOnInit(){
       };
       this.authService.enviarCodigoConfirmarEmail(enviarEmail);
     }
+
+    else{
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "Ops..",
+        text: `Preencha o campo de email corretamente`,
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }
   }
 
   logar() {

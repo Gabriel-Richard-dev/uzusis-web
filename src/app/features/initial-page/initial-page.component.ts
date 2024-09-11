@@ -11,8 +11,8 @@ import { NgbCarousel, NgbSlideEvent, NgbSlideEventSource } from '@ng-bootstrap/n
 export class InitialPageComponent implements OnInit {
   images = [
     {name: 'carroussel.jpeg', caption: ''},
-    {name: 'carroussel.jpeg', caption:''},
-    {name: 'carroussel.jpeg', caption:''}
+    {name: 'usuzisimagem2.jpeg', caption:''},
+    {name: 'imagemusuzis.jpeg', caption:''}
   ];
 
 	paused = false;

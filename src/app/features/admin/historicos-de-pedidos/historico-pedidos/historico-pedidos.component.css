@@ -49,8 +49,8 @@
   flex-direction: column;
   min-width: 80dvh;
 
-      max-height: 80vh; /* Ajuste conforme necessário */
-      overflow-y: auto;  /* Habilita a rolagem vertical quando o conteúdo excede a altura */
+      max-height: 80vh;
+      overflow-y: auto; 
     
 }
 

@@ -154,11 +154,20 @@ form{
   }
 }
 .informacoes{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-left: 30px;
+  gap: 20px;
   button{
     height: 30px;
     width: 30px;
     border: none;
   }
+}
+.titulocarrinho{
+  margin-left: 30px;
 }
 .flex-preco{
   display: flex;

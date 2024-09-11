@@ -24,14 +24,14 @@ constructor(
   
   this.form = this.fb.group({
     pagamento: ['',Validators.required],  
-    
+    nome:['',Validators.required],
     
   });
 }
 formCep = new FormGroup({
       cep: new FormControl('')
 })
-
+precoItens:number=0
 cpfInvalido=false;
 precoTotal:number=0
 preco:number[]=[]
@@ -43,7 +43,9 @@ cep: string = '';
     for(let i=0;i<this.preco.length;i++){
 this.precoTotal+=this.preco[i]
     }
+    this.precoItens=this.precoTotal
   }
+  frete:number=0
   chave:any=0
 selected:string='';
 comprarTrue:boolean=false
@@ -75,29 +77,38 @@ location.reload()
   })
 }
 getNameValue(): string {
-  this.agoraPode=true
+  this.agoraPode=false
+  const nome =  this.form.get('nome')?.value;
+  if(nome){
+    this.agoraPode=true
+  }
   return this.form.get('nome')?.value || '';
 }
 agorarealpode:boolean=false
 getCep(){
-this.cpfInvalido=false
+this.cpfInvalido=true
   this.authService.enviarCep(this.formCep.value.cep).subscribe(res=>{
     
    
     if(res.estado==='Ceará'){
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 10;
       this.agorarealpode=true
+      this.frete=10
       this.cpfInvalido=false
+      console.log(res.estado)
     }
-    else{
+    else if(res.estado){
       this.precoTotal = this.preco.reduce((acc, curr) => acc + curr, 0) + 40;
       this.agorarealpode=true
+      this.frete=40
       this.cpfInvalido=false 
+
     }
     if(!this.agorarealpode){
       this.cpfInvalido=true
     }
   })
+  console.log(this.cpfInvalido)
 }
 generateRandomKey(length: number): string {
   this.agoraPode=true
@@ -109,6 +120,9 @@ generateRandomKey(length: number): string {
   }
   result='Uzusis'+result
   return result;
+}
+fecharModal(){
+  this.dialog.closeAll()
 }
 }
 

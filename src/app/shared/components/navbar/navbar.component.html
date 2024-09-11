@@ -1,5 +1,5 @@
 <p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}" *ngIf="sidebarVisible">
-  <h5>Carrinho</h5>
+  <h5 class="titulocarrinho">Carrinho</h5>
   <hr>
   <div *ngFor="let produto of produtos">
     <div class="carrinhoProdutos">
@@ -51,7 +51,10 @@
         </form>
       </div>
       <div class="account">
-        <img src="../../../../assets/pessoas.png" alt="" width="20px"> minha conta
+        <button mat-button [matMenuTriggerFor]="menu"> minha conta<img src="../../../../assets/pessoas.png" alt="" width="20px"> </button>
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item *ngFor="let teste of categoria;" (click)="handleClickmenu()" class="itens"><span> {{teste}}</span></button>
+        </mat-menu>
       </div>
 
       <p-button (onClick)="adicionarCarrinho()"> <img class="carrinho" src="../../../../assets/carrinho.svg" (onClick)="sidebarVisible = true" alt="" width="25px" height="25px"> </p-button>

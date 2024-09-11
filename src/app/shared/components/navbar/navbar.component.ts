@@ -18,10 +18,11 @@ export class NavbarComponent {
   categoria:string | null='';
   produtos:produto[]=[]
   dataSource:any;
-  categorias:string[]=['calças', 'shorts', 'saias', 'cropped', 'conjuntos']
+  categorias:string[]=['Minha Conta', 'Sair']
   dropdownOpen: boolean = false;
   selectedFilter: string = '';
   Options: string[] = ["blusão", "body","blusas","acessórios"]
+  opcoes:string[]=[]
   pedidos:Pedido[]=[]
   idPedido:number[]=[]
   quantidadeProduto: { [key: number]: number } = {};
@@ -42,7 +43,9 @@ export class NavbarComponent {
     }, 1): this.navbarService.setCategoria(index);
     }
   
-
+    handleClickmenu(){
+      console.log(this.categorias)
+    }
 adicionarCarrinho(){
   this.valorTotal=0
   const token = localStorage.getItem('token')

@@ -1,0 +1,235 @@
+.content{
+  display: flex;
+
+  background-color:#efeded;
+  padding: 1.875rem;
+  width: 100vh;
+
+
+
+ 
+
+}
+.title{
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+
+}
+
+.formCriarProduto{
+  gap: 2%;
+  display: flex;
+  flex-direction: column;
+  max-width: 100vh;
+  max-height: 100vh;
+  background-color: rgb(255, 255, 255);
+  padding: 50px;
+  overflow-y: auto;
+
+}
+
+
+
+
+
+.teste{
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Define 4 colunas com largura igual */
+ /* Define a altura mínima das linhas */
+  gap: 48px; /* Espaço entre os itens */
+
+ 
+
+
+}
+
+
+.card{
+  border: .0625rem solid rgb(15, 15, 15);
+  width: 9.375rem;
+  height: 12.5rem;
+  margin-bottom: 2.5rem;
+}
+
+
+.container-image img{
+  max-width: 100%;
+  max-height: 100%;
+  height: 12.5rem;
+  min-width: 100%;
+  object-fit: cover;
+}
+
+p{
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+.content{
+  display: flex;
+
+  background-color:#efeded;
+  padding: 1.875rem;
+  width: 100vh;
+
+
+.quantidade{
+gap: 1.25rem;
+  }
+ 
+
+}
+.title{
+  display: flex;
+  flex-direction: row;
+  justify-content: left;
+
+}
+
+.formCriarProduto{
+  gap: 2%;
+  display: flex;
+  flex-direction: column;
+  width: 90vh;
+  height: 100vh;
+  background-color: rgb(255, 255, 255);
+  padding: 3.125rem;
+
+}
+
+
+
+/* styles.scss */
+.invalid-field {
+border: .0625rem solid red;
+}
+
+.box-images{
+background-color: white;
+border: solid .0625rem black;
+padding: 2.5rem;
+
+
+.fotoClose{
+
+  width: 1.25rem;
+  height: 1.25rem;
+
+  img{
+
+    max-width: 100%;
+  }
+}
+
+
+label{
+  width: 50%;
+  height: 50%;
+}
+}
+
+
+.caixa-imagem{
+background-color: #e1ded8;
+
+}
+
+
+.file-upload-div{
+input[type="file"]{
+  display: none;
+  
+}
+label{
+  cursor: pointer;
+  position: relative;
+  background-color: #e1ded8;
+  &::before {
+    position: absolute;
+    content: '';
+    width: 100%;
+    height: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+}
+}
+
+
+.botao-salvar{
+padding: .100rem 3rem;
+border: none;
+background-color: black;
+color: white;
+
+}
+
+
+.input-retangulo{
+height: 3.75rem;
+color: rgb(1, 8, 14);
+border: solid .0625rem rgb(156, 156, 158)
+}
+
+
+
+
+.setQuantidade{
+display: flex;
+flex-direction: row;
+align-items: center;
+border: .0625rem solid black;
+background-color: white;
+border-radius: .75rem;
+}
+
+
+.btn-decrease, .btn-increase {
+width: 1.25rem;
+height: 1.25rem;
+border: none;
+font-size: 1.125rem;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: background-color 0.3s;
+background-color: white;
+}
+
+
+.quantidade-input {
+text-align: center;
+width: 3.75rem; 
+padding: .3125rem;
+border: none;
+border-radius: .25rem;
+}
+
+.cadastrar-produto{
+padding: .3125rem 1.25rem;
+border: none;
+background-color: black;
+color: white;
+
+max-width: 30%;
+}
+
+
+
+.box-images label img{
+min-width: 100%  ;
+min-height: 100%; 
+max-height: 100%;
+max-width: 100%;
+object-fit: cover;
+}
+
+.botao{
+  justify-content: space-between;
+}

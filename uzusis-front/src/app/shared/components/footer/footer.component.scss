@@ -1,0 +1,59 @@
+.footer{
+  width: 81.25rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 18.75rem;
+  margin-bottom: 6.25rem;
+  h1{
+  font-size: 1.8938rem;
+   margin: 1.25rem auto;
+   margin-top: 5.625rem;
+   font-family: Scope One;
+  }
+  .categorias{
+    p{
+      font-family: Scope One;
+      font-size: 1.25rem;
+    }
+  }
+  .sobre{
+    p{
+      font-family: Scope One;
+      font-size: 1.125rem;
+    }
+  }
+  .coluna{
+    width: 18.75rem;
+    
+  }
+}
+a{
+  text-decoration: none;
+  color: black;
+  font-family: Scope One;
+  font-size: 1.25rem;
+}
+.conteudo{
+  margin-top: 12.5rem;
+  width: 100%;
+  background-color: #e1ded8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  .aviso{
+    font-family: Open Sans;
+    font-size: 1.1687rem;
+  }
+    .copyright{
+      font-family: Questrial;
+      font-size: 1.7437rem;
+    }
+
+  .icon{
+    width: 1.875rem;
+    height: 1.875rem;
+    margin-right: .625rem;
+  }
+}

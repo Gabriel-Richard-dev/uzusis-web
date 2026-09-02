@@ -1,0 +1,98 @@
+.content{
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    align-items: center;
+    margin-top: 20px;
+   
+  
+  }
+
+
+  input{
+    border: solid 1px black ;
+    background-color:  #e1ded8;
+  }
+  button{
+    background-color: black;
+  }
+
+  button:hover{
+    background-color: rgb(77, 69, 58);
+  }
+  .escopo{
+   
+    margin: 0 auto;
+    margin-top: 150px;
+    border: solid 1px black;
+    padding: 20px;
+    width: 120vh;
+    height: 40vh;
+
+  }
+
+  .container-border{
+
+    gap: 20px;
+  }
+
+  .border-bottom{
+    border-bottom: 5px solid black;
+  }
+
+  .container-form-login{
+width: 500px;
+height: 220px;
+background-color: #e1ded8;
+padding: 20px;
+border-radius: 20px;
+  }
+  .container-form-email{
+    width: 500px;
+    height: 200px;
+    background-color: #e1ded8;
+    padding: 20px;
+    border-radius: 20px;
+
+    button{
+      width: 40%;
+      border-radius: 20px;
+    }
+    
+      }
+    
+
+  form{
+    input{
+      border-radius: 20px;
+    }
+
+    div{
+      gap: 10px;
+      margin-right: 5%;
+      
+    }
+
+    button{
+      max-width: 80%;
+      border-radius: 20px;
+    }
+    
+  }
+
+  .content{
+    display: flex;
+    flex-direction: column;
+
+  }
+
+  .margin-left{
+    margin-left: 5%;
+  }
+
+
+  .custom-spinner circle {
+    stroke: #ffffff; /* Altere para a cor desejada */
+  }

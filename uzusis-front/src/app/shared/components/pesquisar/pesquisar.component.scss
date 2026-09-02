@@ -1,0 +1,10 @@
+input{
+  border: none;
+  border-bottom: 1px solid black;
+  background-color: #F5F5F5;
+  outline: none;
+}
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-size: 16px;
+}
+

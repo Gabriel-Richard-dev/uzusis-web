@@ -1,0 +1,95 @@
+<form [formGroup]="form">
+  <div class="modal-abrido">
+    <div class="checkout">
+      <p>Checkout</p>
+      <div class="titulos">
+        <h5 class="title">Produto</h5>
+        <h5 class="title" style="margin-left: 150px;">Quantidade</h5>
+        <h5 class="title" style="margin-left: 20px;">Preço</h5>
+      </div>
+      <div class="produtos" *ngFor="let produto of produtos">
+        <div class="flex-container">
+        <div class="flex-new">
+          <img [src]="produto.fotoUrls[0]" alt="" width="120px" height="120px">
+        </div>
+        <div class="info">
+          <h5>{{produto.nome}}</h5>
+          <h5>{{produto.categoriaNome}}</h5>
+        </div>
+        </div>
+        
+          
+
+            <h5 class="center teste">{{produto.quantidadePedida}}</h5>
+
+            <h5 class="center">{{ produto.preco | currency:'BRL':'symbol' }}</h5>
+          
+       
+           
+          </div>
+        
+     
+      <div class="modal-flex">
+        <label for="pagamento">Selecione a forma de Pagamento:</label>
+        <select formControlName="pagamento" id="pagamento" (change)="onPaymentChange($event)">
+          <option value="" disabled selected>Escolha...</option>
+          <option value="pix">Pix</option>
+          <option value="cartao">Cartão</option>
+        </select>
+        <div class="error-container">
+          <div *ngIf="form.get('pagamento')?.invalid && form.get('pagamento')?.touched">
+            <small class="error">Este campo é obrigatório.</small>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="form.get('pagamento')?.value">
+        <label for="nome" *ngIf="selected === 'pix'">Chave Aleatória:</label>
+        <label for="nome" *ngIf="selected === 'cartao'">Informe seu cartão:</label>
+        <input type="text" id="nome" formControlName="nome" placeholder="Digite aqui..." *ngIf="selected === 'cartao'" (change)="getNameValue()">
+        <!-- <input type="text" id="nome" formControlName="nome" [attr.disabled]="selected === 'pix' ? true : null"> -->
+        <blockquote *ngIf="selected === 'pix'" aria-disabled="true" class="blockquote">
+<span class="color">{{chave}}</span>
+          
+        </blockquote>
+      </div>
+      <div class="finalizar" (click)="comprar()" *ngIf="agoraPode && agorarealpode">
+        <div style="margin: 0 auto;">FINALIZAR PEDIDO</div>
+      </div>
+      <small class="comprasegura"> <img src="../../../../../assets/cadeado.webp" width="10px" height="10px"> compra segura</small>
+    </div>
+    <div class="resumo" style="height: 100vh;">
+      <div class="margem">
+        <p>Resumo do pedido</p>
+        <small>Subtotal do Pedido</small>
+        <hr>
+        <div>
+          <label class="entrega" for="CEP">Entrega</label>
+          <form class="flex-input" [formGroup]="formCep">
+            <input type="text" placeholder="CEP de Entrega*" required formControlName="cep" name="cep">
+            <button class="calcular" (click)="getCep()">CALCULAR</button>
+          </form>
+          <div class="error" *ngIf="cpfInvalido">O cep informado é invalido</div>
+        </div>
+        <hr>
+        <div class="total">
+          <span class="totais">SUBTOTAL</span>
+          <span>{{ precoItens | currency:'BRL':'symbol' }}</span>
+        </div>
+        <div class="total" style="margin-top: 40px;">
+          <span class="totais">FRETE</span>
+          <span>{{ frete | currency:'BRL':'symbol' }}</span>
+        </div>
+        <div class="total">
+          <span class="totais">TOTAL</span>
+          <span>{{ precoTotal | currency:'BRL':'symbol' }}</span>
+        </div>
+       
+        <div class="modal-acoes">
+          <button (click)="fecharModal()" class="btn-fechar">
+            <div class="btn-fechar-title">Fechar</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

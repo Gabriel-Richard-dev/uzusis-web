@@ -1,0 +1,58 @@
+<div class="modal_aberto">
+  <div class="container">
+    <div class="carrosel">
+      <ngb-carousel #carousel [interval]="5000" [pauseOnHover]="pauseOnHover" [pauseOnFocus]="pauseOnFocus" (slide)="onSlide($event)">
+        <ng-template ngbSlide *ngFor="let img of images; index as i">
+          <div class="carousel-caption">
+            <h3>{{img.caption}}</h3>
+          </div>
+          <div class="picsum-img-wrapper">
+            <img src="{{img.name}}" alt="img.caption" width="250px" height="250px" />
+          </div>
+        </ng-template>
+      </ngb-carousel>
+      <div class="descricao">
+        <p>Descrição:{{data.descricao}}</p>
+      </div>
+    </div>
+    <div class="informacoes">
+      <h3>{{data.categoriaNome}}</h3>
+      <p class="info">{{data.nome}}</p>
+      <p class="info">{{ data.preco | currency:'BRL':'symbol' }}</p>
+      <span class="subtitulo">Tamanho</span>
+      <div class="buttons">
+        <button [ngClass]="{ 'selected': selectedSize === 'P' }" (click)="selectSize('P')">P
+        </button>
+        <button [ngClass]="{ 'selected': selectedSize === 'M' }" (click)="selectSize('M')">M
+        </button>
+        <button [ngClass]="{ 'selected': selectedSize === 'G' }" (click)="selectSize('G')">G
+        </button>
+      </div>
+      <div *ngIf="Visible">
+        <div class="disponivel">
+          Disponiveis: {{disponivel}}
+        </div>
+        <div *ngIf="auxiliar">
+          <span class="subtitulo">Quantidade</span>
+          <div class="compra">
+            <div class="setQuantidade">
+              <button class="btn-decrease" (click)="decreaseQuantity()">-</button>
+              <input type="number" [(ngModel)]="quantidade" min="1" [max]="disponivel" class="quantidade-input" disabled>
+              <button class="btn-increase" (click)="increaseQuantity()">+</button>
+            </div>
+            <button class="adicionar" *ngIf="auxiliar" (click)="Adicionar()">Adicionar ao carrinho</button>
+          </div>
+        </div>
+        <p class="estoque" *ngIf="!auxiliar">
+          Estoque:
+          <span [ngClass]="{'estoque-indisponivel': auxiliar === false}">
+            {{estoque}}
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+

@@ -1,0 +1,38 @@
+<app-navbar />
+
+<div class="escopo">
+ <div class="margin-left"> <h1>Recupere sua senha</h1>
+<p>Envie um email para receber um código de redefinir senha</p>
+</div>
+  <div class="content col-6">
+     
+
+   <div class="container-border d-flex mt-3">
+
+
+  <div class="container-form-email">
+    <form class=""  [formGroup] = "formEnviarEmail">
+      <div class="border-bottom border-black mb-3">
+        <span><strong>Não lembro minha senha:</strong></span>
+      </div>
+
+      <div class="form-group  mb-3">
+        <label class="mt-1" for="exampleInputEmail1">Digite o email para recuperar sua senha</label>
+       <div class="d-flex mt-3">
+        <input  formControlName="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+        <button  (click) = "enviarEmailResetarSenha()" type="submit" class="btn btn-primary"><span *ngIf="!semSpinner">Cadastrar: </span> <mat-spinner style="margin: 0 auto;" [diameter]="10" *ngIf = "semSpinner"></mat-spinner></button>
+        
+      </div>
+      
+      </div>
+      <a href="/login">Voltar</a>
+    
+    </form>
+  </div>
+
+
+    </div>
+  </div>
+</div>
+
+<app-footer></app-footer>

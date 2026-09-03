@@ -1,29 +1,34 @@
-<div class="container-fluid">
-    <ul class="modal-name">
-        <li>Esqueci minha senha</li>
-    </ul>
-    <form [formGroup]="form">
-
-        <div class="container-verify-email">
-            <div class="title">
-                <h2>Digite o código de verificação</h2>
-
-                <div class="details">
-                    <p>Enviamos um e-mail com um código de dígitos para:</p>
-                    <strong>{{email}}</strong>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="form-group col-sm-2 d-flex justify-content-center" *ngFor="let input of formInput;  index as i">
-                    <input #formRow type="text" formControlName="{{input}}" class="form-control" maxlength="1" (keyup)="keyUpEvent($event, i)">
-                </div>
-            </div>
-            <button (click) = "enviarCodigoEmail()"  class="btn-primary">validar código</button>
-
-            <div class="alert-span">
-                <p>Não recebeu? <span>Reenviar código</span></p>
-            </div>
-        </div>
-    </form>
+<div class="modal-codigo">
+  <button class="fechar" type="button" aria-label="Fechar" (click)="fechar()">
+    ×
+  </button>
+  <div class="selo" aria-hidden="true">
+    <img src="assets/email-svgrepo-com.svg" alt="">
+  </div>
+  <h2>
+    Digite o código de verificação
+  </h2>
+  <p class="detalhe">
+    Enviamos um código de {{ formInput.length }} dígitos para
+    <strong *ngIf="email">
+      {{ email }}
+    </strong>
+    <span *ngIf="!email">
+      o seu e-mail
+    </span>
+  </p>
+  <form [formGroup]="form" (paste)="colar($event)">
+    <div class="digitos">
+      <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" [formControlName]="campo" [attr.aria-label]="'Dígito '+(i+1)" (keyup)="keyUpEvent($event, i)" *ngFor="let campo of formInput; let i = index">
+    </div>
+    <button class="validar" type="button" (click)="enviarCodigoEmail()">
+      Validar código
+    </button>
+  </form>
+  <p class="reenviar">
+    Não recebeu?
+    <button type="button" (click)="reenviar()">
+      Reenviar código
+    </button>
+  </p>
 </div>

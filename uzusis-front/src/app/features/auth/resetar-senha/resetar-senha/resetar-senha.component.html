@@ -1,49 +1,58 @@
-
-
-
-
-<app-navbar />
-
+<app-navbar></app-navbar>
 <div class="escopo">
- <div class="margin-left"> <h1>Esqueceu sua senha?</h1>
-<p>insira o codigo enviado no seu email</p>
-</div>
-  <div class="content col-6">
-     
-
-   <div class="container-border d-flex mt-3">
-
-
-<div class="container-form-login">
-    <form [formGroup]="formResetarSenha" class="" >
-      <div class="border-bottom border-black mb-3">
-        <span><strong> Insira os dados:</strong></span>
+  <header class="cabecalho">
+    <h1>
+      Definir nova senha
+    </h1>
+    <p>
+      Insira o código enviado
+      <ng-container *ngIf="email">
+        para
+        <strong>
+          {{ email }}
+        </strong>
+      </ng-container>
+      <ng-container *ngIf="!email">
+        no seu e-mail
+      </ng-container>
+    </p>
+  </header>
+  <section class="uz-cartao cartao">
+    <form [formGroup]="formResetarSenha">
+      <div class="campo">
+        <label class="uz-rotulo" for="codigo">
+          Código de verificação
+        </label>
+        <input class="uz-campo codigo" id="codigo" formControlName="codigo" type="text" maxlength="5" inputmode="numeric" autocomplete="one-time-code">
+        <small class="uz-erro" *ngIf="(formResetarSenha.get('codigo')?.invalid)&&(formResetarSenha.get('codigo')?.touched)">
+          O código tem 5 dígitos.
+        </small>
       </div>
-
-      <div class="form-group d-flex mb-3">
-        <label class="mt-1" for="exampleInputPassword1">Codigo:</label>
-        <input formControlName="codigo" type="text" class="form-control" id="exampleInputPassword1" >
+      <div class="campo">
+        <label class="uz-rotulo" for="senha">
+          Nova senha
+        </label>
+        <input class="uz-campo" id="senha" formControlName="senha" type="password" autocomplete="new-password">
+        <small class="uz-erro" *ngIf="(formResetarSenha.get('senha')?.invalid)&&(formResetarSenha.get('senha')?.touched)">
+          Use ao menos 6 caracteres.
+        </small>
       </div>
-
-      <div class="form-group d-flex mb-3">
-        <label class="mt-1" for="exampleInputPassword1">Senha:</label>
-        <input formControlName="senha" type="password" class="form-control" id="exampleInputPassword1" >
+      <div class="campo">
+        <label class="uz-rotulo" for="confirmarSenha">
+          Confirmar nova senha
+        </label>
+        <input class="uz-campo" id="confirmarSenha" formControlName="confirmarSenha" type="password" autocomplete="new-password">
+        <small class="uz-erro" *ngIf="formResetarSenha.hasError('senhasDiferentes')&&(formResetarSenha.get('confirmarSenha')?.touched)">
+          As senhas não são iguais.
+        </small>
       </div>
-
-      <div class="form-group d-flex mb-3">
-        <label class="mt-1" for="exampleInputPassword1">Confirmar</label>
-        <input formControlName="confirmarSenha" type="password" class="form-control" id="exampleInputPassword1" >
-        
-      </div> 
-      <button  (click) ="resetarSenha()"  type="submit" class="btn btn-primary">Enviar:</button>
+      <button class="uz-btn-marca largura-total" type="submit" (click)="resetarSenha()">
+        Alterar senha
+      </button>
+      <a class="voltar" routerLink="/login">
+        Voltar para o login
+      </a>
     </form>
-  </div>
-
-
-
-
-    </div>
-  </div>
+  </section>
 </div>
-
 <app-footer></app-footer>

@@ -14,32 +14,22 @@ import { MatOptionSelectionChange } from '@angular/material/core';
 export class NavbarService {
   private produtosSubject = new BehaviorSubject<produto[]>([]);
   produtosnew = this.produtosSubject.asObservable();
-  private readonly token = localStorage.getItem('token')
+  private get token() { return localStorage.getItem('token'); }
+  private categoriaAtual: any = '';
 
 
   constructor(private http: HttpClient) {
    }
   
   apiurl = environment.apiUrl;
-setCategoria(index:any){
-  if(index==''){
-    this.lista(0,'').subscribe({
-      next:produtos=>{      
-        this.updateProdutos(produtos)
-      }
-    
-    })
+get categoria() { return this.categoriaAtual; }
+
+  setCategoria(index: any) {
+    this.categoriaAtual = index;
+    this.lista(0, index).subscribe({
+      next: produtos => this.updateProdutos(produtos)
+    });
   }
-  else{
-  this.lista(0,index).subscribe({
-    next:produtos=>{
-      
-      this.updateProdutos(produtos)
-    }
-  
-  })
-}
-}
 
   lista(pag: number,id:any): Observable<produto[]> {
 

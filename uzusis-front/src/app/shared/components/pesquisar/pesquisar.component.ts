@@ -17,7 +17,7 @@ export class PesquisarComponent implements OnInit{
 
   }
   ngOnInit(): void {
-    this.navbarService.lista(0,'').subscribe((res:produto[])=>{
+    this.navbarService.lista(0, this.navbarService.categoria).subscribe((res:produto[])=>{
 
       if(Array.isArray(res)){
       this.allProdutos=res

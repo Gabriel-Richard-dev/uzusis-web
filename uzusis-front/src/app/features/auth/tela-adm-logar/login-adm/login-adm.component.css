@@ -1,89 +1,81 @@
-.content{
-  display: flex;
-  justify-content: center;
-  align-content: center;
-  margin-left: auto;
-  margin-right: auto;
-  align-items: center;
-  margin-top: 20px;
- 
-
+.pagina-admin {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:2rem 1.5rem;
+  background-color:var(--uz-nevoa);
 }
 
-
-input{
-  border: solid 1px black ;
-  background-color:  #e1ded8;
-}
-button{
-  background-color: black;
+.cartao {
+  width:min(24rem,100%);
+  padding:2rem;
 }
 
-button:hover{
-  background-color: rgb(77, 69, 58);
-}
-.escopo{
- 
-  margin: 0 auto;
-  margin-top: 150px;
-  border: solid 1px black;
-  padding: 20px;
-  width: 120vh;
-  height: 40vh;
-
+.marca {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  padding-bottom:1.25rem;
+  margin-bottom:1.5rem;
+  border-bottom:1px solid var(--uz-borda);
 }
 
-.container-border{
-
-  gap: 20px;
+.marca img {
+  width:2.75rem;
+  height:2.75rem;
+  object-fit:contain;
 }
 
-.border-bottom{
-  border-bottom: 5px solid black;
+.marca strong {
+  display:block;
+  font-size:1.0625rem;
 }
 
-.container-form-login{
-width: 500px;
-height: 220px;
-background-color: #e1ded8;
-padding: 20px;
-border-radius: 20px;
-}
-.container-form-email{
-  width: 500px;
-  height: 200px;
-  background-color: #e1ded8;
-  padding: 20px;
-  border-radius: 20px;
-
-  button{
-    width: 40%;
-    border-radius: 20px;
-  }
-  
-    }
-  
-
-form{
-  input{
-    border-radius: 20px;
-  }
-
-  div{
-    gap: 10px;
-    margin-right: 5%;
-    
-  }
-
-  button{
-    width: 80%;
-    border-radius: 20px;
-  }
-  
+.marca span {
+  color:var(--uz-tinta-suave);
+  font-size:.75rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
 }
 
-.content{
-  display: flex;
-  flex-direction: column;
+h1 {
+  font-size:1.375rem;
+  font-weight:600;
+}
 
+.apoio {
+  margin-top:.25rem;
+  color:var(--uz-tinta-suave);
+  font-size:.9375rem;
+}
+
+form {
+  display:flex;
+  flex-direction:column;
+  gap:1.125rem;
+  margin-top:1.75rem;
+}
+
+.campo {
+  display:flex;
+  flex-direction:column;
+  gap:.375rem;
+}
+
+.largura-total {
+  width:100%;
+}
+
+.voltar {
+  display:block;
+  margin-top:1.25rem;
+  color:var(--uz-tinta-suave);
+  font-size:.875rem;
+  text-align:center;
+  text-decoration:underline;
+}
+
+.voltar:hover {
+  color:var(--uz-marca);
 }

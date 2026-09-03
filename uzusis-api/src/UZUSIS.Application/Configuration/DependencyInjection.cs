@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +8,7 @@ using NetDevPack.Security.Jwt.Core.Interfaces;
 using UZUSIS.Application.Notification;
 using UZUSIS.Infra.Data.Configuration;
 using UZUSIS.Infra.Data.Context;
+using UZUSIS.Infra.Data.Storage;
 using Pomelo.EntityFrameworkCore.MySql;
 using ScottBrady91.AspNetCore.Identity;
 using UZUSIS.Application.Contracts.Services;
@@ -24,18 +25,19 @@ public static class DependencyInjection
     public static void ConfigureApplication(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        var serverVersion = ServerVersion.AutoDetect(connectionString);
+        var serverVersion = new MySqlServerVersion(new Version(8, 0, 36));
         
         services.AddDbContext<ApplicationContext>(options =>
         {
             options.UseMySql(connectionString, serverVersion);
             options.EnableDetailedErrors();
-            options.EnableSensitiveDataLogging();
         });
 
         services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
+
+        services.Configure<MinioSettings>(configuration.GetSection("Minio"));
     }
 
 
@@ -52,6 +54,8 @@ public static class DependencyInjection
             .AddScoped<IPasswordHasher<Cliente>, Argon2PasswordHasher<Cliente>>()
             .AddScoped<IPasswordHasher<ConfirmacaoEmail>, Argon2PasswordHasher<ConfirmacaoEmail>>()
             .AddScoped<IPasswordHasher<RecuperacaoSenhaEmail>, Argon2PasswordHasher<RecuperacaoSenhaEmail>>();
+
+        services.AddSingleton<FotoStorage>();
 
         services.AddScoped<IEmailService, EmailService>();
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

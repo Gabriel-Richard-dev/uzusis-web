@@ -1,4 +1,3 @@
-using System.Drawing;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -16,17 +15,13 @@ using UZUSIS.Core.ViewModel;
 
 namespace UZUSIS.API.Controllers.V1.Produto;
 
-[AllowAnonymous]
 public class ProdutoController : BaseController
 {
     private readonly IProdutoService _produtoService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ProdutoController(INotificator notificator, IProdutoService produtoService,
-        IHttpContextAccessor httpContextAccessor) : base(notificator)
+    public ProdutoController(INotificator notificator, IProdutoService produtoService) : base(notificator)
     {
         _produtoService = produtoService;
-        _httpContextAccessor = httpContextAccessor;
     }
 
     [Authorize(Roles = "Administrador")]
@@ -85,7 +80,7 @@ public class ProdutoController : BaseController
         return cat.Count() != 0 ? CustomResponse(new CategoriaViewModel { Nome = cat.First().NomeCategoria }) : NotFound();
     }
     
-    [AllowAnonymous]
+    [Authorize(Roles = "Administrador")]
     [HttpPatch("atualizar")]
     public async Task<IActionResult> AtualizarParcial([FromForm]AtualizarProdutoDto produtoDto)
     {
@@ -99,22 +94,5 @@ public class ProdutoController : BaseController
         return CustomResponse(await _produtoService.DashBoardAdmin());
     }
     
-    [AllowAnonymous]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet("{id}/foto/{index}")]
-    public async Task<IActionResult> ObterFotos(long id, int index)
-    {
-        var fotos = await _produtoService.ObterFoto(id);
-        List<dynamic> Images = new List<dynamic>();
-
-        foreach (var bytes in fotos)
-        {
-            Images.Add(bytes);
-        }
-        
-        
-        return File(fotos[index]!, "image/png");
-
-    }
     
 }

@@ -1,22 +1,22 @@
-  import { Injectable } from '@angular/core';
-  import { BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class SpinnerService {
+@Injectable({
+  providedIn: 'root'
+})
+export class SpinnerService {
 
-  private loadingSubject = new BehaviorSubject<boolean>(false)
-  situacaoSpinner$ = this.loadingSubject.asObservable()
+  private pendentes = 0;
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  situacaoSpinner$ = this.loadingSubject.asObservable();
 
-    constructor() { }
-
-    showSpinner(){
-      this.loadingSubject.next(true)
-    }
-
-    hideSpinner(){
-      this.loadingSubject.next(false)
-    }
-
+  showSpinner() {
+    this.pendentes++;
+    this.loadingSubject.next(true);
   }
+
+  hideSpinner() {
+    this.pendentes = Math.max(0, this.pendentes - 1);
+    this.loadingSubject.next(this.pendentes > 0);
+  }
+}

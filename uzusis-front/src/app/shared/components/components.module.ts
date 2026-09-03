@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -20,6 +21,8 @@ import { ButtonModule } from 'primeng/button';
 import { ModalPagamentoComponent } from './navbar/modal-pagamento/modal-pagamento.component';
 import { InformacaoComponent } from 'src/app/features/admin/modalInformacoes/informacao/informacao.component';
 import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInformacoes/historicoInformacao/historicoInformacao.component';
+import { NotificacaoComponent } from './notificacao/notificacao.component';
+import { DashboardComponent } from 'src/app/features/admin/dashboard/dashboard.component';
 
 
 @NgModule({
@@ -35,7 +38,9 @@ import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInform
     PegarProdutosComponent,
     ModalPagamentoComponent,
     InformacaoComponent,
-    HistoricoInformacaoComponent
+    HistoricoInformacaoComponent,
+    NotificacaoComponent,
+    DashboardComponent
  
 
     
@@ -46,6 +51,7 @@ import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInform
   ],
   imports: [
     CommonModule,
+    RouterModule,
     ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
@@ -59,6 +65,7 @@ import { HistoricoInformacaoComponent } from 'src/app/features/admin/modalInform
     
   ],
   exports: [
+  NotificacaoComponent,
   NavbarComponent,
   PesquisarComponent,
   FooterComponent,

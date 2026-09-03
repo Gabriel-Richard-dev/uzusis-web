@@ -1,13 +1,7 @@
 import { Component, OnInit } from "@angular/core";
-import { NavbarService } from "src/app/features/initial-page/components/services/navbar.service";
-import { AdminService } from "../../admin.service";
-import { IgetProduto } from "src/app/core/interfaces/getProdutos";
-import Swal from "sweetalert2";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
-import {
-  Categoria,
-  IAdicionarFoto,
-} from "src/app/core/interfaces/IAdicionarProduto";
+import { AdminService } from "../../admin.service";
+import { NotificacaoService } from "src/app/core/service/notificacao.service";
 
 @Component({
   selector: "app-pegarProdutos",
@@ -15,34 +9,27 @@ import {
   styleUrls: ["./pegarProdutos.component.css"],
 })
 export class PegarProdutosComponent implements OnInit {
-  listarProduto: boolean = true;
-  data!: IgetProduto[];
-  dataId!: IgetProduto;
-  constructor(private adminService: AdminService) {}
 
-  ngOnInit() {
-    this.adminService.getProdutosEditar().subscribe({
-      next: (res) => {
-        this.data = res;
-        console.log(this.data);
-        this.data.forEach((element) => {
-          console.log(element);
-        });
-      },
-    });
-  }
+  listarProduto = true;
+  data: any[] = [];
+  dataId: any;
+  id!: number;
 
   imageUrl1: string | ArrayBuffer | null | undefined = null;
   imageUrl2: string | ArrayBuffer | null | undefined = null;
   imageUrl3: string | ArrayBuffer | null | undefined = null;
-  backgroundImageUrl1: string = "../../../../../assets/icons8-adicionar-50.png";
-  backgroundImageUrl2: string = "../../../../../assets/icons8-adicionar-50.png";
-  backgroundImageUrl3: string = "../../../../../assets/icons8-adicionar-50.png";
+
   enviarFoto = false;
-  id!: number;
-  selecionado!: number;
   contadorFiles = 0;
-  categorias: Categoria[] = [
+  selecionado?: number;
+
+  tamanhos = [
+    { sigla: "P", controle: "QuantidadeP" },
+    { sigla: "M", controle: "QuantidadeM" },
+    { sigla: "G", controle: "QuantidadeG" },
+  ];
+
+  categorias = [
     { categoria: 0, nomeCategoria: "Calça" },
     { categoria: 1, nomeCategoria: "Short" },
     { categoria: 2, nomeCategoria: "Saia" },
@@ -53,101 +40,88 @@ export class PegarProdutosComponent implements OnInit {
     { categoria: 7, nomeCategoria: "Blusa" },
     { categoria: 8, nomeCategoria: "Acessórios" },
   ];
-  quantidadeP = 0;
-  quantidadeM = 0;
-  quantidadeG = 0;
 
-  produto: IAdicionarFoto = {
-    FotoFiles: [],
-  };
+  produto: { FotoFiles: File[] } = { FotoFiles: [] };
 
   criarProduto = new FormGroup({
-    Nome: new FormControl("", [
-      Validators.required, // Nome é obrigatório
-      Validators.maxLength(100), // Máximo de 100 caracteres, ajuste conforme necessário
-    ]),
-    Preco: new FormControl(null, [
-      Validators.required, // Preço é obrigatório
-      Validators.min(0), // Preço não pode ser negativo
-    ]),
-    QuantidadeP: new FormControl(0, []),
-    QuantidadeM: new FormControl(0, []),
-    QuantidadeG: new FormControl(0, []),
-    Categoria: new FormControl(null, []),
-    Descricao: new FormControl("", [
-      Validators.required, // Descrição é obrigatória
-      Validators.maxLength(500), // Máximo de 500 caracteres, ajuste conforme necessário
-    ]),
+    Nome: new FormControl("", [Validators.required, Validators.maxLength(100)]),
+    Preco: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+    QuantidadeP: new FormControl(0),
+    QuantidadeM: new FormControl(0),
+    QuantidadeG: new FormControl(0),
+    Descricao: new FormControl("", [Validators.required, Validators.maxLength(500)]),
   });
+
+  constructor(
+    private adminService: AdminService,
+    private notificacao: NotificacaoService
+  ) {}
+
+  ngOnInit() {
+    this.carregarProdutos();
+  }
+
+  carregarProdutos() {
+    this.adminService.getProdutosEditar().subscribe({
+      next: res => this.data = res,
+    });
+  }
 
   trocarParaOEnviarImagem() {
     this.enviarFoto = true;
   }
 
-  editarProduto() {
-    const minimoCategoria: boolean =
-      (this.criarProduto.value.QuantidadeP ?? 0) +
-        (this.criarProduto.value.QuantidadeP ?? 0) +
-        (this.criarProduto.value.QuantidadeP ?? 0) >=
-      1;
-
-    const produtoValues = {
-      id:  this.id,
-      Nome: this.criarProduto.value.Nome || "", // Valor padrão se Nome for null ou undefined
-      Preco: this.criarProduto.value.Preco ?? 0, // Valor padrão se Preco for null ou undefined
-      QuantidadeP: this.criarProduto.value.QuantidadeP ?? 0,
-      QuantidadeM: this.criarProduto.value.QuantidadeM ?? 0,
-      QuantidadeG: this.criarProduto.value.QuantidadeG ?? 0,
-      FotoUrls: this.produto.FotoFiles, // Assumindo que FotoFiles é um array de arquivos
-      Categoria: this.selecionado ?? 0,
-      Descricao: this.criarProduto.value.Descricao || "",
-    };
-
-    if (this.criarProduto.valid && minimoCategoria) {
-      if (this.contadorFiles === 3) {
-        this.adminService.editarProduto(produtoValues);
-      } else {
-        Swal.fire({
-          position: "center",
-          icon: "error",
-          title: "Ops...",
-          text: "Você deve ter no minimo e no maximo três fotos",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      }
-    } else {
-      Swal.fire({
-        position: "center",
-        icon: "error",
-        title: "Ops...",
-        text: "Você não preencheu todas as informações.",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    }
+  alterarQuantidade(controle: string, delta: number) {
+    const campo = this.criarProduto.controls[controle as keyof typeof this.criarProduto.controls] as FormControl;
+    campo.setValue(Math.max(0, (campo.value ?? 0) + delta));
   }
+
+  editarProduto() {
+    const valores = this.criarProduto.value;
+    const total = (valores.QuantidadeP ?? 0) + (valores.QuantidadeM ?? 0) + (valores.QuantidadeG ?? 0);
+
+    if (!this.criarProduto.valid || total < 1) {
+      this.erro("Você não preencheu todas as informações.");
+      return;
+    }
+
+    if (this.contadorFiles !== 3) {
+      this.erro("Você deve ter no mínimo e no máximo três fotos");
+      return;
+    }
+
+    this.adminService.editarProduto({
+      id: this.id,
+      Nome: valores.Nome || "",
+      Preco: valores.Preco ?? 0,
+      QuantidadeP: valores.QuantidadeP ?? 0,
+      QuantidadeM: valores.QuantidadeM ?? 0,
+      QuantidadeG: valores.QuantidadeG ?? 0,
+      FotoUrls: this.produto.FotoFiles,
+      Categoria: this.selecionado ?? 0,
+      Descricao: valores.Descricao || "",
+    } as any).subscribe({
+      next: () => {
+        this.voltarParaListar();
+        this.carregarProdutos();
+      },
+      error: () => {},
+    });
+  }
+
   salvar() {
-    console.log(this.contadorFiles);
     if (this.contadorFiles === 3) {
       this.enviarFoto = false;
     } else {
-      Swal.fire({
-        position: "center",
-        icon: "error",
-        title: "Ops...",
-        text: "Você deve ter exatamente três imagens.",
-        showConfirmButton: false,
-        timer: 1500,
-      });
+      this.erro("Você deve ter exatamente três imagens.");
     }
   }
 
   apagarTodas() {
     this.produto.FotoFiles = [];
-    this.imageUrl1 = "";
-    this.imageUrl2 = "";
-    this.imageUrl3 = "";
+    this.imageUrl1 = null;
+    this.imageUrl2 = null;
+    this.imageUrl3 = null;
     this.contadorFiles = 0;
   }
 
@@ -156,85 +130,37 @@ export class PegarProdutosComponent implements OnInit {
     this.apagarTodas();
   }
 
-  onFilesSelected(event: any, uploadFiles: string) {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (this.contadorFiles < 3) {
-      if (file) {
-        this.produto.FotoFiles.push(event.target.files[0]);
+  onFilesSelected(evento: Event, campo: string) {
+    const arquivo = (evento.target as HTMLInputElement).files?.[0];
+    if (!arquivo) return;
 
-        if (uploadFiles === "file-upload1") {
-          this.imageUrl1 = event.target.files[0];
-          const reader = new FileReader();
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            this.imageUrl1 = e.target?.result;
-          };
-          reader.readAsDataURL(file);
-          console.log("imagem url 1:", uploadFiles);
-        } else if (uploadFiles === "file-upload2") {
-          this.imageUrl2 = event.target.files[0];
-          const reader = new FileReader();
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            this.imageUrl2 = e.target?.result;
-          };
-          reader.readAsDataURL(file);
-          console.log("imagem url 2:", uploadFiles);
-        } else if (uploadFiles === "file-upload3") {
-          this.imageUrl3 = event.target.files[0];
-          const reader = new FileReader();
-          reader.onload = (e: ProgressEvent<FileReader>) => {
-            this.imageUrl3 = e.target?.result;
-          };
-          reader.readAsDataURL(file);
-          console.log("imagem url 3:", uploadFiles);
-        } else {
-          console.log("entrei aqui?");
-        }
-      }
-
-      this.contadorFiles++;
-    } else {
-      Swal.fire({
-        position: "center",
-        icon: "error",
-        title: "Ops...",
-        text: "Você deve ter exatamente três imagens.",
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    }
-  }
-
-  decreaseQuantity(event: any) {
-    if (event.target.name === "p") {
-      if (this.quantidadeP > 0) this.quantidadeP--;
+    if (this.contadorFiles >= 3) {
+      this.erro("Você deve ter exatamente três imagens.");
+      return;
     }
 
-    if (event.target.name === "g") {
-      if (this.quantidadeG > 0) this.quantidadeG--;
-    }
+    this.produto.FotoFiles.push(arquivo);
+    this.contadorFiles++;
 
-    if (event.target.name === "m") {
-      if (this.quantidadeM > 0) this.quantidadeM--;
-    }
-  }
-
-  increaseQuantity(event: any) {
-    if (event.target.name === "p") {
-      this.quantidadeP++;
-    }
-
-    if (event.target.name === "g") {
-      this.quantidadeG++;
-    }
-
-    if (event.target.name === "m") {
-      this.quantidadeM++;
-    }
+    const leitor = new FileReader();
+    leitor.onload = evt => {
+      const resultado = evt.target?.result;
+      if (campo === "file-upload1") this.imageUrl1 = resultado;
+      else if (campo === "file-upload2") this.imageUrl2 = resultado;
+      else this.imageUrl3 = resultado;
+    };
+    leitor.readAsDataURL(arquivo);
   }
 
   voltarParaListar() {
     this.listarProduto = true;
+    this.enviarFoto = false;
+    this.apagarTodas();
+    this.criarProduto.reset({
+      Nome: "", Preco: null, QuantidadeP: 0, QuantidadeM: 0, QuantidadeG: 0, Descricao: "",
+    });
   }
+
   AlterarProdutoClicado(id: number) {
     this.id = id;
     this.listarProduto = false;
@@ -243,10 +169,11 @@ export class PegarProdutosComponent implements OnInit {
 
   getId() {
     this.adminService.getId(this.id).subscribe({
-      next: (res) => {
-        this.dataId = res;
-        console.log(this.dataId);
-      },
+      next: res => this.dataId = res,
     });
+  }
+
+  private erro(texto: string) {
+    this.notificacao.erro("Ops...", texto);
   }
 }

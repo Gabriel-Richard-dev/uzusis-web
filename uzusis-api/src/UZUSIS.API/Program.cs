@@ -1,15 +1,12 @@
-using System.Reflection;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 using UZUSIS.API.Configuration;
 using UZUSIS.Application.Configuration;
+using UZUSIS.Application.Contracts.Services;
+using UZUSIS.Application.Dtos.Usuario;
+using UZUSIS.Infra.Data.Context;
+using UZUSIS.Infra.Data.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), true,true);
-
 
 builder.Services.AddCors(options =>
 {
@@ -25,7 +22,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
-
 builder.Services.ConfigurarSwagger();
 
 builder
@@ -40,10 +36,26 @@ builder
     .Services
     .ConfigurarDependencias();
 
-
-
-
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await scope.ServiceProvider.GetRequiredService<ApplicationContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<FotoStorage>().GarantirBucket();
+
+    var seedEmail = app.Configuration["Admin:SeedEmail"];
+    var seedPassword = app.Configuration["Admin:SeedPassword"];
+
+    if (!string.IsNullOrWhiteSpace(seedEmail) && !string.IsNullOrWhiteSpace(seedPassword))
+    {
+        await scope.ServiceProvider.GetRequiredService<IAdministradorService>().Criar(new AdicionarUsuarioDto
+        {
+            Nome = app.Configuration["Admin:SeedName"] ?? "Administrador",
+            Email = seedEmail,
+            Senha = seedPassword
+        });
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -55,6 +67,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.UseHttpsRedirection();
 app.Run();
-

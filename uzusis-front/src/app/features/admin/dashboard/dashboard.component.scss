@@ -383,3 +383,152 @@ input[type=number] {
     gap:.75rem;
   }
 }
+
+.indicadores {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));
+  gap:1rem;
+  margin-bottom:1.5rem;
+}
+
+.indicador {
+  display:flex;
+  flex-direction:column;
+  gap:.375rem;
+  padding:1.25rem;
+  border:1px solid var(--uz-borda);
+  border-radius:var(--uz-raio);
+  background-color:var(--uz-superficie);
+  box-shadow:var(--uz-sombra);
+}
+
+.indicador .rotulo {
+  font-size:.75rem;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--uz-tinta-suave);
+}
+
+.indicador .numero {
+  font-size:1.75rem;
+  font-weight:700;
+  line-height:1.1;
+  overflow-wrap:anywhere;
+}
+
+.indicador .apoio {
+  color:var(--uz-tinta-suave);
+  font-size:.8125rem;
+}
+
+.indicador.alerta {
+  border-color:var(--uz-marca);
+}
+
+.indicador.alerta .numero {
+  color:var(--uz-marca-escura);
+}
+
+.paineis {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));
+  gap:1.5rem;
+  align-items:start;
+}
+
+.paineis h2 {
+  margin-bottom:1.25rem;
+  font-size:1rem;
+  font-weight:600;
+}
+
+.lista-estoque {
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+  margin:0;
+}
+
+.lista-estoque li {
+  display:flex;
+  align-items:center;
+  gap:.875rem;
+  padding:.625rem;
+  border:1px solid var(--uz-borda);
+  border-radius:.75rem;
+}
+
+.lista-estoque img {
+  flex:none;
+  width:2.75rem;
+  height:3.5rem;
+  object-fit:cover;
+  border-radius:.5rem;
+}
+
+.lista-estoque .descricao {
+  display:flex;
+  flex-direction:column;
+  gap:.125rem;
+  min-width:0;
+}
+
+.lista-estoque .descricao strong {
+  font-size:.9375rem;
+  overflow-wrap:anywhere;
+}
+
+.lista-estoque .descricao span {
+  color:var(--uz-tinta-suave);
+  font-size:.8125rem;
+}
+
+.lista-estoque .selo-status {
+  margin-left:auto;
+}
+
+.lista-estoque .critico {
+  background-color:#c0392b1f;
+  color:var(--uz-erro);
+}
+
+.lista-pedidos {
+  display:flex;
+  flex-direction:column;
+  margin:0;
+}
+
+.lista-pedidos li {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:.75rem 0;
+  border-bottom:1px solid var(--uz-borda);
+  font-size:.9375rem;
+}
+
+.lista-pedidos li:last-child {
+  border-bottom:none;
+}
+
+.lista-pedidos .id {
+  font-weight:700;
+}
+
+.lista-pedidos .detalhe {
+  color:var(--uz-tinta-suave);
+  font-size:.875rem;
+}
+
+.lista-pedidos .valor {
+  margin-left:auto;
+  font-weight:600;
+  white-space:nowrap;
+}
+
+.atalho {
+  display:inline-flex;
+  margin-top:1.25rem;
+  text-decoration:none;
+}

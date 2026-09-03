@@ -1,75 +1,119 @@
-<div class="modal-container">
-  <div class="modal-header">
-    <div class="tituloESubtitulo d-flex justify-content-center">
-      <h2 class="titulo">Detalhes do pedido</h2>
-   
-    </div>
-   
-  </div>
-  <div class="modal-content">
-    <div class="modal-inputs">
-    
-      <td>
-        <div
-          class="example-full-width input"
-          style="min-width: 31.25rem">
-          <h3 class="grande">Resumo do pedido</h3>
-         <p>ID do pedido #{{data.id}}</p>
-        </div>
-      </td>
-
-      <td class="container-dados-do-pedido">
-        <div class="d-flex">
-        
-          <div class="img-dados-pedido ">
-            <img src="../../../../../assets/imagemModalInformacao.png" alt="">
-          </div>
-          <div class="dados-pedido">
-              <p> {{produtoData.nome}}</p>
-              <p> {{produtoData.categoriaNome}} - {{data.sigla}} </p>
-          </div>
-          <div class="div-valor">
-            <p>Valor: {{data.valorItem | currency:'BRL':'symbol'}} </p>
-          </div>
-          
-        </div>
-      </td>
-
-      <div class="alinhar-elementos">
-        <div class="texto"><p>Adicionar embalagem para presente</p></div>
-        <div class="div-image"><img src="../../../../../assets/presente.png" alt=""></div>
+<div class="modal-detalhe">
+  <header>
+    <h2>
+      Detalhes do pedido
+    </h2>
+    <span class="pedido-id">
+      #{{ data.id }}
+    </span>
+  </header>
+  <section class="bloco">
+    <h3>
+      Resumo
+    </h3>
+    <div class="item" *ngIf="produtoData; else carregandoProduto">
+      <img [src]="produtoData.fotoUrls[0]||'assets/imagemModalInformacao.png'" [alt]="produtoData.nome">
+      <div class="item-info">
+        <strong>
+          {{ produtoData.nome }}
+        </strong>
+        <span>
+          {{ produtoData.categoriaNome }} · Tamanho {{ data.sigla }}
+        </span>
+        <span>
+          Quantidade: {{ data.quantidade }}
+        </span>
       </div>
-
-
+      <span class="item-valor">
+        {{ data.valorItem | currency:'BRL':'symbol' }}
+      </span>
     </div>
-<div>
-    <div class="textoH3"><h3 class="grande">Dados cadastrais</h3></div>
-
-    <div class="containerBege">
-      <div class="padding-container-bege">
-      <p>Nome: {{clienteData.nome}}</p>
-      <p>Celular: {{clienteData.celular}}</p>
-      <p>CPF:{{clienteData.cpf}}</p>
-      <p>Data de Nascimento:{{clienteData.dataNascimento}}</p> 
-    </div>
-    </div>
-    <div class="textoH3"><h3>Endereço de entrega</h3></div>
-
-    <div class="containerBege">
-      <div class="padding-container-bege">
-      <p>Endereço: {{clienteData.endereco.rua}}</p>
-      <p>Barro:  {{clienteData.endereco.bairro}}</p>
-      <p>CEP:  {{clienteData.endereco.cep}}</p>
-      <p>Cidade / UF:  {{clienteData.endereco.cidade}}</p> 
-    </div>
-    </div>
-
-
-    </div>
-  </div>
-</div>
-<div class="modal-acoes">
-  <button (click)="fecharModal()" class="btn-fechar">
-    <div class="btn-fechar-title">Fechar</div>
-  </button>
+    <ng-template #carregandoProduto>
+      <p class="carregando">Carregando produto…</p>
+    </ng-template>
+  </section>
+  <section class="bloco" *ngIf="clienteData; else carregandoCliente">
+    <h3>
+      Dados cadastrais
+    </h3>
+    <dl>
+      <div>
+        <dt>
+          Nome
+        </dt>
+        <dd>
+          {{ clienteData.nome }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Celular
+        </dt>
+        <dd>
+          {{ clienteData.celular }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          CPF
+        </dt>
+        <dd>
+          {{ clienteData.cpf }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Nascimento
+        </dt>
+        <dd>
+          {{ clienteData.dataNascimento | date:'dd/MM/yyyy' }}
+        </dd>
+      </div>
+    </dl>
+    <h3 class="espacado">
+      Endereço de entrega
+    </h3>
+    <dl *ngIf="clienteData.endereco">
+      <div>
+        <dt>
+          Endereço
+        </dt>
+        <dd>
+          {{ clienteData.endereco.rua }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Bairro
+        </dt>
+        <dd>
+          {{ clienteData.endereco.bairro }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          CEP
+        </dt>
+        <dd>
+          {{ clienteData.endereco.cep }}
+        </dd>
+      </div>
+      <div>
+        <dt>
+          Cidade / UF
+        </dt>
+        <dd>
+          {{ clienteData.endereco.cidade }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+  <ng-template #carregandoCliente>
+    <p class="carregando">Carregando cliente…</p>
+  </ng-template>
+  <footer>
+    <button class="uz-btn" type="button" (click)="fecharModal()">
+      Fechar
+    </button>
+  </footer>
 </div>

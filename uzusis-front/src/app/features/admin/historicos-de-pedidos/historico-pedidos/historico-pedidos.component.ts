@@ -11,22 +11,20 @@ import { HistoricoInformacaoComponent } from '../../modalInformacoes/historicoIn
 })
 export class HistoricoPedidosComponent implements OnInit {
 
-  displayedColumns = ['id', 'valor-item', 'informacoes'];
-  dataSource = <IPedidoPendentes[]>[]
-  
-    constructor(private adminService: AdminService, private Dialog: MatDialog) { }
-  
-    ngOnInit() {  
-      this.adminService.pedidosPendentes(0).subscribe({
-        next: res =>{
-        this.dataSource = res
-        console.log(res)
-        }
-      })
-    }
-    abrirHistoricoPedidos(element: IPedidoPendentes){
-      this.Dialog.open(HistoricoInformacaoComponent, {
-        data: element
-      })
+  dataSource = <IPedidoPendentes[]>[];
+
+  constructor(private adminService: AdminService, private Dialog: MatDialog) { }
+
+  ngOnInit() {
+    this.adminService.pedidosPendentes(0).subscribe({
+      next: (res: any) => {
+        this.dataSource = res;
+        console.log(res);
       }
+    });
+  }
+
+  abrirHistoricoPedidos(dados: any) {
+    this.Dialog.open(HistoricoInformacaoComponent, { data: dados });
+  }
 }

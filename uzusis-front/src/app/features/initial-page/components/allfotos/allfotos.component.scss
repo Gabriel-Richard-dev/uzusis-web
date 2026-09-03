@@ -1,111 +1,124 @@
-.img{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  h5{
-    margin-top: 20px;
-    font-family: Multiple fonts;
-  }
-  h2{
-    font-size: 21.3px;
-    font-family: Carelia;
-    font-weight: bold;
-  }
-  img{
-    border-radius: 8px;
-  width: 250px;
-  height: 350px;
-  }
-}
-.grid{
-  display: grid;
-  grid-template-columns: repeat(3, 420px); 
-  gap: 100px;
-  margin: 0 auto;
-  margin-top: 100px;
+.grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:2.5rem;
+  margin-top:2.5rem;
 }
 
-.gerar{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto;
-  width: 250px;
-  height: 50px;
-  background-color: #007bff; 
-  color: #fff;               
-  border: none;           
-  border-radius: 5px;       
-  padding: 10px 20px;       
-  font-size: 16px;        
-  cursor: pointer;          
-  transition: background-color 0.3s ease, transform 0.2s ease; 
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  outline: none;
+.card {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border-radius:var(--uz-raio);
+  background-color:var(--uz-superficie);
+  border:1px solid var(--uz-borda);
+  box-shadow:var(--uz-sombra);
+  cursor:pointer;
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+
+.card:hover {
+  transform:translateY(-4px);
+  box-shadow:var(--uz-sombra-alta);
+}
+
+.card:hover .foto img {
+  transform:scale(1.06);
+}
+
+.foto {
+  position:relative;
+  overflow:hidden;
+  background-color:var(--uz-nevoa);
+}
+
+.foto img {
+  display:block;
+  width:100%;
+  aspect-ratio:5/7;
+  object-fit:cover;
+  transition:transform .35s ease;
+}
+
+.etiqueta {
+  position:absolute;
+  top:.75rem;
+  left:.75rem;
+  padding:.25rem .625rem;
+  border-radius:999px;
+  background-color:#ffffffeb;
+  color:var(--uz-tinta-suave);
+  font-size:.6875rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.corpo {
+  display:flex;
+  flex-direction:column;
+  gap:.375rem;
+  padding:1rem 1.125rem 1.25rem;
+}
+
+.corpo h5 {
+  margin:0;
+  font-size:1rem;
+  font-weight:500;
+  color:var(--uz-tinta);
+  overflow-wrap:anywhere;
+}
+
+.corpo .preco {
+  font-size:1.125rem;
+  font-weight:700;
+  color:var(--uz-marca);
+}
+
+.gerar {
+  display:block;
+  margin:3rem auto 4rem;
+  min-height:2.875rem;
+  padding:0 2rem;
+  border:1px solid var(--uz-borda);
+  border-radius:999px;
+  background-color:var(--uz-superficie);
+  color:var(--uz-tinta);
+  font-size:.9375rem;
+  font-weight:600;
+  transition:background-color .2s ease,color .2s ease;
 }
 
 .gerar:hover {
-  background-color: #0056b3; 
-  transform: scale(1.05);   
+  background-color:var(--uz-tinta);
+  color:#fff;
 }
 
-.gerar:active {
-  background-color: #004085;
-  transform: scale(1);      
+.sem-mais {
+  margin:3rem auto 4rem;
+  padding:1.25rem;
+  max-width:22rem;
+  border-radius:var(--uz-raio);
+  background-color:var(--uz-nevoa);
+  color:var(--uz-tinta-suave);
+  text-align:center;
 }
 
-.text-center {
-  text-align: center;  
+@media (max-width: 62rem) {
+  .grid {
+    grid-template-columns:repeat(2,1fr);
+    gap:1.5rem;
+  }
 }
 
-.text-muted {
-  color: #6c757d; 
-  font-family: Scope One;
-  font-size: 18px;
+@media (max-width: 36rem) {
+  .grid {
+    grid-template-columns:1fr;
+  }
 }
 
-.text-center {
-  padding: 20px; 
-  background-color: #f8f9fa;  
-  border: 1px solid #e9ecef;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
-  margin: 0 auto;
-  margin-top: 80px; 
-}
-
-.img {
-  display: inline-block;
-  transition: transform 0.3s ease; 
-  width: 250px;
-
-}
-
-
-.img img {
-  display: block;
-  transition: transform 0.3s ease; 
-  margin-bottom: 30px;
-  object-fit: cover;
-}
-
-
-.img img:hover {
-  transform: scale(1.1); 
-}
-.ng-star-inserted{
-  width: fit-content;
-}
-
-.img h5, .img h2 {
-  margin: 0;
-  padding: 5px;
-  text-align: center;
-  color: #333;
-}
-
-.img h2 {
-  font-size: 1.2em; 
-  color: #141213; 
+@media (prefers-reduced-motion: reduce) {
+  .card, .foto img {
+    transition:none;
+  }
 }

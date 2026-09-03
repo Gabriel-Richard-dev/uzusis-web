@@ -1,48 +1,41 @@
-
-
-
-
-<app-navbar />
-
-<div class="escopo">
-  <div class="margin-left">
-    <h1 style="text-align: center;">Identificação</h1>
-  </div>
-  <div class="content col-6">
-    <div class="container-border d-flex mt-3">
-      <div class="container-form-login">
-        <form [formGroup]="formLogin" class="">
-          <div class="border-bottom border-black mb-3">
-            <span><strong> Logue-se como admistrdador:</strong></span>
-          </div>
-
-          <div class="form-group d-flex mb-3">
-            <label class="mt-1" for="exampleInputEmail1">Email:</label>
-            <input
-              formControlName="email"
-              type="email"
-              class="form-control"
-              id="exampleInputEmail1"
-              aria-describedby="emailHelp"
-            />
-          </div>
-          <div class="form-group d-flex mb-3">
-            <label class="mt-1" for="exampleInputPassword1">Senha:</label>
-            <input
-              formControlName="senha"
-              type="password"
-              class="form-control"
-              id="exampleInputPassword1"
-            />
-            <button (click)="logar()" type="submit" class="btn btn-primary">
-              Prosseguir:
-            </button>
-          </div>
-        </form>
+<div class="pagina-admin">
+  <section class="uz-cartao cartao">
+    <div class="marca">
+      <img src="assets/circulo.png" alt="">
+      <div>
+        <strong>
+          Uzusis
+        </strong>
+        <span>
+          painel do admin
+        </span>
       </div>
-
     </div>
-  </div>
+    <h1>
+      Entrar
+    </h1>
+    <p class="apoio">
+      Acesso restrito à administração da loja
+    </p>
+    <form [formGroup]="formLogin">
+      <div class="campo">
+        <label class="uz-rotulo" for="adminEmail">
+          E-mail
+        </label>
+        <input class="uz-campo" id="adminEmail" formControlName="email" type="email" autocomplete="username">
+      </div>
+      <div class="campo">
+        <label class="uz-rotulo" for="adminSenha">
+          Senha
+        </label>
+        <input class="uz-campo" id="adminSenha" formControlName="senha" type="password" autocomplete="current-password">
+      </div>
+      <button class="uz-btn largura-total" type="submit" (click)="logar()">
+        Prosseguir
+      </button>
+    </form>
+    <a class="voltar" routerLink="/">
+      Voltar para a loja
+    </a>
+  </section>
 </div>
-
-<app-footer></app-footer>

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
+import { SpinnerService } from './core/service/spinner.service';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'sistema-avisos';
+  carregando$ = this.spinnerService.situacaoSpinner$;
+
+  constructor(private spinnerService: SpinnerService) {}
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChildren } from '@angular/core';
 import { AuthService } from '../../../auth.service';
 import { DialogRef } from '@angular/cdk/dialog';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import Swal from 'sweetalert2';
+import { NotificacaoService } from 'src/app/core/service/notificacao.service';
 
 @Component({
   selector: 'app-enviarCodigoConfirmarEmail',
@@ -10,14 +10,12 @@ import Swal from 'sweetalert2';
   styleUrls: ['./enviarCodigoConfirmarEmail.component.css']
 })
 export class EnviarCodigoConfirmarEmailComponent implements OnInit {
-  constructor(dialogRef: DialogRef<EnviarCodigoConfirmarEmailComponent>, private authService: AuthService){
+  constructor(dialogRef: DialogRef<EnviarCodigoConfirmarEmailComponent>, private authService: AuthService, private notificacao: NotificacaoService){
     
     this.form = this.toFormGroup(this.formInput);
 
   }
-  ngOnInit(): void {
-    throw new Error('Method not implemented.');
-  }
+  ngOnInit(): void { }
   concatenatedValuesLenght = 0
   concatenedValue = ""
   email = ""
@@ -72,14 +70,7 @@ export class EnviarCodigoConfirmarEmailComponent implements OnInit {
    }
 
    else{
-    Swal.fire({
-      position: "center",
-      icon: "error",
-      title: "Ops...",
-      text: 'Você não prencheu todos os campos',
-      showConfirmButton: false,
-      timer: 1500,
-    });
+    this.notificacao.erro('Ops...', 'Você não preencheu todos os campos');
    }
   }
 }

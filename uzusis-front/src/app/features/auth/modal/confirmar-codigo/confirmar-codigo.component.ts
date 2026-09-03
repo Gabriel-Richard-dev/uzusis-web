@@ -1,86 +1,92 @@
-import { Component, Input, ViewChildren } from '@angular/core';
-import { DialogRef } from '@angular/cdk/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms'
+import { AfterViewInit, Component, OnInit, ViewChildren } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../auth.service';
-import { ICodigoEmail } from 'src/app/core/interfaces/auth';
-import Swal from 'sweetalert2';
+import { NotificacaoService } from 'src/app/core/service/notificacao.service';
+
 @Component({
   selector: 'app-confirmar-senha',
   templateUrl: './confirmar-senha.component.html',
   styleUrls: ['./confirmar-senha.component.scss']
 })
-export class ConfirmarCodigoComponent {
-  constructor(dialogRef: DialogRef<ConfirmarCodigoComponent>, private authService: AuthService){
-    
-    this.form = this.toFormGroup(this.formInput);
+export class ConfirmarCodigoComponent implements OnInit, AfterViewInit {
 
-  }
-  concatenatedValuesLenght = 0
-  concatenedValue = ""
-  email = ""
+  concatenatedValuesLenght = 0;
+  concatenedValue = '';
+  email = '';
 
-  form: FormGroup; // Definindo a variável form
   formInput = ['input1', 'input2', 'input3', 'input4', 'input5'];
+  form: FormGroup = this.toFormGroup(this.formInput);
+
   @ViewChildren('formRow') rows: any;
-  
-  ngOnInit(){
-  this.email = localStorage.getItem("emailGuardar") || ""
+
+  constructor(
+    private authService: AuthService,
+    private dialog: MatDialog,
+    private notificacao: NotificacaoService
+  ) { }
+
+  ngOnInit() {
+    this.email = localStorage.getItem('guardarEmail') || '';
   }
 
-  toFormGroup(elements: any) {
-    const group: any = {};
-    elements.forEach((key: string | number) => {
-      group[key] = new FormControl('', Validators.required);
-    });
-    return new FormGroup(group);
-   }
-
-   keyUpEvent(event:any, index: number) {
-    let pos = index;
-    if (event.keyCode === 8 && event.which === 8) {
-     pos = index - 1 ;
-    } else {
-     pos = index + 1 ;
-    }
-    if (pos > -1 && pos < this.formInput.length ) {
-     this.rows._results[pos].nativeElement.focus();
-    }
-    const formValues = this.form.value;
-    const concatenatedValues = this.formInput.map(input => formValues[input]).join('');
-    const concatenatedValuesLenght = concatenatedValues.length
-    
-    
-    this.concatenedValue = concatenatedValues
-    this.concatenatedValuesLenght = concatenatedValues.length
-    
-    if(this.concatenatedValuesLenght === 5){
-
-      this.authService.enviarCodigoEmailCadastro(this.concatenedValue)
-  
-    }
-
-    
-   }
-
-
-   enviarCodigoEmail(){
-      
-      if(this.concatenatedValuesLenght === 5){
-
-    this.authService.enviarCodigoEmailCadastro(this.concatenedValue)
-   }
-
-   else{
-    Swal.fire({
-      position: "center",
-      icon: "error",
-      title: "Ops...",
-      text: 'Você não prencheu todos os campos',
-      showConfirmButton: false,
-      timer: 1500,
-    });
-   }
+  ngAfterViewInit() {
+    setTimeout(() => this.focar(0));
   }
-   
- 
+
+  toFormGroup(elementos: string[]): FormGroup {
+    const grupo: any = {};
+    elementos.forEach(nome => grupo[nome] = new FormControl('', Validators.required));
+    return new FormGroup(grupo);
+  }
+
+  keyUpEvent(evento: KeyboardEvent, indice: number) {
+    const apagou = evento.key === 'Backspace';
+    if (apagou || !!this.form.value[this.formInput[indice]]) {
+      this.focar(apagou ? indice - 1 : indice + 1);
+    }
+    this.atualizarCodigo();
+  }
+
+  colar(evento: ClipboardEvent) {
+    const texto = (evento.clipboardData?.getData('text') || '').replace(/\s/g, '').slice(0, 5);
+    if (!texto) return;
+    evento.preventDefault();
+    this.formInput.forEach((nome, i) => this.form.get(nome)!.setValue(texto[i] ?? ''));
+    this.focar(Math.min(texto.length, 4));
+    this.atualizarCodigo();
+  }
+
+  enviarCodigoEmail() {
+    if (this.concatenatedValuesLenght !== 5) {
+      this.notificacao.erro('Ops...', 'Você não preencheu todos os campos');
+      return;
+    }
+    this.authService.enviarCodigoEmailCadastro(this.concatenedValue);
+  }
+
+  reenviar() {
+    if (this.email) {
+      this.authService.enviarCodigoConfirmarEmail({ email: this.email } as any, false);
+    }
+  }
+
+  fechar() {
+    this.dialog.closeAll();
+  }
+
+  private focar(indice: number) {
+    if (indice > -1 && indice < this.formInput.length) {
+      this.rows?._results[indice]?.nativeElement.focus();
+    }
+  }
+
+  private atualizarCodigo() {
+    const valores = this.form.value;
+    this.concatenedValue = this.formInput.map(nome => valores[nome] || '').join('');
+    this.concatenatedValuesLenght = this.concatenedValue.length;
+    if (this.concatenatedValuesLenght === 5) {
+      this.authService.enviarCodigoEmailCadastro(this.concatenedValue);
+    }
+  }
 }

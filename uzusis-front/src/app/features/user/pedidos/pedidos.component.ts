@@ -1,56 +1,38 @@
 import { Component, OnInit } from '@angular/core';
-import { NavbarService } from '../../initial-page/components/services/navbar.service';
-import { Pedido, produto } from 'src/app/core/interfaces/produto';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-pedidos',
   templateUrl: './pedidos.component.html',
   styleUrls: ['./pedidos.component.scss']
 })
+export class PedidosComponent implements OnInit {
 
-export class PedidosComponent implements OnInit{
-pedidos:Pedido[]=[]
-idPedido:number[]=[]
- minhaConta: Boolean = true
- meusPedidos: boolean = false
- Historico: boolean = false
-  produtos: produto[]=[];
-  carrinhoId: any;
+  aba = 'conta';
+  emAndamento: any[] = [];
+  historico: any[] = [];
 
+  constructor(private http: HttpClient) { }
 
-
-constructor(
-  private navbarService:NavbarService
-){
-  
-}
   ngOnInit(): void {
-
+    this.carregar('em-andamento').subscribe({
+      next: res => this.emAndamento = res,
+      error: () => {}
+    });
+    this.carregar('historico').subscribe({
+      next: res => this.historico = res,
+      error: () => {}
+    });
   }
 
-setarMinhaConta(){
-  this.minhaConta = true
-  this.Historico = false
-  this.meusPedidos = false
-  console.log(this.minhaConta)
-}
+  selecionar(aba: string) {
+    this.aba = aba;
+  }
 
-setarPedidos(){
-  this.minhaConta = false
-  this.Historico = false
-  this.meusPedidos = true
-  console.log(this.minhaConta)
-}
-
-
-setarHistorico(){
-  this.minhaConta = false
-  this.Historico = true
-  this.meusPedidos = false
-  console.log(this.minhaConta)
-}
-
-
-
-  
+  private carregar(rota: string): Observable<any[]> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+    return this.http.get<any[]>(`${environment.apiUrl}/compra/cliente/${rota}`, { headers });
+  }
 }

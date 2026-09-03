@@ -11,6 +11,7 @@ import { PedidosPendentesComponent } from "./features/admin/pedidos-pendentes/pe
 import { HistoricoPedidosComponent } from "./features/admin/historicos-de-pedidos/historico-pedidos/historico-pedidos.component";
 import { PegarProdutosComponent } from "./features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component";
 import { PedidosComponent } from './features/user/pedidos/pedidos.component';
+import { DashboardComponent } from "./features/admin/dashboard/dashboard.component";
 
 
 
@@ -18,6 +19,11 @@ import { PedidosComponent } from './features/user/pedidos/pedidos.component';
 
 
 const routes: Routes = [
+
+{
+  path: "admin/dashboard",
+  component: DashboardComponent
+},
 
 {
   path: "admin/pegar-produtos",

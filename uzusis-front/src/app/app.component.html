@@ -1,1 +1,5 @@
+<app-notificacao></app-notificacao>
+<div class="loader-overlay" role="status" aria-live="polite" *ngIf="carregando$ | async">
+  <div class="loader" aria-label="Carregando"></div>
+</div>
 <router-outlet></router-outlet>

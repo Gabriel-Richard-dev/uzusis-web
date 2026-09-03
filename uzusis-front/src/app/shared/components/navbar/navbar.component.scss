@@ -1,198 +1,254 @@
-@import url("https://fonts.googleapis.com/css2?family=Scope+One&display=swap");
-
-
-::ng-deep .p-sidebar-content {
-background-color: white;
-}
+@import"https://fonts.googleapis.com/css2?family=Scope+One&display=swap";
 .navbar {
-  -webkit-box-shadow: 0px 4px 13px -3px rgba(0,0,0,0.73);
-  -moz-box-shadow: 0px 4px 13px -3px rgba(0,0,0,0.73);
-  box-shadow: 0px 4px 13px -3px rgba(0,0,0,0.40);
-  height: 70px;
-  display: flex;
-  justify-content: space-between;
-  background-color: whitesmoke;
-  align-items: center;
-  padding: .625rem 2.5rem;
-  gap: 10px;
-  margin: 10px;
-  top: 0;
-  position: fixed;
-  margin: 0 auto;
-  width: 100%;
-  z-index: 3;
-.conteudo {
-  display: flex;
-  align-items: center;
-  gap: 50px;
-  font-family: Scope One;
-  font-weight: 100;
-  font-size: 20.3px;
-    img{
-      cursor: pointer;
-    }
- 
-}
-.carrinhoSidenav{
-  background-color: white;
+  position:fixed;
+  inset:0 0 auto;
+  z-index:3;
+  height:4.375rem;
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:0 1rem;
+  background-color:#f5f5f5;
+  box-shadow:0 4px 13px -3px #0006;
 }
 
-}
-.itensFlex{
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  justify-content: center;
-  align-items: center;
+.navbar-espaco {
+  height:4.375rem;
 }
 
-::ng-deep .mat-mdc-text-field-wrapper{
-  width: 250px !important;
-}
-::ng-deep .mat-mdc-form-field-subscript-wrapper{
-  display: none;
-}
-
-::ng-deep .mat-mdc-button{
-  font-size: 15px;
+.logo {
+  width:3.4375rem;
+  height:3.4375rem;
+  object-fit:contain;
+  cursor:pointer;
+  flex:none;
 }
 
-.account{
-  font-family: Scope One;
-  font-size: 16px;
-  cursor: pointer;
-  img{
-    width: 25px;
-    height: 25px;
-    margin-left: 5px;
-    margin-bottom: 5px;
-  }
-}
-.carrinho{
-  cursor: pointer;
+.hamburguer {
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  gap:.3125rem;
+  width:2.5rem;
+  height:2.5rem;
+  padding:.5rem;
+  border:none;
+  background:none;
 }
 
-form{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-::ng-deep .mdc-button__label{
-  color: #212529;
-  font-family: Scope One;
-  font-size: 20.3px;
-  font-weight: 14;
-}
-.item{
-  cursor: pointer;
+.hamburguer span {
+  display:block;
+  height:2px;
+  background-color:#292b2e;
+  border-radius:2px;
 }
 
-::ng-deep p-button{
-  border: none;
-  button{
-    border:  none !important;
+.categorias {
+  display:flex;
+  align-items:center;
+  gap:1.25rem;
+  flex:1 1 auto;
+  min-width:0;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.categorias::-webkit-scrollbar {
+  display:none;
+}
+
+.categorias .item {
+  flex:none;
+  border:none;
+  background:none;
+  padding:.25rem 0;
+  font-family:Scope One,Georgia,serif;
+  font-size:1.0625rem;
+  color:#292b2e;
+  white-space:nowrap;
+}
+
+.categorias .item:hover {
+  text-decoration:underline;
+}
+
+.acoes {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  flex:none;
+  margin-left:auto;
+}
+
+.conta {
+  display:inline-flex;
+  align-items:center;
+  gap:.375rem;
+  font-family:Scope One,Georgia,serif;
+}
+
+.conta .rotulo {
+  font-size:1rem;
+}
+
+.cadastre-se {
+  flex:none;
+  height:2.25rem;
+  padding:0 1rem;
+  border:1px solid #292b2e;
+  border-radius:999px;
+  background-color:transparent;
+  color:#292b2e;
+  font-family:Scope One,Georgia,serif;
+  font-size:.875rem;
+  white-space:nowrap;
+  transition:background-color .15s ease,color .15s ease;
+}
+
+.cadastre-se:hover {
+  background-color:#292b2e;
+  color:#fff;
+}
+
+.carrinho {
+  border:none;
+  background:none;
+  padding:.25rem;
+  line-height:0;
+}
+
+.p-sidebar-content {
+  background-color:#fff;
+}
+
+.titulocarrinho {
+  margin:.625rem 0 0 .5rem;
+  font-family:Scope One,Georgia,serif;
+}
+
+.carrinho-vazio {
+  padding:2rem .5rem;
+  text-align:center;
+  color:#8a8a8a;
+  font-family:Scope One,Georgia,serif;
+}
+
+.carrinhoProdutos {
+  display:grid;
+  grid-template-columns:5rem 1fr auto;
+  gap:1rem;
+  align-items:start;
+  padding:0 .5rem;
+}
+
+.carrinhoProdutos h5, .carrinhoProdutos span {
+  font-family:Scope One,Georgia,serif;
+  font-size:.9375rem;
+}
+
+.carrinhoProdutos .img img {
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  border-radius:.25rem;
+}
+
+.carrinhoProdutos .detalhe {
+  display:flex;
+  flex-direction:column;
+  gap:.25rem;
+  min-width:0;
+}
+
+.carrinhoProdutos .detalhe h5 {
+  margin:0;
+  overflow-wrap:anywhere;
+}
+
+.carrinhoProdutos .detalhe .categoria, .carrinhoProdutos .detalhe .qtd {
+  color:#6f6f6f;
+}
+
+.carrinhoProdutos .informacoes {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:.75rem;
+}
+
+.carrinhoProdutos .informacoes h5 {
+  margin:0;
+  white-space:nowrap;
+}
+
+.carrinhoProdutos .informacoes .apagar {
+  border:none;
+  background:none;
+  padding:0;
+  line-height:0;
+}
+
+.rodape-carrinho {
+  padding:1rem .5rem 0;
+}
+
+.flex-preco {
+  display:flex;
+  justify-content:space-between;
+  font-family:Scope One,Georgia,serif;
+  font-weight:800;
+  margin-bottom:1rem;
+}
+
+.finalizar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  width:100%;
+  height:2.75rem;
+  padding:0 1.25rem;
+  border:none;
+  border-radius:.625rem;
+  background-color:#292b2e;
+  color:#fff;
+  font-family:Scope One,Georgia,serif;
+}
+
+@media (max-width: 62rem) {
+  .navbar {
+    gap:.5rem;
   }
-  .carrinho{
-    border: none;
+  .hamburguer {
+    display:flex;
+  }
+  .conta .rotulo, .cadastre-se {
+    display:none;
+  }
+  .categorias {
+    position:absolute;
+    top:4.375rem;
+    left:0;
+    right:0;
+    display:none;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+    padding:.5rem 0;
+    background-color:#f5f5f5;
+    box-shadow:0 8px 13px -3px #0000004d;
+    max-height:calc(100vh - 4.375rem);
+    overflow-y:auto;
+  }
+  .categorias.aberto {
+    display:flex;
+  }
+  .categorias .item {
+    padding:.75rem 1rem;
+    text-align:left;
   }
 }
 
-::ng-deep .swal2-actions{
-  gap: 20px;
-}
-::ng-deep .p-icon-wrapper{
-  position: absolute;
-  z-index: 3000000;
-  left: 450px;
-  top: 17px;
-}
-.carrinhoSidenav{
-  h5{
-    font-family: Scope One;
-    margin-top: 10px;
-    position: relative;
-  }
-}
-.img{
- 
-  object-fit: cover;
-  img{
-    width: 100px;
-    height: 150px;
-    object-fit: cover;
-  }
-}
-
-.carrinhoProdutos{
-  margin-left: 10px;
-}
-.flex{
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: left;
-}
-
-.carrinhoProdutos{
-  display: flex;
-  flex-direction: row;
-  gap: 50px;
-  img{
-    margin-bottom: 40px;
-  }
-  h5,label{
-    font-size: 15px;
-    font-family: Scope One;
-  }
-  input{
-    border: none;
-  }
-}
-.itens{
-  span{
-  font-family: Scope One;
-  }
-}
-.informacoes{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  margin-left: 30px;
-  gap: 20px;
-  button{
-    height: 30px;
-    width: 30px;
-    border: none;
-  }
-}
-.titulocarrinho{
-  margin-left: 30px;
-}
-.flex-preco{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  font-family: Scope One;
-  margin: 50px 20px;
-  font-weight: 800;
-}
-.finalizar{
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  font-family: Scope One;
-  background-color: #292b2e;
-  border-radius: 10px;
-  color: white;
-  margin: 0 20px;
-  cursor: pointer;
-  height: 40px;
-  div{
-    margin-left: 20px;
-  }
-  span{
-    margin-right: 20px;
-  }
+.mat-mdc-form-field-subscript-wrapper {
+  display:none;
 }

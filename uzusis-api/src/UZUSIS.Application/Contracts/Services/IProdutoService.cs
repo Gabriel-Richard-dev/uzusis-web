@@ -12,7 +12,6 @@ public interface IProdutoService
     Task<List<ProdutoDto>> Obter(ECategoriaProduto? categoriaProduto = null);
     Task<ProdutoDto?> ObterPorId(long produtoId);
     Task<List<ProdutoDto>> ObterNome(string nome);
-    Task<List<byte[]?>> ObterFoto(long produtoId);
 
     Task<ProdutoDto?> Atualizar(long produtoId, AtualizarProdutoDto atualizarProdutoDto);
     Task<List<CategoriaDto>> ObterCategorias();

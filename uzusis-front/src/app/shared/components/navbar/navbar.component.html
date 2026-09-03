@@ -1,63 +1,104 @@
-<p-sidebar class="carrinhoSidenav" [(visible)]="sidebarVisible" position="right" [style]="{'width': '500px'}" *ngIf="sidebarVisible">
-  <h5 class="titulocarrinho">Carrinho</h5>
+<p-sidebar class="carrinhoSidenav" position="right" [visible]="sidebarVisible" (visibleChange)="sidebarVisible=$event" *ngIf="sidebarVisible">
+  <h5 class="titulocarrinho">
+    Carrinho
+  </h5>
   <hr>
+  <p class="carrinho-vazio" *ngIf="0===produtos.length">
+    Seu carrinho está vazio.
+  </p>
   <div *ngFor="let produto of produtos">
     <div class="carrinhoProdutos">
       <div class="img">
         <img [src]="produto.fotoUrls[0]" [alt]="produto.descricao">
       </div>
-      <div class="flex">
-        <h5>{{produto.nome}}</h5>
-        <h5>{{produto.categoriaNome}}</h5>
-        <label>Quantidade: {{quantidadeProduto[produto.id] || 0}}</label>
+      <div class="detalhe">
+        <h5>
+          {{ produto.nome }}
+        </h5>
+        <span class="categoria">
+          {{ produto.categoriaNome }}
+        </span>
+        <span class="qtd">
+          Quantidade: {{ quantidadeProduto[produto.id]||0 }}
+        </span>
       </div>
-
       <div class="informacoes">
-        <h5>{{ produto.preco | currency:'BRL':'symbol' }}</h5>
-        <button class="apagar" (click)="apagarCarrinho(carrinhoId[produto.id])"><img src="../../../../assets/lixeira.png" alt="" width="30px" height="30px"></button>
+        <h5>
+          {{ produto.preco | currency:'BRL':'symbol' }}
+        </h5>
+        <button class="apagar" aria-label="Remover do carrinho" (click)="apagarCarrinho(carrinhoId[produto.id])">
+          <img src="assets/lixeira.png" alt="" width="24" height="24">
+        </button>
       </div>
-
     </div>
     <hr>
   </div>
-
-  <div class="flex">
+  <div class="rodape-carrinho">
     <div class="flex-preco">
-      <span>Subtotal</span>
-      <span>{{ valorTotal | currency:'BRL':'symbol' }}</span>
+      <span>
+        Subtotal
+      </span>
+      <span>
+        {{ valorTotal | currency:'BRL':'symbol' }}
+      </span>
     </div>
-    <div class="finalizar" (click)="comprar(produtos)" *ngIf="valorTotal>0">
-      <div>FINALIZAR PEDIDO </div>
-      <span>{{ valorTotal | currency:'BRL':'symbol' }}</span>
-    </div>
+    <button class="finalizar" (click)="comprar(produtos)" *ngIf="valorTotal>0">
+      <span>
+        FINALIZAR PEDIDO
+      </span>
+      <span>
+        {{ valorTotal | currency:'BRL':'symbol' }}
+      </span>
+    </button>
   </div>
 </p-sidebar>
-<div class="navbar">
-  <div class="conteudo">
-    <img src="../../../../assets/logo.PNG" alt="" width="55px" height="55px" (click)="handleClick('')">
-    <div class="itensFlex">
-      <div class="item" *ngFor="let categoria of categorias; let i = index" (click)="handleClick(i)">{{categoria}}</div>
-      <button mat-button [matMenuTriggerFor]="menu">outras categorias<img #dropdownImage src="../../../../assets/dropdown-removebg-preview.png" width="25px" height="25px"></button>
-      <mat-menu #menu="matMenu">
-        <button mat-menu-item *ngFor="let option of Options; let i = index" (click)="handleClick(i+5)" class="itens"><span> {{option}}</span></button>
-      </mat-menu>
-    </div>
+<header class="navbar">
+  <button class="hamburguer" type="button" aria-label="Abrir menu de categorias" [attr.aria-expanded]="menuMobileAberto" (click)="menuMobileAberto=!menuMobileAberto">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <img class="logo" src="assets/logo.PNG" alt="Uzusis" (click)="filtrarCategoria('')">
+  <nav class="categorias" [class.aberto]="menuMobileAberto">
+    <button class="item" type="button" (click)="filtrarCategoria(i)" *ngFor="let categoria of categorias; let i = index">
+      {{ categoria }}
+    </button>
+    <button class="item" type="button" (click)="filtrarCategoria(i + 5)" *ngFor="let outrasCategoria of outrasCategorias; let i = index">
+      {{ outrasCategoria }}
+    </button>
+  </nav>
+  <div class="acoes">
+    <app-pesquisar></app-pesquisar>
+    <button class="cadastre-se" type="button" (click)="irParaCadastro()" *ngIf="!logado">
+      Cadastre-se
+    </button>
+    <button class="conta" mat-button="" [matMenuTriggerFor]="menuConta">
+      <img src="assets/pessoas.png" alt="" width="20" height="20">
+      <span class="rotulo">
+        minha conta
+      </span>
+    </button>
+    <mat-menu #menuConta="matMenu">
+      <ng-container *ngIf="logado">
+        <button mat-menu-item="" (click)="irParaPedidos()">
+          Meus pedidos
+        </button>
+        <button mat-menu-item="" (click)="sair()">
+          Sair
+        </button>
+      </ng-container>
+      <ng-container *ngIf="!logado">
+        <button mat-menu-item="" (click)="irParaLogin()">
+          Entrar
+        </button>
+        <button mat-menu-item="" (click)="irParaCadastro()">
+          Cadastre-se
+        </button>
+      </ng-container>
+    </mat-menu>
+    <button class="carrinho" type="button" aria-label="Abrir carrinho" (click)="adicionarCarrinho()">
+      <img src="assets/carrinho.svg" alt="" width="25" height="25">
+    </button>
   </div>
-  <div class="conteudo">
-    <div class="itensFlex">
-      <div class="search-container">
-        <form>
-          <app-pesquisar></app-pesquisar>
-        </form>
-      </div>
-      <div class="account">
-        <button mat-button [matMenuTriggerFor]="menu"> minha conta<img src="../../../../assets/pessoas.png" alt="" width="20px"> </button>
-        <mat-menu #menu="matMenu">
-          <button mat-menu-item *ngFor="let teste of categoria;" (click)="handleClickmenu()" class="itens"><span> {{teste}}</span></button>
-        </mat-menu>
-      </div>
-
-      <p-button (onClick)="adicionarCarrinho()"> <img class="carrinho" src="../../../../assets/carrinho.svg" (onClick)="sidebarVisible = true" alt="" width="25px" height="25px"> </p-button>
-    </div>
-  </div>
-</div>
+</header>
+<div class="navbar-espaco"></div>

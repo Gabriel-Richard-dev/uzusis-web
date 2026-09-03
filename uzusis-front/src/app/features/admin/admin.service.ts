@@ -1,257 +1,129 @@
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { Observable } from "rxjs/internal/Observable";
+import { Observable, tap } from "rxjs";
 import {
   IAdicionarProduto,
   IEditarProduto,
 } from "src/app/core/interfaces/IAdicionarProduto";
-import {
-  IPedidoPendentes,
-  Iproduto,
-} from "src/app/core/interfaces/IPedidosPendentes";
+import { IPedidoPendentes } from "src/app/core/interfaces/IPedidosPendentes";
 import { IUsuario } from "src/app/core/interfaces/IUser";
 import { IClienteauth } from "src/app/core/interfaces/auth";
-import { IgetProduto } from "src/app/core/interfaces/getProdutos";
-import { produto } from "src/app/core/interfaces/produto";
 import { IToken } from "src/app/core/interfaces/token";
 import { environment } from "src/environments/environment.development";
-import Swal from "sweetalert2";
+import { NotificacaoService } from "src/app/core/service/notificacao.service";
 
 const apiUrlProduto = `${environment.apiUrl}/produto`;
 const apiUrlAdm = `${environment.apiUrl}/administradorauth`;
 const apiUrlCompra = `${environment.apiUrl}/compra`;
-const apiUrlCompraAdm = `${apiUrlCompra}/administrador`
+const apiUrlCompraAdm = `${apiUrlCompra}/administrador`;
 const apiUrlCLiente = `${environment.apiUrl}/cliente`;
 
 @Injectable({
   providedIn: "root",
 })
 export class AdminService {
-  headers = new HttpHeaders({
-    Authorization: `Bearer ${localStorage.getItem("tokenAdm")}`,
-    "ngrok-skip-browser-warning": "69420",
-  });
 
-  constructor(private http: HttpClient, private router: Router) {}
+  private get headers() {
+    return new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem("tokenAdm")}` });
+  }
 
-  autenticar(auth: IClienteauth) {
-    console.log(auth);
-    this.http.post<IToken>(`${apiUrlAdm}/login`, auth).subscribe({
-      next: (res) => {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private notificacao: NotificacaoService
+  ) {}
+
+  autenticar(dadosLogin: IClienteauth) {
+    this.http.post<IToken>(`${apiUrlAdm}/login`, dadosLogin).subscribe({
+      next: res => {
         localStorage.setItem("tokenAdm", res.token);
-
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "Ok",
-          text: `Login realizado com sucesso`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-
-        this.router.navigate(["admin/criar-produto"]);
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
+        this.toast("success", "Ok", "Login realizado com sucesso");
+        this.router.navigate(["admin/dashboard"]);
       },
-      error: (err) => {
-        Swal.fire({
-          position: "center",
-          icon: "error",
-          title: "Ops...",
-          text: `algo aconteceu`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      },
+      error: () => this.toast("error", "Ops...", "Não foi possível entrar"),
     });
   }
 
-  adicionarProduto(adicionarProduto: IAdicionarProduto) {
-    const formDataAdicionarProduto = new FormData();
-    formDataAdicionarProduto.append("Nome", adicionarProduto.Nome);
-    formDataAdicionarProduto.append("Preco", adicionarProduto.Preco.toString());
-    formDataAdicionarProduto.append(
-      "QuantidadeP",
-      adicionarProduto.QuantidadeP.toString()
-    );
-    formDataAdicionarProduto.append(
-      "QuantidadeM",
-      adicionarProduto.QuantidadeM.toString()
-    );
-    formDataAdicionarProduto.append(
-      "QuantidadeG",
-      adicionarProduto.QuantidadeG.toString()
-    );
-    formDataAdicionarProduto.append(
-      "Categoria",
-      adicionarProduto.Categoria.toString()
-    );
-    formDataAdicionarProduto.append("Descricao", adicionarProduto.Descricao);
-
-    console.log(adicionarProduto.FotoUrls);
-    adicionarProduto.FotoUrls.forEach((file: File) => {
-      formDataAdicionarProduto.append(`FotoFiles`, file);
-      console.log(file);
-    });
-
-    this.http
-      .post(`${apiUrlProduto}/adicionar`, formDataAdicionarProduto)
-      .subscribe({
-        next: (res) => {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "OK",
-            text: `O produto ${adicionarProduto.Nome} foi adicionado com sucesso`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
-        error: (err) => {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Ops...",
-            text: `Algo inesperado aconteceu`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
-      });
+  adicionarProduto(produto: IAdicionarProduto): Observable<any> {
+    return this.http
+      .post(`${apiUrlProduto}/adicionar`, this.montarFormData(produto), { headers: this.headers })
+      .pipe(tap({
+        next: () => this.toast("success", "OK", `O produto ${produto.Nome} foi adicionado com sucesso`),
+        error: () => this.toast("error", "Ops...", "Algo inesperado aconteceu"),
+      }));
   }
 
-  editarProduto(editarProduto: IEditarProduto) {
-    const formDataeditarProduto = new FormData();
-    formDataeditarProduto.append("id", editarProduto.id.toString());
-    formDataeditarProduto.append("Nome", editarProduto.Nome);
-    formDataeditarProduto.append("Preco", editarProduto.Preco.toString());
-    formDataeditarProduto.append(
-      "QuantidadeP",
-      editarProduto.QuantidadeP.toString()
-    );
-    formDataeditarProduto.append(
-      "QuantidadeM",
-      editarProduto.QuantidadeM.toString()
-    );
-    formDataeditarProduto.append(
-      "QuantidadeG",
-      editarProduto.QuantidadeG.toString()
-    );
-    formDataeditarProduto.append(
-      "Categoria",
-      editarProduto.Categoria.toString()
-    );
-    formDataeditarProduto.append("Descricao", editarProduto.Descricao);
+  editarProduto(produto: IEditarProduto): Observable<any> {
+    const formData = this.montarFormData(produto);
+    formData.append("id", produto.id.toString());
 
-    console.log(editarProduto.FotoUrls);
-    editarProduto.FotoUrls.forEach((file: File) => {
-      formDataeditarProduto.append(`FotoFiles`, file);
-      console.log(file);
-    });
-
-    this.http
-      .patch(`${apiUrlProduto}/atualizar`, formDataeditarProduto)
-      .subscribe({
-        next: (res) => {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "OK",
-            text: `O produto ${editarProduto.Nome} foi editado com sucesso`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          location.reload()
-        },
-        error: (err) => {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Ops...",
-            text: `Algo inesperado aconteceu`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
-      });
+    return this.http
+      .patch(`${apiUrlProduto}/atualizar`, formData, { headers: this.headers })
+      .pipe(tap({
+        next: () => this.toast("success", "OK", `O produto ${produto.Nome} foi editado com sucesso`),
+        error: () => this.toast("error", "Ops...", "Algo inesperado aconteceu"),
+      }));
   }
 
-  pedidosPendentes(naoFoiEnviado: number = 1): Observable<IPedidoPendentes[]> {
-    const params = new HttpParams().set("pedidoQuery", naoFoiEnviado)
-    
-    const options = {
+  pedidosPendentes(pedidoQuery: number = 1): Observable<IPedidoPendentes[]> {
+    const params = new HttpParams().set("pedidoQuery", pedidoQuery);
+    return this.http.get<IPedidoPendentes[]>(`${apiUrlCompraAdm}/dashboard`, {
       headers: this.headers,
-      params
-    };
-
-    return this.http.get<IPedidoPendentes[]>(
-      `${apiUrlCompraAdm}/dashboard`,
-      options
-    );
+      params,
+    });
   }
 
   getCliente(id: number): Observable<IUsuario> {
     const params = new HttpParams().set("id", id);
-    const options = {
+    return this.http.get<IUsuario>(`${apiUrlCLiente}/admin/obter-cliente`, {
       params,
       headers: this.headers,
-    };
-    return this.http.get<IUsuario>(
-      `${apiUrlCLiente}/admin/obter-cliente`,
-      options
-    );
+    });
   }
 
-  getProduto(id: number): Observable<Iproduto> {
-    const params = new HttpParams().set("produtoId", id);
-    const options = {
-      params,
-      headers: this.headers,
-    };
-    return this.http.get<Iproduto>(`${apiUrlProduto}/id`, options);
+  getProduto(produtoId: number): Observable<any> {
+    const params = new HttpParams().set("produtoId", produtoId);
+    return this.http.get(`${apiUrlProduto}/id`, { params, headers: this.headers });
   }
 
-  enviarProduto(itemCompraId: number){
-    
+  enviarProduto(itemCompraId: number): Observable<any> {
+    const params = new HttpParams().set("itemCompraId", itemCompraId);
+    return this.http
+      .patch(`${apiUrlCompraAdm}/dashboard/enviar-produto`, null, { params, headers: this.headers })
+      .pipe(tap({
+        next: () => this.toast("success", "OK", "Produto enviado com sucesso"),
+        error: () => this.toast("error", "Ops...", "Não foi possível enviar o produto"),
+      }));
+  }
 
-   
-    const params = new HttpParams().set("itemCompraId", itemCompraId)
-    const options = {
-      params,
-      headers: this.headers
+  getProdutosEditar(): Observable<any> {
+    return this.http.get(`${apiUrlProduto}/admin/dashboard`, { headers: this.headers });
+  }
 
+  getId(produtoId: number): Observable<any> {
+    const params = new HttpParams().set("produtoId", produtoId);
+    return this.http.get(`${apiUrlProduto}/id`, { params });
+  }
+
+  private montarFormData(produto: IAdicionarProduto | IEditarProduto): FormData {
+    const formData = new FormData();
+    formData.append("Nome", produto.Nome);
+    formData.append("Preco", produto.Preco.toString());
+    formData.append("QuantidadeP", produto.QuantidadeP.toString());
+    formData.append("QuantidadeM", produto.QuantidadeM.toString());
+    formData.append("QuantidadeG", produto.QuantidadeG.toString());
+    formData.append("Categoria", produto.Categoria.toString());
+    formData.append("Descricao", produto.Descricao);
+    produto.FotoUrls.forEach((file: File) => formData.append("FotoFiles", file));
+    return formData;
+  }
+
+  private toast(tipo: "success" | "error", titulo: string, texto: string) {
+    if (tipo === "success") {
+      this.notificacao.sucesso(titulo, texto);
+    } else {
+      this.notificacao.erro(titulo, texto);
     }
-    this.http.patch(`${apiUrlCompraAdm}/dashboard/enviar-produto`,null, options).subscribe({
-      next: res =>{
-
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "OK",
-          text: `Produto enviado com sucesso`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        location.reload()
-      }
-    })
-
-  }
-
-  getProdutosEditar(): Observable<any>{
-   return this.http.get<IgetProduto>(`${apiUrlProduto}/admin/dashboard`)
-  }
-
-
-  getId(id: number): Observable<any>{
-    const params = new HttpParams().set("produtoId" , id)
-    const options = {
-      params
-    }
-   return this.http.get<produto>(`${apiUrlProduto}/id`, options)
-      
-  
   }
 }

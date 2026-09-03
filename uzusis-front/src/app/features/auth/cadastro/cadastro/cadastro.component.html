@@ -1,187 +1,116 @@
-<app-navbar />
-
+<app-navbar></app-navbar>
 <div class="escopo">
-  <div class="content col-6">
-    <h2 class="mt-3">Cadastre-se</h2>
-    <p>Cadastre-se informando seus dados</p>
-    <div class="container-border">
-      <form class="mb-3" [formGroup]="formCadastrar" (ngSubmit)="onSubmit()">
-   
-
-        <div class="form-row">
-          
-          
-          <div class="form-group col-md-6">
-            <label for="email">Email</label>
-            <input 
-              id="email" 
-              type="email" 
-              formControlName="email" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('email')?.invalid && formularioEnviarError}" 
-            />
+  <header class="cabecalho">
+    <h1>
+      Cadastre-se
+    </h1>
+    <p>
+      Cadastre-se informando seus dados
+    </p>
+  </header>
+  <div class="uz-cartao cartao">
+    <form [formGroup]="formCadastrar" (ngSubmit)="onSubmit()">
+      <div class="linha duas">
+        <div>
+          <label class="uz-rotulo" for="email">
+            Email
+          </label>
+          <input class="uz-campo" id="email" type="email" formControlName="email" autocomplete="email" [ngClass]="{'invalid-field':(formCadastrar.get('email')?.invalid)&&formularioEnviarError}">
+        </div>
+        <div>
+          <label class="uz-rotulo" for="nome">
+            Nome
+          </label>
+          <input class="uz-campo" id="nome" type="text" formControlName="nome" placeholder="Ex: Igor Valente" autocomplete="name" [ngClass]="{'invalid-field':(formCadastrar.get('nome')?.invalid)&&formularioEnviarError}">
+        </div>
+      </div>
+      <div class="linha duas">
+        <div>
+          <label class="uz-rotulo" for="senha">
+            Senha
+          </label>
+          <input class="uz-campo" id="senha" type="password" formControlName="senha" placeholder="*****" autocomplete="new-password" [ngClass]="{'invalid-field':(formCadastrar.get('senha')?.invalid)&&formularioEnviarError}">
+        </div>
+        <div>
+          <label class="uz-rotulo" for="confirmarSenha">
+            Confirmar senha
+          </label>
+          <input class="uz-campo" id="confirmarSenha" type="password" formControlName="confirmarSenha" placeholder="*****" autocomplete="new-password" [ngClass]="{'invalid-field':(formCadastrar.get('confirmarSenha')?.invalid)&&formularioEnviarError}">
+        </div>
+      </div>
+      <div class="linha tres">
+        <div>
+          <label class="uz-rotulo" for="cpf">
+            CPF
+          </label>
+          <input class="uz-campo" id="cpf" formControlName="cpf" placeholder="234.153.987-98" [ngClass]="{'invalid-field':(formCadastrar.get('cpf')?.invalid)&&formularioEnviarError}">
+        </div>
+        <div>
+          <label class="uz-rotulo" for="celular">
+            Celular
+          </label>
+          <input class="uz-campo" id="celular" formControlName="celular" placeholder="dd xxxxxxxxx" [ngClass]="{'invalid-field':(formCadastrar.get('celular')?.invalid)&&formularioEnviarError}">
+        </div>
+        <div>
+          <label class="uz-rotulo" for="dataNascimento">
+            Data de nascimento
+          </label>
+          <input class="uz-campo" id="dataNascimento" type="date" formControlName="dataNascimento" [ngClass]="{'invalid-field':(formCadastrar.get('dataNascimento')?.invalid)&&formularioEnviarError}">
+        </div>
+      </div>
+      <fieldset>
+        <legend>
+          Endereço
+        </legend>
+        <div class="linha duas">
+          <div>
+            <label class="uz-rotulo" for="cep">
+              CEP
+            </label>
+            <input class="uz-campo" id="cep" formControlName="cep" maxlength="9" [ngClass]="{'invalid-field':(formCadastrar.get('cep')?.invalid)&&formularioEnviarError}" (keyup)="puxarEndereco()">
           </div>
-          
-          <div class="d-flex">
-          <div class="form-group col-md-3">
-            <label for="senha">Senha</label>
-            <input 
-              id="senha" 
-              type="password" 
-              formControlName="senha" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('senha')?.invalid && formularioEnviarError}" 
-              placeholder="*****"
-            />
-          </div>
-
-          <div class="form-group col-md-3">
-            <label for="confirmarSenha">Confirmar Senha</label>
-            <input 
-              id="confirmarSenha" 
-              type="password" 
-              formControlName="confirmarSenha" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('confirmarSenha')?.invalid && formularioEnviarError}" 
-              placeholder="*****"
-            />
+          <div>
+            <label class="uz-rotulo" for="rua">
+              Rua
+            </label>
+            <input class="uz-campo" id="rua" formControlName="rua" [ngClass]="{'invalid-field':(formCadastrar.get('rua')?.invalid)&&formularioEnviarError}">
           </div>
         </div>
-       
-        </div>
-        <div class="form-row">
-    
-          <div class="form-group col-md-6">
-            <label for="nome">Nome</label>
-            <input 
-              id="nome" 
-              formControlName="nome" 
-              type="text" 
-              class="form-control" 
-              [ngClass]="{'invalid-field': formCadastrar.get('nome')?.invalid && formularioEnviarError}"
-              placeholder="Ex: Igor Valente"
-            />
+        <div class="linha tres">
+          <div>
+            <label class="uz-rotulo" for="numero">
+              Número
+            </label>
+            <input class="uz-campo" id="numero" formControlName="numero" [ngClass]="{'invalid-field':(formCadastrar.get('numero')?.invalid)&&formularioEnviarError}">
           </div>
-
-
-
-
-        </div>
-
-        <div class="form-row">
-          <div class="form-group col-md-6">
-            <label for="cpf">CPF</label>
-            <input 
-              id="cpf" 
-              formControlName="cpf" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('cpf')?.invalid && formularioEnviarError}" 
-              placeholder="Ex: 234.153.987-98"
-            />
+          <div>
+            <label class="uz-rotulo" for="bairro">
+              Bairro
+            </label>
+            <input class="uz-campo" id="bairro" formControlName="bairro" [ngClass]="{'invalid-field':(formCadastrar.get('bairro')?.invalid)&&formularioEnviarError}">
           </div>
-
-          <div class="form-group col-md-6">
-            <label for="celular">Celular</label>
-            <input 
-              id="celular" 
-              formControlName="celular" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('celular')?.invalid && formularioEnviarError}" 
-              placeholder="dd xxxxxxxxxx"
-            />
+          <div>
+            <label class="uz-rotulo" for="cidade">
+              Cidade
+            </label>
+            <input class="uz-campo" id="cidade" formControlName="cidade" [ngClass]="{'invalid-field':(formCadastrar.get('cidade')?.invalid)&&formularioEnviarError}">
           </div>
         </div>
-
-        <div class="form-row">
-          <div class="form-group col-md-6">
-            <label for="dataNascimento">Data de Nascimento</label>
-            <input 
-              type="date" 
-              id="dataNascimento" 
-              formControlName="dataNascimento" 
-              class="form-control"
-              [ngClass]="{'invalid-field': formCadastrar.get('dataNascimento')?.invalid && formularioEnviarError}" 
-            />
+        <div class="linha duas">
+          <div>
+            <label class="uz-rotulo" for="estado">
+              Estado
+            </label>
+            <input class="uz-campo" id="estado" formControlName="estado" [ngClass]="{'invalid-field':(formCadastrar.get('estado')?.invalid)&&formularioEnviarError}">
           </div>
         </div>
-      
-        <fieldset>
-          <legend>Endereço</legend>
-
-          <div class="form-row">
-            <div class="form-group col-md-6">
-              <label for="cep">CEP</label>
-              <input 
-                id="cep" 
-                (keyup)="puxarEndereco()" 
-                formControlName="cep" 
-                maxlength="9"
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('cep')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-
-            <div class="form-group col-md-6">
-              <label for="rua">Rua</label>
-              <input 
-                id="rua" 
-                formControlName="rua" 
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('rua')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-md-4">
-              <label for="numero">Número</label>
-              <input 
-                id="numero" 
-                formControlName="numero" 
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('numero')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-
-            <div class="form-group col-md-4">
-              <label for="bairro">Bairro</label>
-              <input 
-                id="bairro" 
-                formControlName="bairro" 
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('bairro')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-
-            <div class="form-group col-md-4">
-              <label for="cidade">Cidade</label>
-              <input 
-                id="cidade" 
-                formControlName="cidade" 
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('cidade')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-md-4">
-              <label for="estado">Estado</label>
-              <input 
-                id="estado" 
-                formControlName="estado" 
-                class="form-control"
-                [ngClass]="{'invalid-field': formCadastrar.get('estado')?.invalid && formularioEnviarError}" 
-              />
-            </div>
-          </div>
-        </fieldset>
-
-
-        <button  type="submit" class="btn btn-primary mt-3">Cadastrar</button>
-      </form>
-    </div>
+      </fieldset>
+      <div class="acoes">
+        <button class="uz-btn-marca" type="submit">
+          Cadastrar
+        </button>
+      </div>
+    </form>
   </div>
 </div>
-
 <app-footer></app-footer>

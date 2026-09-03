@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { IClienteauth } from 'src/app/core/interfaces/auth';
 import { AdminService } from 'src/app/features/admin/admin.service';
-
-import Swal from 'sweetalert2';
+import { NotificacaoService } from 'src/app/core/service/notificacao.service';
 
 @Component({
   selector: 'app-login-adm',
@@ -12,44 +11,22 @@ import Swal from 'sweetalert2';
 })
 export class LoginAdmComponent {
 
-  constructor(private adminService: AdminService){
-
-  }
-  
   formLogin = new FormGroup({
-    email: new FormControl('',[
-      Validators.required
-    ]),
-    senha: new FormControl('',[
-      Validators.required,
- 
-    ])
-  })
+    email: new FormControl('', [Validators.required]),
+    senha: new FormControl('', [Validators.required])
+  });
 
+  constructor(private adminService: AdminService, private notificacao: NotificacaoService) { }
 
+  logar() {
+    if (!this.formLogin.valid) {
+      this.notificacao.erro('Ops...', 'Preencha email e senha corretamente');
+      return;
+    }
 
-  
-
-
-  logar(){
-    const DadosLogin = <IClienteauth> {
+    this.adminService.autenticar(<IClienteauth>{
       email: this.formLogin.value.email,
       senha: this.formLogin.value.senha
-    }
-    
-if(this.formLogin.valid){
-    this.adminService.autenticar(DadosLogin)
-  }
-  else{
-    Swal.fire({
-      position: 'center',
-      icon: 'error',
-      title: 'Oops...',
-      text: 'Modelo invalido',
-      showConfirmButton: false,
-      timer: 3000,
     });
-    
-  }
   }
 }

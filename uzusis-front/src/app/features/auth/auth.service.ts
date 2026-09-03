@@ -1,23 +1,20 @@
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {
   ICadastro,
   IClienteauth,
   IClienteEmail,
-  ICodigoEmail,
   IResetarSenha,
-  IResetarSenhaCodigo,
 } from "src/app/core/interfaces/auth";
 import { environment } from "src/environments/environment.development";
 import { IToken } from "src/app/core/interfaces/token";
 import { MatDialog } from "@angular/material/dialog";
 import { ConfirmarCodigoComponent } from "./modal/confirmar-codigo/confirmar-codigo.component";
 import { Router } from "@angular/router";
-import Swal from "sweetalert2";
 import { ICEP } from "src/app/core/interfaces/cep";
 import { finalize, Observable } from "rxjs";
-import { SpinnerService } from "src/app/core/service/spinner.service";
 import { RouteService } from "src/app/core/service/route.service";
+import { NotificacaoService } from "src/app/core/service/notificacao.service";
 
 const urlAuth = `${environment.apiUrl}/clienteauth`;
 let desativarBotao: boolean = false;
@@ -28,258 +25,123 @@ let desativarBotao: boolean = false;
 export class AuthService {
   guardarConfirmarEmail: string = "";
   guardarResetarSenhaEmail: string = "";
+
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
     private router: Router,
-    private spinnerService: SpinnerService,
+    private notificacao: NotificacaoService,
     private routerService: RouteService
   ) {}
 
   logar(auth: IClienteauth) {
-    if (!desativarBotao) {
-      desativarBotao = true;
+    if (desativarBotao) return;
+    desativarBotao = true;
 
-      this.http
-        .post<IToken>(`${urlAuth}/login`, auth)
-        .pipe(
-          finalize(() => {
-            desativarBotao = false;
-          })
-        )
-        .subscribe({
-          next: (res) => {
-            localStorage.setItem("token", res.token);
-
-            Swal.fire({
-              position: "center",
-              icon: "success",
-              title: "Ok",
-              text: `Login realizado com sucesso`,
-              showConfirmButton: false,
-              timer: 1500,
-            });
-            this.router.navigate(["/"]);
-            setInterval(()=>{
-              location.reload()
-            },500)
-           
-          },
-          error: (err) => {
-            Swal.fire({
-              position: "center",
-              icon: "error",
-              title: "Ops...",
-              text: `${err.error[0]}`,
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          },
-        });
-    }
+    this.http
+      .post<IToken>(`${urlAuth}/login`, auth)
+      .pipe(finalize(() => { desativarBotao = false; }))
+      .subscribe({
+        next: res => {
+          localStorage.setItem("token", res.token);
+          this.notificacao.sucesso("Login realizado com sucesso");
+          this.router.navigate(["/"]);
+        },
+        error: err => this.notificacao.erro("Ops...", err.error?.[0]),
+      });
   }
 
-  enviarCodigoConfirmarEmail(email: IClienteEmail) {
-  
-    if (!desativarBotao) {
+  enviarCodigoConfirmarEmail(email: IClienteEmail, abrirModal: boolean = true) {
+    if (desativarBotao) return;
+    desativarBotao = true;
 
-      this.spinnerService.showSpinner()
-      desativarBotao = true;
-
-      this.http
-        .post<any>(`${urlAuth}/enviar-confirmacao-email`, email, {
-          responseType: "text" as "json",
-        })
-        .pipe(
-          finalize(() => {
-            
-            console.log(this.spinnerService.situacaoSpinner$);
-            this.guardarConfirmarEmail = email.email;
-            localStorage.setItem("guardarEmail",this.guardarConfirmarEmail)
+    this.http
+      .post<any>(`${urlAuth}/enviar-confirmacao-email`, email, {
+        responseType: "text" as "json",
+      })
+      .pipe(
+        finalize(() => {
+          this.guardarConfirmarEmail = email.email;
+          localStorage.setItem("guardarEmail", this.guardarConfirmarEmail);
+          if (abrirModal) {
             this.dialog.open(ConfirmarCodigoComponent);
-            desativarBotao = false;      
-            this.spinnerService.hideSpinner()
-          })
-        )
-        .subscribe({
-          next: (res) => {
-            Swal.fire({
-              position: "center",
-              icon: "success",
-              title: "OK",
-              text: "Se esse email não estiver cadastrado, chegará um email nele",
-              showConfirmButton: false,
-              timer: 1500,
-            });
-   
-          },
-          error: (err) => {
-            Swal.fire({
-              position: "center",
-              icon: "success",
-              title: "OK",
-              text: `Ja foi enviado um email de validação`,
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          },
-        });
-    }
+          }
+          desativarBotao = false;
+        })
+      )
+      .subscribe({
+        next: () => this.notificacao.sucesso(
+          "Código enviado",
+          "Se esse email estiver cadastrado, chegará um email nele"
+        ),
+        error: () => this.notificacao.aviso("Já enviamos um email de validação"),
+      });
   }
 
   enviarEmailResetarSenha(email: IClienteEmail) {
-    this.spinnerService.showSpinner()
     this.http
       .post<any>(`${urlAuth}/enviar-recuperacao-senha`, email, {
         responseType: "text" as "json",
-      }).pipe(finalize(() =>{
-        this.spinnerService.hideSpinner()
-      }))
+      })
       .subscribe({
-        next: (res) => {
-          if(res.foiEnviado === true){
-            Swal.fire({
-              position: "center",
-              icon: "error",
-              title: "Ops...",
-              text: `Ja foi enviado um codigo para esse email`,
-              showConfirmButton: false,
-              timer: 1500,
-            });
-     
-          }
-
-          else{
-            Swal.fire({
-              position: "center",
-              icon: "success",
-              title: "OK",
-              text: `Você recebeu um codigo no seu email `,
-              showConfirmButton: false,
-              timer: 1500,
-            });
+        next: res => {
+          if (res?.foiEnviado === true) {
+            this.notificacao.aviso("Já enviamos um código para esse email");
+          } else {
+            this.notificacao.sucesso("Código enviado", "Confira a caixa de entrada do seu email");
           }
           this.guardarResetarSenhaEmail = email.email;
           localStorage.setItem("emailGuardar", this.guardarResetarSenhaEmail);
-          this.router.navigate(["resetar-senha"])
-         
+          this.router.navigate(["resetar-senha"]);
         },
-        error: (err) => {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "ops...",
-            text: `Algo inesperado aconteceu `,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
+        error: () => this.notificacao.erro("Ops...", "Algo inesperado aconteceu"),
       });
   }
 
-  resetarSenha(formResetarSenha: IResetarSenha) {
-    const formResetarSenhaCodigo = <IResetarSenhaCodigo>{
-      codigoRecuperacao: formResetarSenha.codigoRecuperacao,
-      novaSenha: formResetarSenha.novaSenha,
-      confirmarSenha: formResetarSenha.confirmarSenha,
+  resetarSenha(resetar: IResetarSenha) {
+    const corpo = {
+      codigoRecuperacao: resetar.codigoRecuperacao,
+      novaSenha: resetar.novaSenha,
+      confirmarSenha: resetar.confirmarSenha,
       email: localStorage.getItem("emailGuardar"),
     };
 
-    this.http
-      .post(`${urlAuth}/recuperar-senha`, formResetarSenhaCodigo)
-      .subscribe({
-        next: (res) => {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "OK",
-            text: "Senha resetada com sucesso",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-          localStorage.removeItem("emailGuardar");
-          this.router.navigate(['login'])
-        },
-        error: (err) => {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Ops..",
-            text: "Ocorreu um erro na mudança de senha",
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
-      });
+    this.http.post<any>(`${urlAuth}/recuperar-senha`, corpo).subscribe({
+      next: () => {
+        this.notificacao.sucesso("Senha alterada com sucesso");
+        localStorage.removeItem("emailGuardar");
+        this.router.navigate(["login"]);
+      },
+      error: () => this.notificacao.erro("Ops...", "Ocorreu um erro na mudança de senha"),
+    });
   }
 
   enviarCodigoEmailCadastro(codigo: string) {
-    const confirmarCodigoEmail = <ICodigoEmail>{
-      codigo,
-      email: this.guardarConfirmarEmail,
-    };
-
     this.http
-      .post<any>(`${urlAuth}/codigo-valido`, confirmarCodigoEmail)
+      .post<any>(`${urlAuth}/codigo-valido`, { codigo, email: this.guardarConfirmarEmail })
       .subscribe({
-        next: (res) => {
-          Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "OK",
-            text: `Código Verificado `,
-            showConfirmButton: false,
-            timer: 1000,
-          });
+        next: () => {
+          this.notificacao.sucesso("Código verificado");
           this.router.navigate(["/cadastro"]);
           this.dialog.closeAll();
           localStorage.setItem("email", this.guardarConfirmarEmail);
         },
-        error: (err) => {
-          console.log(err.error);
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Ops...",
-            text: `código invaiido`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        },
+        error: () => this.notificacao.erro("Ops...", "Código inválido"),
       });
   }
 
-  
-  enviarCep(cep: any): Observable<any>{
-    console.log(cep)
-  return this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`)
+  enviarCep(cep: string): Observable<ICEP> {
+    return this.http.get<ICEP>(`https://viacep.com.br/ws/${cep}/json/`);
   }
 
   cadastrar(cadastro: ICadastro) {
-    this.http.post(`${urlAuth}/cadastrar`, cadastro).subscribe({
-      next: (res) => {
-        Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "OK",
-          text: "Usuario cadastrado com sucesso, logue-se para acessar o sistema",
-          showConfirmButton: false,
-          timer: 1500,
-        });
+    this.http.post<any>(`${urlAuth}/cadastrar`, cadastro).subscribe({
+      next: () => {
+        this.notificacao.sucesso("Cadastro concluído", "Faça login para acessar o sistema");
         localStorage.removeItem("email");
         this.router.navigate(["login"]);
-        this.routerService
       },
-      error: (err) => {
-        Swal.fire({
-          position: "center",
-          icon: "error",
-          title: "Ops...",
-          text: `${err.error[0]}`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      },
+      error: err => this.notificacao.erro("Ops...", err.error?.[0]),
     });
   }
 

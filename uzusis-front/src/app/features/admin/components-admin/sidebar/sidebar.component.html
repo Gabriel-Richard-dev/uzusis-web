@@ -1,18 +1,33 @@
-<div class="sidebar">
-  <div class="d-flex titulo-image">
-    <div class="mt-2"><img src="../../../../../assets/circulo.png" /></div>
-    <div class="mt-4"><strong>Uzusis</strong>
-    <p>uzusis admin</p></div>
+<button class="admin-hamburguer" type="button" aria-label="Abrir menu do admin" [attr.aria-expanded]="aberta" (click)="aberta=!aberta">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+<div class="admin-overlay" (click)="aberta=false" *ngIf="aberta"></div>
+<aside class="sidebar" [class.aberta]="aberta">
+  <div class="marca">
+    <img src="assets/circulo.png" alt="">
+    <div>
+      <strong>
+        Uzusis
+      </strong>
+      <span>
+        painel do admin
+      </span>
+    </div>
   </div>
-  <li>
-    <a href="admin/criar-produto">Criar produto</a>
-    <a href="admin/pedidos-pendentes">Pedidos pendentes</a>
-    <a href="admin/historico-pedidos">Historico pedidos</a>
-    <a href="admin/pegar-produtos">ATUALIZAR PRODUTOS</a>
-  </li>
-  <div class="logo-na-base d-flex">
-    <div (click) = "logout()" class="mt-4 logout"><img src="../../../../../assets/icons8-logout-50.png" alt=""></div>
-    <img  src="../../../../../assets/logoUzu.png" alt="">
-    
-  </div>
-</div>
+  <nav>
+    <a routerLinkActive="ativo" [routerLink]="iten.rota" (click)="aberta=false" *ngFor="let iten of itens">
+      {{ iten.rotulo }}
+    </a>
+  </nav>
+  <footer>
+    <img class="logotipo" src="assets/logoUzu.png" alt="Uzusis">
+    <button class="sair" type="button" (click)="logout()">
+      <img src="assets/icons8-logout-50.png" alt="">
+      <span>
+        Sair
+      </span>
+    </button>
+  </footer>
+</aside>

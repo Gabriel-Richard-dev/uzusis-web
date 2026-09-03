@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -23,6 +23,7 @@ public class ProdutoRepository : BaseRepository<Produto>, IProdutoRepository
         List<Produto> produtosForaDeEstoque = new List<Produto>();
         List<Produto> produtos;
         var prods = Context.Produtos
+            .Include(c => c.Fotos)
             .OrderByDescending(c => c.CriadoEm);
 
         
@@ -93,6 +94,7 @@ public class ProdutoRepository : BaseRepository<Produto>, IProdutoRepository
     public async Task<List<Produto>> ObterPorNome(string nome)
     {
         var produtos = Context.Produtos
+            .Include(c => c.Fotos)
             .OrderByDescending(c=> c.CriadoEm)
             .Where(c => c.Nome.ToUpper().Contains(nome.ToUpper())).ToList();
 
@@ -100,7 +102,6 @@ public class ProdutoRepository : BaseRepository<Produto>, IProdutoRepository
         {
             produto.Tamanhos = Context.Tamanhos.Where(c => c.ProdutoId == produto.Id)
                 .OrderByDescending(c=> c.Sigla).ToList();
-            produto.Fotos = Context.Fotos.Where(c => c.ProdutoId == produto.Id).ToList();
             
         }
 

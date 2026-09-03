@@ -1,98 +1,71 @@
-.content{
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    align-items: center;
-    margin-top: 20px;
-   
-  
+.escopo {
+  width:60rem;
+  max-width:100%;
+  margin:3rem auto 5rem;
+  padding:0 1.5rem;
+}
+
+.cabecalho {
+  margin-bottom:2rem;
+}
+
+.cabecalho h1 {
+  font-size:1.875rem;
+  font-weight:600;
+}
+
+.cabecalho p {
+  margin-top:.5rem;
+  color:var(--uz-tinta-suave);
+}
+
+.painel {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1.5rem;
+  align-items:start;
+}
+
+.bloco {
+  padding:1.75rem;
+}
+
+.bloco h2 {
+  padding-bottom:.875rem;
+  margin-bottom:1.5rem;
+  border-bottom:2px solid var(--uz-tinta);
+  font-size:1.0625rem;
+  font-weight:700;
+}
+
+.bloco form {
+  display:flex;
+  flex-direction:column;
+  gap:1.125rem;
+}
+
+.largura-total {
+  width:100%;
+}
+
+.link-secundario {
+  align-self:flex-start;
+  color:var(--uz-tinta-suave);
+  font-size:.875rem;
+  text-decoration:underline;
+}
+
+.link-secundario:hover {
+  color:var(--uz-marca);
+}
+
+.ajuda {
+  color:var(--uz-tinta-suave);
+  font-size:.8125rem;
+}
+
+@media (max-width: 48rem) {
+  .painel {
+    grid-template-columns:1fr;
   }
-
-
-  input{
-    border: solid 1px black ;
-    background-color:  #e1ded8;
-  }
-  button{
-    background-color: black;
-  }
-
-  button:hover{
-    background-color: rgb(77, 69, 58);
-  }
-  .escopo{
-   
-    margin: 0 auto;
-    margin-top: 150px;
-    border: solid 1px black;
-    padding: 20px;
-    width: 120vh;
-    height: 40vh;
-
-  }
-
-  .container-border{
-
-    gap: 20px;
-  }
-
-  .border-bottom{
-    border-bottom: 5px solid black;
-  }
-
-  .container-form-login{
-width: 500px;
-height: 220px;
-background-color: #e1ded8;
-padding: 20px;
-border-radius: 20px;
-  }
-  .container-form-email{
-    width: 500px;
-    height: 200px;
-    background-color: #e1ded8;
-    padding: 20px;
-    border-radius: 20px;
-
-    button{
-      width: 40%;
-      border-radius: 20px;
-    }
-    
-      }
-    
-
-  form{
-    input{
-      border-radius: 20px;
-    }
-
-    div{
-      gap: 10px;
-      margin-right: 5%;
-      
-    }
-
-    button{
-      max-width: 80%;
-      border-radius: 20px;
-    }
-    
-  }
-
-  .content{
-    display: flex;
-    flex-direction: column;
-
-  }
-
-  .margin-left{
-    margin-left: 5%;
-  }
-
-
-  .custom-spinner circle {
-    stroke: #ffffff; /* Altere para a cor desejada */
-  }
+}

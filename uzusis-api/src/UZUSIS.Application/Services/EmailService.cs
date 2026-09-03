@@ -187,12 +187,12 @@ public class EmailService : BaseService, IEmailService
         var emailSettings = _configuration.GetSection("EmailConfiguration");
         
         var toEmail = mailData.EmailToId;
-        var user = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(emailSettings["User"]!));
-        var password = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(emailSettings["Password"]!));
+        var user = emailSettings["User"]!;
+        var password = emailSettings["Password"]!;
         
         var smtpClient = new SmtpClient(emailSettings["Server"]!)
         {
-            Port = 587,
+            Port = int.Parse(emailSettings["Port"] ?? "587"),
             Credentials = new NetworkCredential(user, password),
             EnableSsl = true,
         };

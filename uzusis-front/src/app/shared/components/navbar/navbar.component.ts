@@ -1,10 +1,9 @@
-import { Dialog } from '@angular/cdk/dialog';
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { Route, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { Pedido, produto } from 'src/app/core/interfaces/produto';
 import { NavbarService } from 'src/app/features/initial-page/components/services/navbar.service';
-import Swal from 'sweetalert2';
+import { NotificacaoService } from 'src/app/core/service/notificacao.service';
 import { ModalPagamentoComponent } from './modal-pagamento/modal-pagamento.component';
 
 @Component({
@@ -13,147 +12,108 @@ import { ModalPagamentoComponent } from './modal-pagamento/modal-pagamento.compo
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
-  @ViewChild('dropdownImage') dropdownImage!: ElementRef;
- 
-  categoria:string | null='';
-  produtos:produto[]=[]
-  dataSource:any;
-  categorias:string[]=['Minha Conta', 'Sair']
-  dropdownOpen: boolean = false;
-  selectedFilter: string = '';
-  Options: string[] = ["blusão", "body","blusas","acessórios"]
-  opcoes:string[]=[]
-  pedidos:Pedido[]=[]
-  idPedido:number[]=[]
+
+  categorias = ['Calça', 'Short', 'Saia', 'Cropped', 'Conjuntos'];
+  outrasCategorias = ['Blusão', 'Body', 'Blusa', 'Acessórios'];
+
+  produtos: produto[] = [];
+  pedidos: Pedido[] = [];
   quantidadeProduto: { [key: number]: number } = {};
   carrinhoId: { [key: number]: number } = {};
-  valor:number[]=[];
-  valorTotal:number=0;
+  valorTotal = 0;
+  sidebarVisible = false;
+  menuMobileAberto = false;
+
   constructor(
-    private navbarService:NavbarService,
-    private router:Router,
-    private dialog:MatDialog
-  ){}
-  sidebarVisible: boolean = false;
-  handleClick(index:any){
+    private navbarService: NavbarService,
+    private router: Router,
+    private dialog: MatDialog,
+    private notificacao: NotificacaoService
+  ) { }
 
-    index === '' ? setTimeout(() => {
-      location.reload()
-      
-    }, 1): this.navbarService.setCategoria(index);
+  get logado(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  filtrarCategoria(indice: any) {
+    this.menuMobileAberto = false;
+    this.navbarService.setCategoria(indice);
+    if (this.router.url !== '/') {
+      this.router.navigate(['/']);
     }
-  
-    handleClickmenu(){
-      console.log(this.categorias)
+  }
+
+  irParaPedidos() { this.router.navigate(['pedidos']); }
+  irParaLogin() { this.router.navigate(['login']); }
+  irParaCadastro() { this.router.navigate(['login']); }
+
+  sair() {
+    localStorage.removeItem('token');
+    this.produtos = [];
+    this.valorTotal = 0;
+    this.router.navigate(['/']);
+  }
+
+  adicionarCarrinho() {
+    if (!this.logado) {
+      this.pedirLogin();
+      return;
     }
-adicionarCarrinho(){
-  this.valorTotal=0
-  const token = localStorage.getItem('token')
-  const swalWithBootstrapButtons = Swal.mixin({
-    customClass: {
-      confirmButton: "btn btn-success",
-      cancelButton: "btn btn-danger"
-    },
-    buttonsStyling: false
-  });
-  if(!token){
-    swalWithBootstrapButtons.fire({
-      title: "Você não está logado!",
-      text: "Deseja se cadastrar para adicionar ao carrinho?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sim",
-      cancelButtonText: "Não",
-      reverseButtons: true
-    }).then((result) => {
-      if (result.isConfirmed) {
-         this.router.navigate(['login'])
-      } 
+    this.sidebarVisible = true;
+    this.carregarCarrinho();
+  }
+
+  apagarCarrinho(id: number) {
+    this.navbarService.retirarCarrinho(id).subscribe({
+      next: () => this.carregarCarrinho()
     });
-    }
-    else{
-      this.navbarService.atualizarCarrinho().subscribe({
-        next: (pedidos) => {
-          let lista=0
-          this.sidebarVisible = true;
-          this.pedidos = pedidos;
-          this.idPedido = pedidos.map(pedido => pedido.produtoId);
-          lista=this.idPedido.length
-          this.produtos=[]
-          this.valor=pedidos.map(preco=>preco.valorPedido)
-          for(var i=0;i<this.valor.length;i++){
-            this.valorTotal=this.valor[i]+this.valorTotal
-          }
-          for(var i=0;lista>i;i++){
-            
-            this.quantidadeProduto[this.idPedido[i]] = this.pedidos[i].quantidade;
-            
-            this.carrinhoId[this.idPedido[i]] = this.pedidos[i].id;
-            this.navbarService.getProdutoId(this.idPedido[i]).subscribe(res=>{        
-            if (Array.isArray(res)) {
-              this.produtos = [...this.produtos, ...res];
-              
-            } else {
-           
-              this.produtos = [...this.produtos,res];   
-            }
-           
-          
-          })
-        
-        }
-        },
-        error: (err) => {
-          swalWithBootstrapButtons.fire({
-            title: "Você não está logado!",
-            text: "Deseja se cadastrar para adicionar ao carrinho?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Sim",
-            cancelButtonText: "Não",
-            reverseButtons: true
-          }).then((result) => {
-            if (result.isConfirmed) {
-               this.router.navigate(['login']);
-            }
+  }
+
+  comprar(produtos: produto[]) {
+    const dados = produtos.map(p => ({ ...p, quantidadePedida: this.quantidadeProduto[p.id] || 0 }));
+    this.sidebarVisible = false;
+    this.dialog.open(ModalPagamentoComponent, {
+      width: '100vw',
+      maxWidth: '100vw',
+      height: '100%',
+      data: dados
+    });
+  }
+
+  carregarCarrinho() {
+    this.navbarService.atualizarCarrinho().subscribe({
+      next: pedidos => {
+        this.pedidos = pedidos;
+        this.produtos = [];
+        this.quantidadeProduto = {};
+        this.carrinhoId = {};
+        this.valorTotal = pedidos.reduce((total, p: any) => total + p.valorPedido, 0);
+
+        for (const pedido of pedidos as any[]) {
+          this.quantidadeProduto[pedido.produtoId] = pedido.quantidade;
+          this.carrinhoId[pedido.produtoId] = pedido.id;
+          this.navbarService.getProdutoId(pedido.produtoId).subscribe(res => {
+            this.produtos = [...this.produtos, ...(Array.isArray(res) ? res : [res])];
           });
-          this.sidebarVisible = false;
         }
-      });
-      
+      },
+      error: () => {
+        this.sidebarVisible = false;
+        this.pedirLogin();
+      }
+    });
+  }
 
+  private pedirLogin() {
+    this.notificacao.confirmar({
+      titulo: 'Você não está logado!',
+      texto: 'Deseja se cadastrar para adicionar ao carrinho?',
+      confirmar: 'Sim',
+      cancelar: 'Agora não'
+    }).then(confirmado => {
+      if (confirmado) {
+        this.router.navigate(['login']);
+      }
+    });
+  }
 }
-}
-apagarCarrinho(id:number){
-this.navbarService.retirarCarrinho(id).subscribe(res=>{
-
- location.reload()
-
-})
-}
-comprar(element: produto[]) {
-
-  const produtosComQuantidades = element.map(produto => {
- 
-    const quantidade = this.quantidadeProduto[produto.id] || 0;
-
-    return {
-      ...produto,
-      quantidadePedida: quantidade
-    };
-  });
-
-  this.sidebarVisible = false;
-  const dialogRef = this.dialog.open(ModalPagamentoComponent, {
-    width: '100vw',
-    height: '100%',
-    data: produtosComQuantidades, 
-  });
-}
-}
-  
-
-
-
-
-

@@ -1,38 +1,34 @@
-<app-navbar />
-
+<app-navbar></app-navbar>
 <div class="escopo">
- <div class="margin-left"> <h1>Recupere sua senha</h1>
-<p>Envie um email para receber um código de redefinir senha</p>
-</div>
-  <div class="content col-6">
-     
-
-   <div class="container-border d-flex mt-3">
-
-
-  <div class="container-form-email">
-    <form class=""  [formGroup] = "formEnviarEmail">
-      <div class="border-bottom border-black mb-3">
-        <span><strong>Não lembro minha senha:</strong></span>
+  <header class="cabecalho">
+    <h1>
+      Recupere sua senha
+    </h1>
+    <p>
+      Enviaremos um código para o e-mail cadastrado
+    </p>
+  </header>
+  <section class="uz-cartao cartao">
+    <form [formGroup]="formEnviarEmail">
+      <h2>
+        Não lembro minha senha
+      </h2>
+      <div class="campo">
+        <label class="uz-rotulo" for="emailRecuperacao">
+          E-mail da conta
+        </label>
+        <input class="uz-campo" id="emailRecuperacao" formControlName="email" type="email" placeholder="voce@email.com" autocomplete="email">
+        <small class="uz-erro" *ngIf="(formEnviarEmail.get('email')?.invalid)&&(formEnviarEmail.get('email')?.touched)">
+          Informe um e-mail válido.
+        </small>
       </div>
-
-      <div class="form-group  mb-3">
-        <label class="mt-1" for="exampleInputEmail1">Digite o email para recuperar sua senha</label>
-       <div class="d-flex mt-3">
-        <input  formControlName="email" type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-        <button  (click) = "enviarEmailResetarSenha()" type="submit" class="btn btn-primary"><span *ngIf="!semSpinner">Cadastrar: </span> <mat-spinner style="margin: 0 auto;" [diameter]="10" *ngIf = "semSpinner"></mat-spinner></button>
-        
-      </div>
-      
-      </div>
-      <a href="/login">Voltar</a>
-    
+      <button class="uz-btn-marca largura-total" type="submit" (click)="enviarEmailResetarSenha()">
+        Enviar código
+      </button>
+      <a class="voltar" routerLink="/login">
+        Voltar para o login
+      </a>
     </form>
-  </div>
-
-
-    </div>
-  </div>
+  </section>
 </div>
-
 <app-footer></app-footer>

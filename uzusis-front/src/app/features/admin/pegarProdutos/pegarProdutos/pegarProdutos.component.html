@@ -82,16 +82,15 @@
           </div>
         </div>
         <div class="admin-campo">
-          <label class="uz-rotulo">
+          <label class="uz-rotulo" for="filtro-categoria">
             Categoria
           </label>
-          <mat-form-field appearance="outline">
-            <mat-select placeholder="Selecione" [value]="selecionado" (valueChange)="selecionado=$event">
-              <mat-option [value]="categoria.categoria" *ngFor="let categoria of categorias">
-                {{ categoria.nomeCategoria }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+          <select class="uz-campo" id="filtro-categoria" [value]="selecionado ?? ''" (change)="selecionado = +$any($event.target).value">
+            <option value="" disabled>Selecione</option>
+            <option [value]="categoria.categoria" *ngFor="let categoria of categorias">
+              {{ categoria.nomeCategoria }}
+            </option>
+          </select>
         </div>
         <div class="admin-campo">
           <label class="uz-rotulo" for="descricao">

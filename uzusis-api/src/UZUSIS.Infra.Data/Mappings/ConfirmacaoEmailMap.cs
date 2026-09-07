@@ -13,7 +13,7 @@ public class ConfirmacaoEmailMap : IEntityTypeConfiguration<ConfirmacaoEmail>
 
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.Email);
+        builder.Property(c => c.Email).ComoEmail();
         builder.Property(c => c.Codigo);
         builder.Property(c => c.Expiracao);
         builder.Property(c => c.FoiConfirmado);

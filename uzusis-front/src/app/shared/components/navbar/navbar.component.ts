@@ -76,6 +76,7 @@ export class NavbarComponent {
       width: '100vw',
       maxWidth: '100vw',
       height: '100%',
+      panelClass: 'uz-dialogo-cheio',
       data: dados
     });
   }

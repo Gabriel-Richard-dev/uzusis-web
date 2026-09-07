@@ -1,0 +1,8 @@
+package br.ifce.uzusis.common.outbox;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.UUID;
+
+public interface OutboxRepository extends JpaRepository<OutboxEvent, UUID> {
+}

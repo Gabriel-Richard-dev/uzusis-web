@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Cache } from '../adapters';
 import {
   HttpRequest,
   HttpHandler,
@@ -19,26 +18,23 @@ export class AuthInterceptor implements HttpInterceptor {
     request: HttpRequest<unknown>,
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
-    const token = Cache.getSession({ key: 'token' });
+    const token = localStorage.getItem('token');
 
-    if (token !== null) {
-      const authRequest = request.clone({
-        headers: request.headers.set('Authorization', `Bearer ${token}`),
-      });
+    // Quem já mandou o próprio Authorization (admin usa `tokenAdm`) passa intacto.
+    const requisicao =
+      token && !request.headers.has('Authorization')
+        ? request.clone({ headers: request.headers.set('Authorization', `Bearer ${token}`) })
+        : request;
 
-      return next.handle(authRequest).pipe(
-        catchError((error) => {
-          console.error('HTTP Error:', error);
-          if (error.status === 401 || error.status === 403) {
-            this.router.navigateByUrl('/');
-          }
-          return throwError(error);
-        })
-      );
-    } else {
-      this.router.navigateByUrl('/');
-    }
-
-    return next.handle(request);
+    return next.handle(requisicao).pipe(
+      catchError((error) => {
+        // Sessão expirada: limpa e volta pra home. Rota pública com 401 não derruba ninguém.
+        if ((error.status === 401 || error.status === 403) && token) {
+          localStorage.removeItem('token');
+          this.router.navigateByUrl('/');
+        }
+        return throwError(() => error);
+      })
+    );
   }
 }

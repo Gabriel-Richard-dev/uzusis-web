@@ -20,11 +20,9 @@ export class ModalsComponent {
   Visible = false;
   estoque = 'Disponível';
 
-  images = [
-    { name: this.data.fotoUrls[0], caption: '' },
-    { name: this.data.fotoUrls[1], caption: '' },
-    { name: this.data.fotoUrls[2], caption: '' },
-  ];
+  images = (this.data.fotoUrls ?? [])
+    .filter(Boolean)
+    .map((url: string) => ({ name: url, caption: '' }));
 
   qntd = this.data.tamanhos.map((t: any) => t.quantidade);
   P = this.qntd[0];

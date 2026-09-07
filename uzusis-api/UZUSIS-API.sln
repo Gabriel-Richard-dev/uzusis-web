@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UZUSIS.Application", "src\U
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UZUSIS.Infra.Data", "src\UZUSIS.Infra.Data\UZUSIS.Infra.Data.csproj", "{ED4FFE70-1392-4946-A0AA-DEA4B30FD795}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{467919D1-E4F4-495D-A4FF-E611A4826677}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UZUSIS.Tests", "tests\UZUSIS.Tests\UZUSIS.Tests.csproj", "{4A883C4B-2D85-44BE-86A9-494F6706B0EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,12 @@ Global
 		{ED4FFE70-1392-4946-A0AA-DEA4B30FD795}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED4FFE70-1392-4946-A0AA-DEA4B30FD795}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED4FFE70-1392-4946-A0AA-DEA4B30FD795}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A883C4B-2D85-44BE-86A9-494F6706B0EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A883C4B-2D85-44BE-86A9-494F6706B0EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A883C4B-2D85-44BE-86A9-494F6706B0EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A883C4B-2D85-44BE-86A9-494F6706B0EB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4A883C4B-2D85-44BE-86A9-494F6706B0EB} = {467919D1-E4F4-495D-A4FF-E611A4826677}
 	EndGlobalSection
 EndGlobal

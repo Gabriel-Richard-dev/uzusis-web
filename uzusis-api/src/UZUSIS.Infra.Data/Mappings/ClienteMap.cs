@@ -13,7 +13,7 @@ public class ClienteMap : IEntityTypeConfiguration<Cliente>
         
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.Email);
+        builder.Property(c => c.Email).ComoEmail();
         builder.Property(c => c.Nome);
         builder.Property(c => c.Senha);
         builder.Property(c => c.AtualizadoEm);

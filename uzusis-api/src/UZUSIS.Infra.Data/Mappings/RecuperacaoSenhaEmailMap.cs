@@ -12,7 +12,7 @@ public class RecuperacaoSenhaEmailMap : IEntityTypeConfiguration<RecuperacaoSenh
 
         builder.HasKey(c => c.Id);
 
-        builder.Property(c => c.Email);
+        builder.Property(c => c.Email).ComoEmail();
         builder.Property(c => c.Codigo);
         builder.Property(c => c.Expiracao);
         builder.Property(c => c.FoiConfirmado);

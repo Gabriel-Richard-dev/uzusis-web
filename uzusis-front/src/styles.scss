@@ -129,3 +129,40 @@ button {
 
 /* Importing Bootstrap SCSS file. */
 @import 'bootstrap/scss/bootstrap';
+
+/* Popups: o container do MatDialog vinha com a cara padrão do Material
+   (canto 4px, sombra de elevação, backdrop preto chapado). Um bloco global
+   alinha todos os dialogs ao resto da interface — sem tocar em cada open(). */
+.mat-mdc-dialog-surface.mdc-dialog__surface {
+  --mdc-dialog-container-shape: var(--uz-raio);
+  background-color: var(--uz-superficie);
+  box-shadow: var(--uz-sombra-alta);
+  border: 1px solid var(--uz-borda);
+  overflow: hidden;
+}
+
+.cdk-overlay-dark-backdrop {
+  background-color: rgba(41, 43, 46, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.cdk-global-overlay-wrapper .mat-mdc-dialog-panel,
+.cdk-overlay-pane.mat-mdc-dialog-panel {
+  animation: uz-dialogo-entra 0.22s ease-out;
+}
+
+/* Dialog em tela cheia (pagamento) não quer canto arredondado nem borda. */
+.uz-dialogo-cheio .mat-mdc-dialog-surface.mdc-dialog__surface {
+  --mdc-dialog-container-shape: 0;
+  border: none;
+}
+
+@keyframes uz-dialogo-entra {
+  from { opacity: 0; transform: translateY(0.75rem) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cdk-overlay-pane.mat-mdc-dialog-panel { animation: none; }
+}

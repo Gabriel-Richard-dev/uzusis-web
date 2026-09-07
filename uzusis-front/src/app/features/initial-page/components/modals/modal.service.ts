@@ -13,7 +13,7 @@ export class ModalService {
   constructor(private http: HttpClient) { 
 
   }
-  private readonly token = localStorage.getItem('token')
+  private get token() { return localStorage.getItem('token'); }
   
   apiurl = environment.apiUrl;
   adicionarCarrinho(id:number, tamanho:string | null, quantidade:number){

@@ -1,6 +1,12 @@
 <div class="modal_aberto">
   <div class="galeria">
-    <ngb-carousel [interval]="5e3" [pauseOnHover]="pauseOnHover" [pauseOnFocus]="pauseOnFocus" (slide)="onSlide($event)"></ngb-carousel>
+    <ngb-carousel #carousel [interval]="5e3" [pauseOnHover]="pauseOnHover" [pauseOnFocus]="pauseOnFocus" (slide)="onSlide($event)">
+      <ng-template ngbSlide *ngFor="let img of images">
+        <div class="picsum-img-wrapper">
+          <img [src]="img.name" [alt]="data.nome" />
+        </div>
+      </ng-template>
+    </ngb-carousel>
   </div>
   <div class="informacoes">
     <span class="categoria">

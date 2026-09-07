@@ -12,6 +12,7 @@ import { HistoricoPedidosComponent } from "./features/admin/historicos-de-pedido
 import { PegarProdutosComponent } from "./features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component";
 import { PedidosComponent } from './features/user/pedidos/pedidos.component';
 import { DashboardComponent } from "./features/admin/dashboard/dashboard.component";
+import { adminGuard, clienteGuard } from "./core/guards/auth.guard";
 
 
 
@@ -22,26 +23,31 @@ const routes: Routes = [
 
 {
   path: "admin/dashboard",
-  component: DashboardComponent
+  component: DashboardComponent,
+  canActivate: [adminGuard]
 },
 
 {
   path: "admin/pegar-produtos",
-  component: PegarProdutosComponent
+  component: PegarProdutosComponent,
+  canActivate: [adminGuard]
 },
 
 {
 
 path: "admin/criar-produto",
-component: CriarProdutoComponent
+component: CriarProdutoComponent,
+  canActivate: [adminGuard]
 },
 {
   path: "admin/pedidos-pendentes",
   component: PedidosPendentesComponent,
+  canActivate: [adminGuard],
 },
 {
   path: "admin/historico-pedidos",
-  component: HistoricoPedidosComponent
+  component: HistoricoPedidosComponent,
+  canActivate: [adminGuard]
 },
 
 
@@ -72,13 +78,9 @@ component: CriarProdutoComponent
     component: EnviarEmailResetarSenhaComponent
   },
   {
-    path: "aaa",
-    component: PedidosComponent
-  },
-
-  {
     path: "pedidos",
-    component: PedidosComponent
+    component: PedidosComponent,
+    canActivate: [clienteGuard]
   }
 
   // {

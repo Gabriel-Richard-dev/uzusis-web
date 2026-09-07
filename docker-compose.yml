@@ -1,0 +1,78 @@
+# Sobe o sistema inteiro: banco, storage, API e front atrás do nginx.
+# Configuração vem toda do .env (copie de .env.example) — nada fica no código.
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"     # usado pelo proxy do `ng serve`
+      - "${MINIO_CONSOLE_PORT:-9001}:9001" # console web do MinIO
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    build: ./uzusis-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: "server=db;port=3306;user=${DB_USER};password=${DB_PASSWORD};database=${DB_NAME}"
+      JwtSettings__Key: ${JWT_KEY}
+      # Admin inicial (opcional): em branco, nada é criado.
+      Admin__SeedName: ${ADMIN_NAME:-Administrador}
+      Admin__SeedEmail: ${ADMIN_EMAIL:-}
+      Admin__SeedPassword: ${ADMIN_PASSWORD:-}
+      EmailConfiguration__User: ${EMAIL_USER}
+      EmailConfiguration__Password: ${EMAIL_PASSWORD}
+      EmailConfiguration__Server: ${EMAIL_SERVER}
+      EmailConfiguration__Port: ${EMAIL_PORT}
+      Minio__Endpoint: minio:9000
+      Minio__AccessKey: ${MINIO_ROOT_USER}
+      Minio__SecretKey: ${MINIO_ROOT_PASSWORD}
+      Minio__Bucket: ${MINIO_BUCKET}
+      # Relativo: o browser busca as fotos no mesmo domínio, o nginx encaminha.
+      Minio__PublicBaseUrl: /storage
+    ports:
+      - "${API_PORT:-5141}:8080" # usado pelo proxy do `ng serve`
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  web:
+    build: ./uzusis-front
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:
+  minio-data:

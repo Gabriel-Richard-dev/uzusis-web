@@ -1,0 +1,9 @@
+# O @ServiceConnection do Testcontainers preenche a datasource; aqui fica só o
+# que o slice de teste precisa saber.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration,classpath:db/migration/common

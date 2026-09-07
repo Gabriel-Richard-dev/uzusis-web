@@ -1,0 +1,239 @@
+# Stack Java. Sobe ao lado do compose da raiz (que roda o .NET): na estratégia
+# strangler fig os dois convivem, e o gateway é quem decide o que já foi
+# migrado. Só o gateway, o Keycloak e as ferramentas de dev ficam expostos.
+#
+# ATENÇÃO, uma linha de /etc/hosts é obrigatória:
+#
+#   127.0.0.1 keycloak
+#
+# O "iss" do token tem que ser a MESMA URL para o navegador e para os
+# serviços. Sem isso o navegador pega o token em localhost, o serviço valida
+# contra keycloak:8080, os dois não batem e todo request volta 401 — que é o
+# erro mais comum de subir Keycloak em compose.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # wal_level=logical é o que permite o Debezium ler o WAL. Sem isso o
+    # conector sobe, falha e o outbox nunca publica.
+    command: >
+      postgres -c wal_level=logical
+               -c max_wal_senders=10
+               -c max_replication_slots=10
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  kafka:
+    image: apache/kafka:3.8.0
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: uzusis-dev-cluster-01
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  connect:
+    image: debezium/connect:3.0.0.Final
+    restart: unless-stopped
+    ports:
+      - "${CONNECT_PORT:-8093}:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: uzusis-connect
+      CONFIG_STORAGE_TOPIC: connect.configs
+      OFFSET_STORAGE_TOPIC: connect.offsets
+      STATUS_STORAGE_TOPIC: connect.status
+      KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    restart: unless-stopped
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      # O hostname tem que ser o mesmo visto pelo navegador e pelos serviços.
+      KC_HOSTNAME: http://keycloak:8080
+      KC_HOSTNAME_STRICT: "false"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mailpit:
+    # SMTP de desenvolvimento: o notification-service manda de verdade e o
+    # e-mail cai numa caixa web em vez de na de alguém.
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "${JAEGER_PORT:-16686}:16686"
+
+  gateway:
+    build:
+      context: .
+      args:
+        MODULO: gateway
+    restart: unless-stopped
+    environment:
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/uzusis
+      CATALOG_URL: http://catalog-service:8082
+      ORDER_URL: http://order-service:8083
+      PAYMENT_URL: http://payment-service:8084
+      IDENTITY_URL: http://identity-service:8086
+      LEGACY_API_URL: ${LEGACY_API_URL:-http://host.docker.internal:5141}
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    ports:
+      - "${GATEWAY_PORT:-8090}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  catalog-service:
+    build:
+      context: .
+      args:
+        MODULO: catalog-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/catalog
+      DB_USER: catalog
+      DB_PASSWORD: catalog
+      KAFKA_BOOTSTRAP: kafka:9092
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/uzusis
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  order-service:
+    build:
+      context: .
+      args:
+        MODULO: order-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/orders
+      DB_USER: orders
+      DB_PASSWORD: orders
+      KAFKA_BOOTSTRAP: kafka:9092
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/uzusis
+      CATALOG_URL: http://catalog-service:8082
+      ORDER_CLIENT_SECRET: ${ORDER_CLIENT_SECRET:-order-service-secret}
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  payment-service:
+    build:
+      context: .
+      args:
+        MODULO: payment-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/payments
+      DB_USER: payments
+      DB_PASSWORD: payments
+      KAFKA_BOOTSTRAP: kafka:9092
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/uzusis
+      # Chave de TESTE da Stripe (sk_test_...). Vem do .env, nunca do código.
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:?defina STRIPE_SECRET_KEY no .env}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:?defina STRIPE_WEBHOOK_SECRET no .env}
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      args:
+        MODULO: notification-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/notifications
+      DB_USER: notifications
+      DB_PASSWORD: notifications
+      KAFKA_BOOTSTRAP: kafka:9092
+      EMAIL_SERVER: mailpit
+      EMAIL_PORT: "1025"
+      EMAIL_AUTH: "false"
+      EMAIL_TLS: "false"
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  identity-service:
+    build:
+      context: .
+      args:
+        MODULO: identity-service
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/identity
+      DB_USER: identity
+      DB_PASSWORD: identity
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/uzusis
+      OTLP_ENDPOINT: http://jaeger:4318/v1/traces
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg-data:
+  kafka-data:

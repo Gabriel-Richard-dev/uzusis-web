@@ -1,20 +1,26 @@
-# SPEC — Uzusis: migração .NET → Java e nova interface da loja
+# SPEC — Uzusis: microserviços Java e loja Angular
 
 Documento executável: agentes vão implementar isto **sem poder perguntar**. Quando algo não estiver
 aqui, vale a regra mais simples que cumpra o contrato. Os contratos (§4, §5) são a fonte da verdade para
 backend e front. Quem precisar mudar um contrato fala com a integração (§10); não muda sozinho.
 
-**Implementado.** Este documento agora descreve o sistema como ele ficou: as divergências da execução (fases 1–5)
-foram incorporadas às seções, e o texto original só sobrevive onde o código o segue.
+**Implementado.** Este documento descreve o sistema como ele ficou. Nasceu como o plano de migração do .NET para
+Java; as divergências da execução foram incorporadas às seções. O .NET e o MySQL já foram **removidos** do
+repositório, e o backend Java, que morava em `uzusis-java/`, agora é `uzusis-api/`. O front passou de Angular 16 +
+Material para Angular 22 standalone + Tailwind 4 + spartan/ui (§7).
 
-**Estado final (2026-09-26).** `mvn -f uzusis-java/pom.xml -B verify` verde com 143 testes (common 11, catalog 27,
-order 32, payment 44, notification 8, identity 17, gateway 4). `npm run build` sem avisos (inicial de 972 kB); as
-39 specs do front passam (12 arquivos, rodados por um tsconfig temporário). `E2E OK` duas vezes seguidas com o
-stripe-mock (32 passos). Os fluxos de UI (a)–(g) de §11.7 e as checagens por página passaram em 1440 e 390.
-Verificado em `WEB_PORT=8088`. Pendências:
-- a exclusão dos arquivos legados do front (§7.7) foi negada aos agentes e ficou com o usuário. Na conferência
-  final eles já não estavam no disco (os greps de §11.6 voltam vazios, e os 12 `*.spec.ts` de `src` são os do
-  tsconfig temporário), mas o `ng test` padrão (`tsconfig.spec.json`) não foi rodado de novo depois disso;
+**Estado final (2026-09-26).** Verificado em `WEB_PORT=8088`:
+- front: `ng build` de produção sem avisos (inicial de 843,19 kB); `ng test` (Vitest + jsdom em `node:22-alpine`)
+  com 63 testes em 18 arquivos; imagem `web` reconstruída; os fluxos de UI (a)–(h) e da busca de §11.7 passaram em
+  1440 e 390, sem rolagem horizontal; o selo "Últimas unidades" (estoque total 1..3) conferido com um produto
+  temporário;
+- compra pela UI com o Payment Element de verdade (chaves de teste da Stripe, `COMPOSE_PROFILES=stripe`): pedido
+  `PAGO`, inclusive retomando um pedido `CRIADO` por "Concluir pagamento";
+- backend: `mvn -f uzusis-api/pom.xml -B verify` verde com 144 testes (common 11, catalog 27, order 32, payment 44,
+  notification 8, identity 17, gateway 5); `docker compose up -d --build` com tudo healthy e `E2E OK` com o
+  stripe-mock (32 passos), já depois da remoção do .NET e da renomeação.
+
+Pendência:
 - o realm vivo **não** foi reimportado depois da última mudança do `uzusis-realm.json` (o `DROP DATABASE keycloak`
   foi negado). Comparado pela Admin API, ele é equivalente ao arquivo: o SMTP vivo é igual aos padrões dos
   placeholders, e o `web-app` só difere nos `${PUBLIC_URL}` resolvidos.
@@ -39,25 +45,28 @@ spec, que justificam decisões abaixo:
   Ele só aceita chave com exatamente 3 partes separadas por `_` (`sk_test_e2emock` passa; `sk_test_e2e_mock` dá 401; §8.4).
 - `stripe-java 26.11.0`: `StripeClient.builder().setApiBase(String)` existe, e `PaymentIntentService.cancel(...)` também.
   `Webhook.constructEvent` desserializa **antes** de conferir a assinatura: JSON malformado lança `JsonSyntaxException`.
-- `@stripe/stripe-js@9.17.0` compila com TypeScript 4.9.5. `angular-oauth2-oidc@16.0.0` tem peer `@angular/core >=14`.
+- `angular-oauth2-oidc@22.0.2` (peer `@angular/core >=22`) tem a mesma API pública da 16.0.0 (d.ts comparados).
+  Angular 22 exige Node `^22.22.3 || ^24.15` e TypeScript `>=6.0 <6.1`; com TS 6, `baseUrl` no `tsconfig` vira erro (TS5101).
 - Compose v5.1.3: vários serviços com o mesmo `image:` + `build:` geram **um** build (o bake deduplica).
   Interpolação aninhada `${PUBLIC_URL:-http://localhost:${WEB_PORT:-8080}}` funciona.
 - Imagens: `eclipse-temurin:21-jre-alpine` tem `wget`, não tem `curl`; `quay.io/keycloak/keycloak:26.0` é a 26.0.8;
   `apache/kafka:3.8.0` tem `nc` do busybox; `quay.io/debezium/connect:3.0.0.Final` (2,16 GB) tem `curl` e `sed`,
   **não** tem `jq`; `pgsty/minio:RELEASE.2026-08-04T00-00-00Z` é um build comunitário do MinIO, com `minio` e `mc`.
   **`minio/minio` e `minio/mc` não existem mais no Docker Hub** (pull access denied) — nunca usá-los.
-- Volumes existentes: `uzusis_minio-data`, com o bucket `produtos` **vazio** (0 objetos: não há foto do .NET a
-  preservar), e `uzusis_db-data` (MySQL legado com dados, cerca de 190 MB, database `uzusis`). As credenciais
-  originais do MySQL **não** estão no repositório. Nenhum dos dois é apagado.
+- Volumes antigos, do tempo do .NET: `uzusis_minio-data`, com o bucket `produtos` **vazio** (0 objetos), e
+  `uzusis_db-data` (MySQL 8.0 com dados, cerca de 190 MB, database `uzusis`). As credenciais originais do MySQL
+  **não** estão no repositório. O compose não monta nem apaga nenhum dos dois; o `uzusis_db-data` fica guardado
+  para uma eventual migração dos dados (Apêndice A).
 
 ---
 
 ## 1. Objetivo, escopo e fora do escopo
 
 ### Objetivo
-Desligar o .NET como produto. O Uzusis (loja de roupas femininas) passa a rodar só com os microserviços
-Java e um front Angular novo, tudo containerizado. `docker compose up -d --build` na raiz sobe o sistema
-funcional: vitrine, sacola, checkout com Stripe (quando houver chaves), conta do cliente, painel admin e e-mails.
+O Uzusis (loja de roupas femininas) roda só com os microserviços Java (`uzusis-api/`) e o front Angular
+(`uzusis-front/`), tudo containerizado. O .NET antigo foi desligado e removido do repositório.
+`docker compose up -d --build` na raiz sobe o sistema funcional: vitrine, sacola, checkout com Stripe (quando houver
+chaves), conta do cliente, painel admin e e-mails.
 
 ### Escopo
 - Correções de boot e de correção da saga no backend (D5).
@@ -65,38 +74,38 @@ funcional: vitrine, sacola, checkout com Stripe (quando houver chaves), conta do
   entrega, listas e resumo do admin e e-mails HTML.
 - Autenticação 100% Keycloak (D3), com o tema da marca.
 - Pagamento Stripe real, opcional por configuração (D4), e teste e2e sem chaves reais (stripe-mock).
-- Front reescrito em Angular Material 16 (D7).
+- Front em Angular 22 standalone + Tailwind 4 + spartan/ui (D7).
 - Compose único na raiz, nginx como origem única (D1, D2).
 
 ### Fora do escopo (com o porquê)
 | Item | Por quê |
 |---|---|
-| **Migração de dados MySQL → Postgres/Keycloak como código** | É uma execução única sobre uma base pequena. Depende de decisões humanas: formato real do hash Argon2, e-mails duplicados por caixa, nomes de estado ("Ceará" → CE). Código de migração seria mantido e testado para rodar uma vez, e acoplaria os schemas de 3 serviços num script. Fica como **procedimento** no Apêndice A. |
+| **Migração dos dados do MySQL antigo → Postgres/Keycloak como código** | É uma execução única sobre uma base pequena. Depende de decisões humanas: formato real do hash Argon2, e-mails duplicados por caixa, nomes de estado ("Ceará" → CE). Código de migração seria mantido e testado para rodar uma vez, e acoplaria os schemas de 3 serviços num script. Fica como **procedimento** manual no Apêndice A, a partir do volume `uzusis_db-data`. |
 | CSP (Content-Security-Policy) | A Stripe exige uma lista de domínios que muda (js.stripe.com, m.stripe.network, hooks…). Uma CSP errada quebra o pagamento em silêncio. Risco anotado em §12. |
 | Rate limiting, ShedLock, várias réplicas, alertas de DLQ | Uma réplica em dev. Ficam os comentários `ponytail:` que já existem. |
-| Carrinho de visitante, cupom (o "10% na primeira compra" dos banners), frete por CEP/Correios, nota fiscal | Não existem no .NET nem nas decisões. Os banners com a promessa são apagados. |
+| Carrinho de visitante, cupom (o "10% na primeira compra" dos banners), frete por CEP/Correios, nota fiscal | Não existiam no .NET nem estão nas decisões. Os banners com a promessa foram apagados. |
 | Pix e boleto | São assíncronos: o QR do Pix vale 24 h e o boleto leva dias, mas o pedido expira em 30 min. Um pagamento depois disso viraria estorno. O intent aceita **só cartão** (§6.4). Pix entra no futuro com `payment_method_options.pix.expires_after_seconds` menor que a expiração. |
 | `springdoc-openapi` | Não foi pedido. O gateway não roteia `/v3/api-docs` e os serviços não publicam porta, então ninguém alcança a UI. Custa metaspace num limite de 512m. Sai dos 4 poms. |
 | App mobile, i18n além de pt-BR, TLS | TLS é do proxy de borda de produção. O cliente `mobile-app` do realm fica como está. |
-| Teste automatizado de UI com Stripe real | O Payment Element não funciona com o stripe-mock. O e2e cobre a saga pela API; o teste com cartão de teste é manual, depois que o usuário puser as chaves. |
+| Teste automatizado de UI com Stripe real | O Payment Element não funciona com o stripe-mock. O e2e do repositório cobre a saga pela API; a compra com cartão de teste é conferida à parte, com as chaves de teste do usuário (Estado final). |
 
 ---
 
-## 2. Arquitetura alvo
+## 2. Arquitetura
 
 ### 2.1 Contêineres
 
-`uzusis-java:dev` é **uma** imagem com os 6 jars, construída uma vez; o serviço escolhe o jar por `MODULO`.
+`uzusis-api:dev` é **uma** imagem com os 6 jars, construída uma vez; o serviço escolhe o jar por `MODULO`.
 
 | Serviço | Imagem | Porta interna | Publicada no host | Depende de (condition) | mem_limit | Profile |
 |---|---|---|---|---|---|---|
-| `web` | build `./uzusis-front` (node:20-alpine → nginx:alpine) | 80 | `${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}` | gateway, keycloak, minio (`service_started`) | 64m | — |
-| `gateway` | `uzusis-java:dev` MODULO=gateway | 8080 | não | — | 384m | — |
-| `catalog-service` | `uzusis-java:dev` | 8082 | não | postgres, kafka (`healthy`); minio-init (`completed_successfully`) | 512m | — |
-| `order-service` | `uzusis-java:dev` | 8083 | não | postgres, kafka (`healthy`) | 512m | — |
-| `payment-service` | `uzusis-java:dev` | 8084 | não | postgres, kafka (`healthy`) | 512m | — |
-| `notification-service` | `uzusis-java:dev` | 8085 | não | postgres, kafka (`healthy`); mailpit (`started`) | 512m | — |
-| `identity-service` | `uzusis-java:dev` | 8086 | não | postgres (`healthy`) | 512m | — |
+| `web` | build `./uzusis-front` (node:22-alpine → nginx:alpine) | 80 | `${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}` | gateway, keycloak, minio (`service_started`) | 64m | — |
+| `gateway` | `uzusis-api:dev` MODULO=gateway | 8080 | não | — | 384m | — |
+| `catalog-service` | `uzusis-api:dev` | 8082 | não | postgres, kafka (`healthy`); minio-init (`completed_successfully`) | 512m | — |
+| `order-service` | `uzusis-api:dev` | 8083 | não | postgres, kafka (`healthy`) | 512m | — |
+| `payment-service` | `uzusis-api:dev` | 8084 | não | postgres, kafka (`healthy`) | 512m | — |
+| `notification-service` | `uzusis-api:dev` | 8085 | não | postgres, kafka (`healthy`); mailpit (`started`) | 512m | — |
+| `identity-service` | `uzusis-api:dev` | 8086 | não | postgres (`healthy`) | 512m | — |
 | `postgres` | `postgres:16-alpine` | 5432 | não | — | 512m | — |
 | `kafka` | `apache/kafka:3.8.0` | 9092 (+9093 controller) | não | — | 768m | — |
 | `connect` | `quay.io/debezium/connect:3.0.0.Final` | 8083 | não | kafka, postgres (`healthy`) | 768m | — |
@@ -108,8 +117,6 @@ funcional: vitrine, sacola, checkout com Stripe (quando houver chaves), conta do
 | `jaeger` | `jaegertracing/all-in-one:1.62.0` | 4318 / 16686 | `127.0.0.1:16686` | — | 256m | `observability` |
 | `stripe-cli` | `stripe/stripe-cli:latest` (`restart: unless-stopped`) | — | não | web (`started`) | 128m | `stripe` |
 | `stripe-mock` | `stripe/stripe-mock:latest` | 12111 | não | — | 64m | só em `docker-compose.e2e.yml` |
-| `db` (MySQL legado) | `mysql:8.0` | 3306 | não | — | (sem limite) | `legacy` |
-| `api` (.NET legado) | build `./uzusis-api` | 8080 | `127.0.0.1:${API_PORT:-5141}` | db, minio | (sem limite) | `legacy` |
 
 **JVM** (âncora `x-java-env`, igual em todos os serviços Java):
 `JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=50 -XX:+UseSerialGC -Xss512k -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"`.
@@ -124,7 +131,7 @@ code cache e stacks ficam fora do heap.
 **Build**:
 - Java: um único `mvn package` dentro do Docker, com cache BuildKit de `~/.m2` e `MAVEN_OPTS=-Xmx1g`.
   Os 6 jars são extraídos com `-Djarmode=tools` para um `lib/` compartilhado (§8.1). As bibliotecas não se repetem 6 vezes.
-- Front: `NODE_OPTIONS=--max-old-space-size=2048`.
+- Front: builder `application` (esbuild) em `node:22-alpine`, com `NODE_OPTIONS=--max-old-space-size=2048`.
 - Nada de `dependency:go-offline || true`.
 - Nesta máquina (3,4 GB livres), `docker compose build web` roda **antes** de `docker compose build`, porque o bake
   roda o Maven (1 GB) e o `ng build` (2 GB) juntos.
@@ -159,15 +166,15 @@ stripe-cli (profile stripe) ── listen --forward-to http://web/api/webhooks/s
 
 | Volume | Uso |
 |---|---|
-| `uzusis_fotos-data` | **Novo**. Fotos do catálogo (bucket `produtos`). O `uzusis_minio-data` do .NET **não é montado** e fica intocado (estava vazio). |
-| `uzusis_db-data` | **Existente**. MySQL legado (profile `legacy`), com dados. |
-| `uzusis_pg-data` | Novo. Postgres com 5 databases + `keycloak`. |
-| `uzusis_kafka-data` | Novo. |
+| `uzusis_fotos-data` | Fotos do catálogo (bucket `produtos`). |
+| `uzusis_pg-data` | Postgres com 5 databases + `keycloak`. |
+| `uzusis_kafka-data` | Kafka. |
 
-Nenhum volume pré-existente é montado no stack padrão: `uzusis_minio-data` fica intocado e `uzusis_db-data` só entra com `--profile legacy`.
+Fora do compose (nem declarados, nem montados): `uzusis_db-data`, o MySQL do .NET removido, guardado para uma
+eventual migração dos dados (Apêndice A), e `uzusis_minio-data`, o MinIO antigo (vazio).
 
-⚠ **Nunca** rodar `docker compose down -v`: isso apaga o MySQL legado, as fotos e os pedidos. Para reimportar o realm,
-veja §8.3.
+⚠ **Nunca** rodar `docker compose down -v`: isso apaga as fotos, os pedidos e os usuários do Keycloak. O
+`uzusis_db-data`, por não estar no compose, não é apagado por ele. Para reimportar o realm, veja §8.3.
 
 ### 2.4 Contrato de variáveis de ambiente
 
@@ -198,9 +205,8 @@ Todas as variáveis têm padrão; nenhuma usa `${VAR:?}`.
 | `EMAIL_FROM` | notification | `Uzusis <nao-responda@uzusis.local>` | não |
 | `SMTP_FROM` | keycloak (`smtpServer.from` do realm, só no import) | `nao-responda@uzusis.local` | não. Só o endereço: o `from` do Keycloak não aceita a forma `Nome <addr>` do `EMAIL_FROM` |
 | `TRACING_ENABLED` | todos os Java (`MANAGEMENT_TRACING_ENABLED`) | `false` | não |
-| Legado: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `JWT_KEY`, `ADMIN_*`, `EMAIL_USER/PASSWORD/SERVER/PORT`, `ASPNETCORE_ENVIRONMENT`, `API_PORT` | só `db`/`api` (profile legacy) | `${VAR:-}` (sem erro se ausente) | não |
 
-> O `.env.example` legado tinha `EMAIL_SERVER=smtp.gmail.com`. Se alguém tiver copiado esse arquivo para `.env`, o Mailpit
+> O `.env.example` do .NET tinha `EMAIL_SERVER=smtp.gmail.com`. Com um `.env` copiado dele, o Mailpit
 > seria ignorado. Por isso o notification lê `SMTP_*`, **não** `EMAIL_*` do `.env`. Se existir um `.env`, ele é do
 > usuário e nunca é editado: para sobrescrever, use `env VAR=… docker compose …`.
 
@@ -218,8 +224,9 @@ Todas as variáveis têm padrão; nenhuma usa `${VAR:?}`.
 | `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET`, `MINIO_PUBLIC_PREFIX` | catalog | `http://minio:9000`, root user, root password, `produtos`, `/storage` | `http://localhost:9000`, …, `/storage` |
 | `EMAIL_SERVER/PORT/USER/PASSWORD/AUTH/TLS`, `EMAIL_FROM`, `PUBLIC_URL` | notification | vindos de `SMTP_*` | inalterado |
 
-Removidas: `ORDER_CLIENT_SECRET`, `LEGACY_API_URL`, `GATEWAY_PORT`, `CONNECT_PORT`, `JAEGER_PORT` e, no keycloak,
-`KC_HOSTNAME_BACKCHANNEL_DYNAMIC` (§8.1).
+Removidas: `ORDER_CLIENT_SECRET`, `LEGACY_API_URL`, `GATEWAY_PORT`, `CONNECT_PORT`, `JAEGER_PORT`, no keycloak
+`KC_HOSTNAME_BACKCHANNEL_DYNAMIC` (§8.1), e as do .NET no `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`, `JWT_KEY`, `ADMIN_*`, `EMAIL_USER/PASSWORD/SERVER/PORT`,
+`ASPNETCORE_ENVIRONMENT`, `API_PORT`): o compose não as lê mais, e um `.env` antigo com elas é ignorado nesse ponto.
 
 ---
 
@@ -227,12 +234,14 @@ Removidas: `ORDER_CLIENT_SECRET`, `LEGACY_API_URL`, `GATEWAY_PORT`, `CONNECT_POR
 
 **D1. Produto final = Java + Angular, tudo em contêiner.**
 - Um `docker-compose.yml` na raiz com `name: uzusis`, e build multi-stage de tudo.
-- `uzusis-java/docker-compose.yml` e `uzusis-java/.env.example` são apagados; o conteúdo vem para a raiz.
-- `db` e `api` (.NET) ficam em `profiles: [legacy]`; o código .NET não é apagado.
+- O compose e o `.env.example` que existiam dentro do diretório Java foram apagados; o conteúdo veio para a raiz.
+- O .NET e o MySQL saíram do repositório (código, serviços `db`/`api`, perfil `legacy` e `scripts/legacy/`), e o
+  diretório Java foi renomeado de `uzusis-java/` para `uzusis-api/`. O volume `uzusis_db-data` fica no disco, fora do
+  compose (Apêndice A).
 - A rota `legado-dotnet` do gateway é removida.
-- *Porquê:* a rota não funciona. Os tokens do .NET são HS256 e o gateway exige um JWT do Keycloak. Ela ainda expõe o
+- *Porquê:* a rota não funcionava. Os tokens do .NET eram HS256 e o gateway exige um JWT do Keycloak. Ela ainda expunha o
   `POST /administradorauth/adicionar` anônimo e o reset de senha sem código a qualquer usuário autocadastrado.
-  Na prática a virada é big-bang.
+  Na prática a virada foi big-bang.
 
 **D2. Origem única, sem `/etc/hosts`.**
 - O nginx do `web` é o único publicado; faz proxy de `/api`, `/auth` e `/storage`.
@@ -246,7 +255,7 @@ Removidas: `ORDER_CLIENT_SECRET`, `LEGACY_API_URL`, `GATEWAY_PORT`, `CONNECT_POR
 - Jaeger fica em `observability`, porque consome memória e é opcional.
 
 **D3. Keycloak 26, Authorization Code + PKCE, client público `web-app`.**
-- Front com `angular-oauth2-oidc@16.0.0` e refresh via refresh token.
+- Front com `angular-oauth2-oidc@22.0.2` e refresh via refresh token.
 - As telas próprias de login, cadastro, código, esqueci-senha e login-adm são **apagadas**.
 - Cadastro, verificação de e-mail e reset ficam no Keycloak, com SMTP no Mailpit, pt-BR e `CUSTOMER` como papel padrão.
 - Temas de login **e de e-mail** com a marca (só CSS, imagem e mensagens; sem SPI nem FTL).
@@ -317,13 +326,19 @@ Mais decisões da spec:
   forma assíncrona, sem devolver a sacola.
 
 **D7. Interface nova.**
-- Angular Material 16 + CDK com tema da marca e tokens CSS.
-- Remove bootstrap, ng-bootstrap, popper, primeng, sweetalert2, swiper, moment, ng-otp-input, ngx-mask e
-  @angular/localize.
-- Fontes: Scope One + Inter. Cor de marca `#7a5a41`.
-- Rotas lazy por feature, pt-BR/BRL, acessibilidade AA.
-- *Porquê:* 4 bibliotecas de UI para cerca de 5 widgets, o Bootstrap Reboot anulando os tokens, conflito de
-  peer deps (`--legacy-peer-deps`), e telas quebradas (auditoria `map-front-ui` §3).
+- Angular 22 standalone (sem NgModules), Tailwind 4 e spartan/ui 1.5 no estilo `vega` (o shadcn clássico): os
+  componentes helm são gerados para `libs/ui` e passam a ser código do projeto; o comportamento vem do
+  `@spartan-ng/brain` (sobre o CDK).
+- Sem Angular Material, `@angular/animations`, bootstrap, ng-bootstrap, popper, primeng, sweetalert2, swiper, moment,
+  ng-otp-input, ngx-mask e @angular/localize.
+- Fontes: Scope One + Inter. Tema só claro: papel `#faf8f5`, ação em quase preto `#1c1917`, destaque na marca `#7a5a41`.
+- Nativo antes de helm: `<select>` nativo, rádios para tamanhos, `<details>` para expansão, links com `aria-current`
+  para abas, paginador próprio.
+- Rotas lazy por feature, pt-BR/BRL, acessibilidade AA, alvos de 44 px.
+- *Porquê:* no Angular 16 havia 4 bibliotecas de UI para cerca de 5 widgets, o Bootstrap Reboot anulava os tokens e
+  havia conflito de peer deps (auditoria `map-front-ui` §3). O Material resolveu isso, mas travava o visual pedido
+  pelo usuário (inputs arredondados com rótulo acima, botão preto em pílula, pills para tamanhos); o helm é código
+  nosso e se ajusta com classes.
 
 **D8. Execução paralela com posse disjunta de diretórios** (§10).
 
@@ -724,7 +739,7 @@ Regras comuns:
 - `management.tracing.enabled: ${MANAGEMENT_TRACING_ENABLED:false}`.
 - Os `@PreAuthorize("hasRole('ADMIN')")` ficam como estão.
 
-### 6.1 `uzusis-java/pom.xml` (pai) e `common` — dono (c)
+### 6.1 `uzusis-api/pom.xml` (pai) e `common` — dono (c)
 Mudanças:
 1. `testcontainers.version` → **1.21.4**. Corrigir o comentário.
    No `<pluginManagement>` do pai, o `maven-surefire-plugin` recebe
@@ -750,7 +765,7 @@ Mudanças:
    de `br.ifce.uzusis`; o gateway declara o mesmo bean (§6.7).
 
 Aceite:
-- `mvn -f uzusis-java/pom.xml -B -N install && mvn -f uzusis-java/pom.xml -B -pl common install` passa.
+- `mvn -f uzusis-api/pom.xml -B -N install && mvn -f uzusis-api/pom.xml -B -pl common install` passa.
   É o **primeiro** passo da fase 1, porque os outros módulos dependem disso.
 
 Testes:
@@ -1053,35 +1068,39 @@ Testes: `GatewaySecurityTest` (`@SpringBootTest(webEnvironment=RANDOM_PORT)` + `
 
 ## 7. Front (`uzusis-front`)
 
-### 7.1 Arquitetura, módulos e rotas
-NgModules (Angular 16). Um módulo lazy por feature. Estrutura e dono:
+Angular 22 standalone, Tailwind 4 e spartan/ui 1.5 (estilo `vega`), testes em Vitest, build com o builder
+`application` (esbuild). O Angular 22 exige Node `^22.22.3 || ^24.15`: todo `npm`/`ng` roda no contêiner
+`node:22-alpine` (§11; o Node do host é 20).
+
+### 7.1 Arquitetura e rotas
+Sem NgModules: `main.ts` faz `bootstrapApplication(AppComponent, appConfig)`, e cada componente importa o que usa
+(helm incluso). Estrutura:
 
 ```
+libs/ui/<primitivo>/src/**   helm gerado pelo @spartan-ng/cli; código do projeto (§7.4). Import @spartan-ng/helm/<nome>,
+                             mapeado em compilerOptions.paths do tsconfig.json
+src/styles.css               Tailwind + preset do spartan + tema Uzusis (§7.2)
 src/app/
-  app.module.ts, app-routing.module.ts, app.component.*          (f)
-  core/                                                          (f)
-    auth/ auth.config.ts, auth.service.ts, auth.guards.ts        (autenticadoGuard, adminGuard)
-    api/  modelos.ts, catalogo.service.ts, sacola.service.ts, pedidos.service.ts,
-          pagamentos.service.ts, perfil.service.ts, cep.service.ts, erros.ts (mensagemDeErro)
+  app.config.ts, app.routes.ts, app.component.*
+  core/
+    auth/  auth.config.ts, auth.service.ts, auth.guards.ts (autenticadoGuard, adminGuard), roles.ts
+    api/   modelos.ts, catalogo/sacola/pedidos/pagamentos/perfil/cep.service.ts, params.ts, erros.ts (mensagemDeErro)
     interceptors/api.interceptor.ts
-    util/ sacola.ts (+ sacola.spec.ts), endereco-form.ts (criarFormEndereco), ufs.ts, aviso.service.ts
-  shared/   shared.module.ts + componentes transversais (§7.4)   (f)
-  layout/   shell, header, footer, sacola-drawer, nao-encontrado (f)
-  features/vitrine/**   VitrineModule                             (g)
-  features/checkout/**  CheckoutModule + PedidoModule             (h)
-  features/conta/**     ContaModule                               (i)
-  features/admin/**     AdminModule                               (j)
+    util/  sacola.ts, endereco-form.ts (criarFormEndereco), ufs.ts, aviso.service.ts
+  shared/   componentes uz-* (§7.4)
+  layout/   shell, header, busca (uz-busca), footer, sacola-drawer, nao-encontrado
+  features/{vitrine,checkout,conta,admin}/   páginas + <feature>.routes.ts (export default)
 ```
 
-Rotas (`RouterModule.forRoot(routes, { scrollPositionRestoration: 'enabled' })`):
+Rotas (`app.routes.ts`):
 ```ts
 [
-  { path: 'admin', canMatch: [adminGuard], loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule) },
+  { path: 'admin', canMatch: [adminGuard], loadChildren: () => import('./features/admin/admin.routes') },
   { path: '', component: ShellComponent, children: [
-      { path: 'checkout', canActivate: [autenticadoGuard], loadChildren: () => …CheckoutModule },  // '' → CheckoutComponent
-      { path: 'pedido',   canActivate: [autenticadoGuard], loadChildren: () => …PedidoModule },    // ':id' → PedidoStatusComponent
-      { path: 'conta',    canActivate: [autenticadoGuard], loadChildren: () => …ContaModule },     // '' → redirect 'pedidos'; 'pedidos'; 'dados'
-      { path: '',         loadChildren: () => …VitrineModule },                                    // '' home; 'loja'; 'produto/:id'
+      { path: 'checkout', canActivate: [autenticadoGuard], loadChildren: () => import('./features/checkout/checkout.routes') }, // ''; ?pedido=:id retoma
+      { path: 'pedido',   canActivate: [autenticadoGuard], loadChildren: () => import('./features/checkout/pedido.routes') },   // ':id'
+      { path: 'conta',    canActivate: [autenticadoGuard], loadChildren: () => import('./features/conta/conta.routes') },     // '' → 'pedidos'; 'pedidos'; 'dados'
+      { path: '',         loadChildren: () => import('./features/vitrine/vitrine.routes') },                                  // ''; 'loja'; 'produto/:id'
       { path: '**',       component: NaoEncontradoComponent },
   ]},
 ]
@@ -1089,191 +1108,239 @@ Rotas (`RouterModule.forRoot(routes, { scrollPositionRestoration: 'enabled' })`)
 - `adminGuard` (canMatch):
   - sem sessão → `auth.login(url)` (volta para `/admin…` depois do login) e devolve `router.parseUrl(router.url)`,
     a URL atual (ou `/` no primeiro carregamento), e não `false`: com `false` o router tentaria as outras rotas e
-    mostraria "Página não encontrada" (`**`) até o redirect. Com a URL-alvo igual à atual, o router pula a
-    navegação, sem laço;
+    mostraria "Página não encontrada" (`**`) até o redirect;
   - com sessão e sem `ADMIN` → `UrlTree('/')` + aviso `Acesso restrito à administração`.
 - `autenticadoGuard`: sem sessão válida (depois de tentar o refresh) → `auth.login(state.url)` e `false`.
-- A fundação (f) cria **os quatro módulos esqueleto** (module + routing + componente placeholder), e depois cada
-  dono assume o seu diretório.
-- **Título por rota** (WCAG 2.4.2): toda rota tem `title`, no formato `'<Página> — Uzusis'` ("Loja — Uzusis",
-  "Finalizar compra — Uzusis", "Minha conta — Uzusis", "Administração — Uzusis", "Página não encontrada — Uzusis";
-  a home é "Uzusis").
-  O produto sobrescreve com `Title.setTitle(nome + ' — Uzusis')` quando carrega.
-- **Foco na navegação** (WCAG 2.4.3): o `AppComponent` escuta `NavigationEnd` (menos a primeira) e, num `setTimeout`,
-  foca o `main h1` (que tem `tabindex="-1"`), ou o `<main>` (também com `tabindex="-1"`) enquanto a página carrega.
-  Vale para a loja e para o admin, que tem o próprio `<main>`.
+- **Título por rota** (WCAG 2.4.2): `'<Página> — Uzusis'` ("Loja — Uzusis", "Finalizar compra — Uzusis", "Minha conta —
+  Uzusis", "Administração — Uzusis", "Página não encontrada — Uzusis"; a home é "Uzusis"). O produto sobrescreve com
+  `Title.setTitle(nome + ' — Uzusis')`.
+- **Foco na navegação** (WCAG 2.4.3): o `AppComponent` escuta `NavigationEnd` (menos a primeira) e, quando o
+  **caminho** muda (filtro ou página na query não tiram o foco do controle), foca o `main h1` (`tabindex="-1"`) ou o
+  próprio `<main>`. O link "Pular para o conteúdo" também fica no `AppComponent`.
 
-Providers globais:
-- `LOCALE_ID='pt-BR'` com `registerLocaleData(localePt)`;
-- `DEFAULT_CURRENCY_CODE='BRL'`;
-- `{ provide: MatPaginatorIntl, useClass: PaginadorPtBr }`: "Itens por página", "Próxima página", "Página anterior",
-  "Primeira página", "Última página" e `getRangeLabel` → `'1 – 20 de 37'` (`'0 de 0'` quando vazio);
-- `{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }`;
-- `APP_INITIALIZER` de autenticação (§7.5);
-- `HTTP_INTERCEPTORS` → `ApiInterceptor`.
+Providers (`app.config.ts`):
+- `provideZoneChangeDetection()`: o app depende do zone.js (timers, polling, Stripe); sem isso o 21+ sobe zoneless;
+- `provideRouter(ROTAS, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' }))`;
+- `provideHttpClient(withXhr(), withInterceptorsFromDi())` + `HTTP_INTERCEPTORS` → `ApiInterceptor` (classe);
+- `provideOAuthClient()` + `{ provide: OAuthStorage, useFactory: () => localStorage }`;
+- `provideAppInitializer(() => inject(AuthService).iniciar())` (§7.5; nunca rejeita);
+- `LOCALE_ID='pt-BR'` (`registerLocaleData(localePt, 'pt-BR')`) e `DEFAULT_CURRENCY_CODE='BRL'`;
+- `provideSpartanHlm()` (overlays do CDK sem popover: sheet e diálogo ficam acima do `<hlm-toaster>`) e
+  `provideNgIconsConfig({ strokeWidth: 1.75 })` (ícones do helm com o traço do `uz-icone`).
 
-Sem `MAT_DATE_LOCALE`: não há datepicker, a data é `<input type="date">`.
+**Change detection**: no 22 o OnPush é o padrão. Componente que altera campos num `subscribe` declara
+`ChangeDetectionStrategy.Eager` (a migração pôs em todos os que existiam); componente só com signals (`uz-busca`,
+`uz-paginador`) fica no padrão.
 
-`environment.ts`:
-```ts
-{ production: true, issuer: null as string | null }
-```
-`environment.development.ts` (ng serve) usa `issuer: 'http://localhost:8080/auth/realms/uzusis'`.
-Todo código importa **só** `environments/environment`; `fileReplacements` só na config `development`. A config
-`staging` é apagada. O issuer efetivo é `environment.issuer ?? location.origin + '/auth/realms/uzusis'`.
-`proxy.conf.json`: `/api` e `/storage` → `http://localhost:8080`, **sem** `pathRewrite`.
-Nesta máquina a 8080 é de outro projeto: os agentes **não** usam `ng serve` para validar. A validação visual é
-pelo compose (§11), em 8088.
+`environment.ts`: `{ production: true, issuer: null }`; `environment.development.ts` (só `ng serve`, por
+`fileReplacements`) usa `issuer: 'http://localhost:8080/auth/realms/uzusis'`. O issuer efetivo é
+`environment.issuer ?? location.origin + '/auth/realms/uzusis'`. `proxy.conf.json`: `/api` e `/storage` →
+`http://localhost:8080`, sem `pathRewrite`. Nesta máquina a 8080 é de outro projeto: a validação visual é pelo
+compose (§11), em 8088.
 
-`angular.json`:
-- projeto `uzusis`, `outputPath: "dist/uzusis"` (**contrato com o Dockerfile**);
-- `styles: ["src/styles.scss"]` (sem o tema prebuilt e sem bootstrap);
+`angular.json` (projeto `uzusis`):
+- build `@angular/build:application`, `outputPath: { "base": "dist/uzusis" }` → saída em **`dist/uzusis/browser`**
+  (**contrato com o Dockerfile**, §8.1); `styles: ["src/styles.css"]`, `inlineStyleLanguage: "css"`. O PostCSS vem de
+  `.postcssrc.json` (`@tailwindcss/postcss`);
 - budgets: initial 1mb/1.5mb e anyComponentStyle 8kb/16kb;
-- a config `test` também sem o tema prebuilt.
+- test `@angular/build:unit-test` (Vitest + jsdom), com `setupFiles: ["src/test-setup.ts"]` (patch do zone.js para
+  `fakeAsync`/`tick`).
 
 ### 7.2 Design system
-Arquivos:
-- `src/styles/_tokens.scss`: custom properties em `:root`;
-- `src/styles/_tema.scss`: tema Material M2;
-- `src/styles/_base.scss`: reset, tipografia e foco;
-- `src/styles.scss` importa os três.
+Tudo em `src/styles.css`, CSS puro: `@import 'tailwindcss'`, `@import '@spartan-ng/brain/hlm-tailwind-preset.css'`,
+`@source '../libs/ui'`, os tokens em `:root` e o `@theme` (fontes, escala, breakpoints, sombras). Nenhuma cor literal
+em componente: só as classes dos tokens (`bg-background`, `text-brand`…). Nenhum `.scss`/`.css` de componente: classes
+no template.
 
-Nenhuma cor literal em componente: só `var(--uz-*)`.
+Tema **só claro** (`color-scheme: light`, sem `.dark`). Tokens em **hex**: o checkout os lê com `getComputedStyle` e
+repassa ao Stripe, que não aceita `oklch` nem `var()`. Papel das cores: **preto seleciona e age; marrom destaca e indica
+foco; areia agrupa.**
 
 | Token | Valor | Uso | Contraste (calculado) |
 |---|---|---|---|
-| `--uz-papel` | `#faf8f5` | fundo do `body` | — |
-| `--uz-superficie` | `#ffffff` | cartões, drawer, diálogos | — |
-| `--uz-areia` | `#efe9e3` | preenchimentos sutis, chips, skeleton | — |
-| `--uz-tinta` | `#292b2e` | texto, botão escuro | 13,4:1 no papel |
-| `--uz-tinta-suave` | `#6b645e` | texto secundário | 5,5 no papel / 4,8 na areia |
-| `--uz-marca` | `#7a5a41` | ação principal, preço, links | 6,2 com branco em cima / 5,9 no papel |
-| `--uz-marca-hover` | `#654a35` | hover | 8,1 |
-| `--uz-marca-clara` | `#a3765f` | **só decorativo** (fios, anel de foco) | 3,95: proibido em texto |
-| `--uz-marca-tinta` | `#f3ece5` | fundo de chip informativo (marca sobre ele: 5,3) | — |
-| `--uz-borda` | `#e6e0da` | divisórias decorativas | — |
-| `--uz-borda-campo` | `#8f877f` | borda de input | 3,5 (WCAG 1.4.11) |
-| `--uz-sucesso` / fundo | `#2f6b45` / `#e8f3ec` | PAGO, RECEBIDO | 6,3 / 5,6 no fundo |
-| `--uz-aviso` / fundo | `#8a5a00` / `#fbf1dc` | CRIADO, ENVIADO | 5,9 / 5,3 |
-| `--uz-erro` / fundo | `#b3261e` / `#fbe9e7` | CANCELADO, erros | 6,5 / 5,6 |
+| `--background` | `#faf8f5` | fundo (papel) | — |
+| `--foreground` | `#292524` | texto | 14,31 no papel |
+| `--card` / `--popover` | `#ffffff` | cartões, sheet, menus, diálogos | — |
+| `--primary` / `--primary-foreground` | `#1c1917` / `#faf8f5` | botão principal, pill e aba selecionadas | 16,50 (hover `/80`: 8,87) |
+| `--secondary` = `--muted` = `--accent` | `#efe9e3` (areia) | pills, blocos, skeleton, hover de menu | texto primary: 14,52 |
+| `--muted-foreground` | `#6b645e` | texto secundário | 5,49 no papel · 4,83 na areia |
+| `--destructive` / `--destructive-muted` | `#a8231c` / `#fbe9e7` | erro, ação destrutiva, CANCELADO | 6,78 no papel · 6,13 no fundo |
+| `--border` | `#e6e0da` | divisórias decorativas | — |
+| `--input` | `#958d85` | borda de campo | 3,08 no papel (WCAG 1.4.11) |
+| `--ring` | `#7a5a41` | anel de foco | 5,88 no papel |
+| `--brand` / `-hover` / `-muted` / `-foreground` | `#7a5a41` / `#654a35` / `#f3ece5` / `#ffffff` | destaque: preço, links, total, badge da sacola, faixa do Instagram | 5,88 no papel · branco sobre ele 6,24 |
+| `--success` / `-muted` | `#2f6b45` / `#e8f3ec` | PAGO, RECEBIDO, Ativo | 5,58 |
+| `--warning` / `-muted` | `#8a5a00` / `#fbf1dc` | CRIADO, ENVIADO, Sem estoque, "Restam N" | 5,28 |
+| `--sidebar-*` | branco; item ativo `#f3ece5` / `#654a35` | menu do admin | 6,94 |
+
+`--brand*`, `--success*`, `--warning*` e `--destructive-muted` ficam fora do contrato shadcn e entram no Tailwind por
+`@theme inline` (`text-brand`, `bg-warning-muted`…). `--radius: 0.75rem`; `--chart-*` existem pelo contrato, sem uso.
 
 Escalas:
-- **Fontes**:
-  - Scope One 400 para títulos e o logotipo;
-  - Inter 400/500/600 para o resto;
-  - carregadas por Google Fonts no `index.html`, com `preconnect` e `display=swap`;
-  - `--uz-fonte-titulo: 'Scope One', Georgia, serif` e `--uz-fonte-texto: 'Inter', system-ui, sans-serif`.
-- **Escala tipográfica** (rem): 0.75 legenda (maiúsculas, `letter-spacing .08em`), 0.875, 1 corpo, 1.125
-  preço/lead, 1.375 h3, 1.75 h2, 2.25 h1, e `clamp(2rem, 5vw, 3rem)` no hero.
-- **Espaço**: `--uz-esp-1..8` = 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4 rem.
-- **Raios**: `--uz-raio-s` 4px (inputs, botões), `--uz-raio-m` 8px (cartões, diálogos), `--uz-raio-pill` 999px
-  (chips); fotos com raio 0.
-- **Sombras**:
-  - `--uz-sombra-1: 0 1px 2px rgb(41 43 46 / .06), 0 2px 8px rgb(41 43 46 / .06)`;
-  - `--uz-sombra-2: 0 8px 24px rgb(41 43 46 / .12)`;
-  - cartão em repouso tem borda, não sombra.
-- **Breakpoints** (SCSS, mobile-first com `min-width`): `$sm 36rem`, `$md 48rem`, `$lg 62rem`, `$xl 80rem`.
-  Largura máxima de conteúdo: 80rem, com gutter de 1rem no mobile e 2rem a partir de `$md`.
-- **Foco**: `:focus-visible { outline: 2px solid var(--uz-marca); outline-offset: 2px; }`. Nada de `outline:none`
-  sem substituto.
-- **Movimento**: `@media (prefers-reduced-motion: reduce)` zera transições e animações.
-- **Alvos de toque** com no mínimo 44×44px.
-- **Tema Material**:
-  - M2 (`mat.define-palette` com a paleta 50..900 derivada de `#7a5a41`, tom 500, contraste branco de 400 para cima);
-  - accent = a mesma paleta; warn = `mat.$red-palette` 800;
-  - tipografia `Inter`;
-  - incluir **só** os `*-theme` dos componentes usados (core, button, form-field, input, select, sidenav, badge,
-    button-toggle, expansion, dialog, snack-bar, menu, progress-spinner, progress-bar, table, paginator, tabs,
-    chips, checkbox, tooltip).
-- **Ícones**: componente `uz-icone` com SVG inline (sacola, usuário, busca, menu, fechar, mais, menos, lixeira,
-  seta-esquerda, seta-direita, check, alerta, régua). Sem fonte de ícones e sem Font Awesome.
+- **Fontes**: `font-sans` = Inter 400/500/600 (corpo, rótulos, botões); `font-display` = Scope One (h1–h3, logotipo,
+  títulos de sheet e diálogo, KPIs). Google Fonts no `index.html`, com `preconnect` e `display=swap`.
+- **Tipografia** (rem): `text-xs` 0,75 (`.uz-legenda`, maiúsculas, `tracking-[0.08em]`), `text-sm` 0,875, `text-base` 1,
+  `text-lg` 1,125 (preço), `text-h3` 1,375, `text-h2` 1,75, `text-h1` 2,25, `text-hero` `clamp(2rem, 5vw, 3rem)`.
+  `h1`–`h3` com `text-wrap: balance`. Pesos: rótulos e botões 500, preço e totais 600.
+- **Forma**: entradas (input, select, qtd, textarea) `rounded-md` (≈ 10 px); ações e escolhas (botões, pills, chips,
+  abas, badges) `rounded-full`; superfícies `rounded-lg` (fotos, miniaturas) e `rounded-xl` (cards, diálogos).
+- **Sombras** quentes: `shadow-xs` `0 1px 2px 0 rgb(28 25 23 / .06)` (inputs, pills, cards), `shadow-sm` (hover de card
+  clicável), `shadow-lg` `0 8px 24px rgb(28 25 23 / .12)` (sheet, menus). Card em repouso: `ring-1 ring-foreground/10` + `shadow-xs`.
+- **Breakpoints** (mobile-first): `sm` 36rem, `md` 48rem, `lg` 62rem, `xl` 80rem (`sm` e `lg` sobrescritos no `@theme`).
+  `.uz-container` = `mx-auto w-full max-w-[80rem] px-4 md:px-8`.
+- **Foco**: `:focus-visible` com `outline-2 outline-offset-2` na cor `--ring`. O anel do helm é o cheio (`ring-ring`):
+  o `ring-ring/50` do spartan daria 2,14:1.
+- **Movimento**: `prefers-reduced-motion` zera animações e transições.
+- **Alvos de toque** de 44 px: botões, inputs e selects `h-11`; tamanhos `sm`/`xs` só no admin a partir de `lg`.
+- **Cascata**: o Tailwind 4 usa `@layer`, e CSS sem camada vence qualquer utilitário. Todo CSS global fica em
+  `@layer base` (reset, títulos, `:focus-visible`, links de texto) ou `@layer components` (`.uz-container`, `.uz-titulo`,
+  `.uz-legenda`, `.uz-preco`, `.uz-cartao`, `.uz-pill`).
+- **Links de texto**: marrons e sublinhados (`a:not([data-slot])`; a cor sozinha dá 2,4:1 contra o texto, WCAG 1.4.1).
+  Com `data-slot` (`hlmBtn`, item de menu) quem decide é o helm.
+- **Pill** (`.uz-pill`, tamanhos e chips de categoria): areia com `shadow-xs`; selecionada (`:checked +` ou
+  `aria-pressed="true"`) preta; esgotada ou desabilitada riscada, sem `opacity` (o texto mantém 4,83:1).
+- **Ícones**: `uz-icone` (SVG inline 24×24, traço 1,75: sacola, usuario, busca, menu, fechar, mais, menos, lixeira,
+  seta-esquerda/direita/baixo, chevron-esquerda/direita, check, alerta, regua) nos templates do app; o helm usa
+  `@ng-icons/lucide` por dentro. Sem fonte de ícones.
 
-**Convenções** (implementadas por (f); as features (g)–(j) seguem, para as telas saírem iguais):
-- campos: `mat-form-field` com `appearance: 'outline'` (padrão global, §7.1);
-- botões: ação principal = `mat-flat-button color="primary"`; secundária = `mat-stroked-button`; destrutiva =
-  `mat-stroked-button color="warn"` + `AvisoService.confirmar`;
-- largura de página: classe global `.uz-container` (máx. 80rem, gutter de §7.2);
-- título de página: `<h1 class="uz-titulo" tabindex="-1">`, um por página;
-- formatação: preço sempre `| currency` (BRL); data `| date:'dd/MM/yyyy'`; data e hora `| date:'dd/MM/yyyy HH:mm'`.
+**Convenções** (as telas seguem, para saírem iguais):
+- **Campo**: `<div hlmField>` + `<label hlmFieldLabel for>` **acima** do campo (nunca flutuante) + `input hlmInput` +
+  `p hlmFieldDescription` (opcional = descrição "Opcional") + `hlm-field-error validator="…"`, que aparece com o
+  controle inválido e tocado, tem `role="alert"` e entra no `aria-describedby`. `<form novalidate>` e `required` nos
+  obrigatórios.
+- **Select**: `hlm-native-select` (select nativo, CVA; picker do SO no celular). O `ng-invalid` fica no host, que não
+  recebe foco: para focar o primeiro inválido, `hlm-native-select.ng-invalid select`.
+- **Adorno** (prefixo "R$", botão limpar, spinner): `hlm-input-group` + `hlm-input-group-addon`.
+- **Botões**: principal `hlmBtn` (preto, pílula, 44 px; CTA de página `size="lg"`); secundária `variant="outline"`;
+  destrutiva `variant="destructive"` + `AvisoService.confirmar`; texto `ghost`/`link`; ícone `size="icon"` +
+  `aria-label`. Em voo: `[disabled]`, `<hlm-spinner aria-hidden="true" />` e o texto no gerúndio ("Salvando…").
+- **Nativo antes de helm**: rádios para tamanhos, `<details>` para expansão, links com `aria-current="page"` para abas,
+  `uz-paginador` para paginação.
+- Título de página: `<h1 class="uz-titulo" tabindex="-1">`, um por página.
+- Formatação: preço `| currency` (BRL); data `| date:'dd/MM/yyyy'`; data e hora `| date:'dd/MM/yyyy HH:mm'`.
 
 ### 7.3 Páginas
 
-Toda página tem os estados **carregando** (skeleton ou spinner com `aria-busy`), **vazio** (mensagem + ação) e
-**erro** (`mensagemDeErro(err)` + "Tentar novamente").
+Toda página tem os estados **carregando** (`uz-esqueleto` com `aria-busy`, ou `uz-estado tipo="carregando"`; recarga
+de lista já exibida = `hlm-progress` indeterminado no topo), **vazio** (`uz-estado` com mensagem + uma ação) e **erro**
+(`uz-estado tipo="erro"`: `mensagemDeErro(err)` + "Tentar novamente"). Erro de ação em linha: `hlmAlert
+variant="destructive"`; sucesso e erro transitório: toast (`AvisoService`).
 
-**Shell (f)**
-- Link "Pular para o conteúdo" como primeiro elemento focável; `<main id="conteudo">`.
-- **Header** (64px, fundo papel, borda inferior):
-  - logotipo em texto "UZUSIS" (Scope One, `letter-spacing .2em`) com o monograma `assets/logoUzu.png`, linkando para `/`;
-  - navegação desktop: "Loja" e "Categorias ▾" (`mat-menu` com as 9, que levam a `/loja?categoria=X`);
-  - campo de busca: submeter vai para `/loja?q=…`;
-  - conta, via `mat-menu`:
-    - logado: "Minha conta", "Meus pedidos", "Administração" (só com ADMIN) e "Sair";
-    - anônimo: "Entrar" e "Criar conta";
-  - botão sacola com `matBadge` = `quantidadeItens` e `aria-label="Sacola, N itens"`.
-  - **Mobile** (< `$lg`):
-    - hambúrguer → `mat-sidenav` start (`mode="over"`) com a navegação, as categorias e a conta;
-    - logo centralizado;
-    - ícone de busca que abre um campo de largura total abaixo do header;
-    - sacola.
-- **Footer** (3 colunas ≥ `$md`, 1 coluna no mobile):
-  - Sobre: o texto da marca, reaproveitado do footer atual;
-  - Atendimento: `mailto:uzusis@gmail.com` e Instagram `@_uzusis`;
-  - Categorias: links;
-  - linha de copyright e o crédito atual.
-  - Headings são `h2`/`h3`, nunca vários `h1`.
-- **Sacola** (`mat-sidenav` end, 400px, 100% no mobile, `mode="over"`, foco preso pelo sidenav):
-  - linhas com miniatura, nome (link), tamanho, `uz-qtd` (O3), valor e remover (O4, com `aria-label`);
-  - subtotal, "Frete calculado no checkout" e "Finalizar compra" → `/checkout`;
-  - vazia: "Sua sacola está vazia" + "Explorar a loja";
-  - anônimo: "Entre para ver sua sacola" + "Entrar". O `SacolaService` só chama O1 quando `logado$` é `true`.
-  - Atualizações anunciadas em `aria-live="polite"`.
-- **404**: "Página não encontrada" + links para Início e Loja.
+**Shell (`layout/`)**
+- "Pular para o conteúdo" como primeiro focável; `<main id="conteudo" tabindex="-1">`; a página rola na janela.
+- **Faixa de avisos** (1º filho do `<header>`, preta, estática: sem rotação, sem região viva, sem números):
+  `<ul aria-label="Avisos da loja">` com "Enviamos para todo o Brasil", "Pagamento seguro com cartão via Stripe"
+  (≥ `md`) e "Trocas e atendimento: uzusis@gmail.com" (≥ `lg`, `mailto:` com foco claro: o marrom daria ~2,8:1 no preto).
+- **Header** (`h-16`, papel, borda inferior). Celular: menu | logo | ⌕, conta, sacola. ≥ `lg`: logo | Loja,
+  Categorias | busca | conta, sacola.
+  - logotipo "UZUSIS" (Scope One, `tracking-[0.2em]`) com o monograma `assets/logoUzu.png` escurecido por filtro (a
+    marca original dá ≈ 2,3:1), link para `/`; abaixo de 360 px o monograma some;
+  - "Categorias" e conta em `hlm-dropdown-menu` (itens `min-h-11`): as 9 categorias → `/loja?categoria=X`; logado:
+    "Minha conta", "Meus pedidos", "Administração" (só com ADMIN), separador e "Sair"; anônimo: "Entrar" e "Criar conta";
+  - busca: `uz-busca` no header a partir de `lg`; no celular o ⌕ (`aria-label="Buscar peças"`,
+    `aria-haspopup="dialog"`) abre a busca em tela cheia (abaixo);
+  - sacola: `hlmBtn` ícone com `aria-label="Sacola, N itens"` e `hlmBadge` marrom (`aria-hidden`) quando N > 0.
+- **Menu mobile**: `hlm-sheet side="left"` (`w-[min(20rem,85vw)]`) com Início, Loja, Categorias e Conta. Sheet = diálogo
+  do CDK: foco preso, Esc, rolagem travada, foco devolvido ao gatilho. Fecha em `NavigationStart`/`NavigationSkipped`.
+- **Footer** (`bg-secondary`, 3 colunas ≥ `md`): Sobre a loja (o texto das irmãs, a partir de "Com o mesmo sangue…",
+  para não repetir o da home), Atendimento (`mailto:uzusis@gmail.com`, Instagram `@_uzusis`) e Categorias; headings
+  `h2`/`h3`, nunca outro `h1`.
+- **Sacola** (`hlm-sheet side="right"`, 100% no celular, `25rem` a partir de `sm`): linhas com miniatura, nome (link),
+  tamanho, `uz-qtd` (O3), valor e remover (O4, com `aria-label`); rodapé fixo com subtotal, "Frete calculado no
+  checkout" e "Finalizar compra" → `/checkout`. Vazia: "Sua sacola está vazia" + "Explorar a loja". Anônimo: "Entre
+  para ver sua sacola" + "Entrar" (o `SacolaService` só chama O1 com `logado$` verdadeiro). Mudanças em `aria-live="polite"`.
+- **404**: "Página não encontrada" + Início e Loja.
 
-**Home `/` (g)**
-- **Hero** em 2 colunas (≥ `$md`), empilhado no mobile:
-  - texto: H1 Scope One ("Peças pensadas para o seu corpo"), uma linha de apoio e o CTA "Ver coleção" → `/loja`;
-  - imagem: a 1ª foto do produto mais recente, com fallback num bloco `--uz-areia`.
-  - Os banners com texto dentro da imagem são **apagados**.
-- **"Compre por categoria"**: 9 blocos tipográficos (2 colunas no mobile, 3 no `$md`, 5 no `$xl`) → `/loja?categoria=X`.
-- **"Novidades"**: `GET /api/produtos?size=8&sort=criadoEm,desc`, com 8 `uz-produto-card` e "Ver tudo" → `/loja`.
-  Vazio: "Novidades chegando em breve".
-- **Faixa do Instagram**: CTA para `@_uzusis`.
+**Busca com sugestões (`layout/busca.ts`, `layout/busca.component.*`)**
+Combobox próprio no padrão APG "combobox com listbox popup" (não há autocomplete no `libs/ui`). O foco **nunca** sai do
+campo: a opção ativa vai em `aria-activedescendant`, e as opções são `div[role=option]` dentro de `role=group`
+rotulados; o painel não tem nada tabulável. Só signals (OnPush). Dois modos: `popup` (header ≥ `lg`) e `tela` (celular:
+`hlm-sheet side="top"` com `h-dvh`, título "Buscar peças" só para leitor de tela, painel sempre visível e botão
+"Cancelar"; foco preso, Esc e foco devolvido ao ⌕ vêm do CDK).
+- **Regras**: o termo passa por `trim`; **debounce de 300 ms** (igual à loja), **mínimo de 2 letras**, `switchMap` (a
+  busca anterior é cancelada) e **1 chamada por termo**: C1 `nome=<q>&size=6&sort=criadoEm,desc`. Erro da chamada vira
+  estado de erro, não exceção. Enquanto carrega, a resposta anterior continua, esmaecida (`opacity-60`), e o listbox
+  fica `aria-busy`; na 1ª carga de um termo, 3 linhas de esqueleto (`aria-hidden`).
+- **Grupos** (a ordem é a das setas; a última opção fica fixa no pé do painel):
 
-**Loja `/loja` (g)**
-- A URL é a fonte do estado: `?categoria=BLUSA&q=linho&ordem=recentes|menor-preco|maior-preco`, com
-  `ordem` → `sort` `criadoEm,desc` | `preco,asc` | `preco,desc`.
-- `queryParamMap` + `switchMap` recomeçam a lista. Mudança de filtro usa `router.navigate(..., {queryParamsHandling:'merge'})`;
-  a busca usa `replaceUrl`.
-- Título: nome da categoria ou "Loja", com "N peças" (`totalElements`).
-- Barra de filtros:
-  - chips de categoria com `aria-pressed`, rolagem horizontal no mobile, e "Todas";
-  - `mat-select` de ordenação;
-  - busca com debounce de 300 ms, mínimo de 2 caracteres, e botão limpar.
-- Grade: 2, 3 e 4 colunas em `$sm`, `$md` e `$lg`.
-- **"Carregar mais"**:
-  - pede a página `number+1` com os mesmos filtros e **acrescenta** à lista;
-  - some quando `last`;
-  - fica desabilitado enquanto carrega;
-  - texto "Mostrando X de Y".
-  - Tamanho da página: 12.
+  | Estado | Mensagem (fora do listbox) | Grupos | Opção final |
+  |---|---|---|---|
+  | campo vazio ou 1 letra | — | "Buscas recentes" (até 5, → `/loja?q=`) + "Limpar buscas recentes"; "Categorias": as 9 em pílulas → `/loja?categoria=X` | "Ver todas as peças" → `/loja` |
+  | carregando | — | categorias por nome; "Produtos" anteriores, esmaecidos | "Ver resultados para “q”" → `/loja?q=` |
+  | com resultado | — | "Categorias" (até 3) e "Produtos" (até 6 → `/produto/:id`) | "Ver todos os N resultados para “q”" (N = 1: "Ver 1 resultado…") → `/loja?q=` |
+  | sem resultado | "Nenhuma peça encontrada para “q”." | categorias por nome; sem nenhuma, "Explore as categorias" com as 9 | "Ver todas as peças" → `/loja` |
+  | erro | ícone + "Não foi possível buscar as peças agora." (`text-destructive`) | categorias por nome | "Buscar “q” na loja" → `/loja?q=` |
+
+- **Categorias relacionadas** (até 3, sem acento nem caixa): nome igual a uma palavra do termo > prefixo, nos dois
+  sentidos, com palavras de 2 letras ou mais (`calcas` → Calça; `sa` → só Saia; `body preto` → Body) > categoria de
+  uma peça encontrada ("correlata": rótulo `“linho” em Blusa` → `/loja?categoria=BLUSA&q=linho`; com termo de 2 letras,
+  só o nome, com o mesmo filtro).
+- **Produto**: miniatura 3:4 (`alt=""`, lazy), nome com o trecho digitado em `<strong>` (`destacar()`, sem
+  `innerHTML`), categoria e preço marrom.
+- **Buscas recentes**: `localStorage['uz-buscas-recentes']`, até 5, sem duplicar ("Calça" = "calca"), termos de 2+
+  letras (cortados em 100); leitura e escrita em `try/catch` (aba privada só não lembra). Gravam: Enter com 2+ letras e
+  qualquer opção escolhida com termo. "Limpar buscas recentes" apaga a chave e **mantém** o popup aberto.
+- **Teclado** (foco no campo): ↓ abre (fechado) ou vai à próxima (da última volta à 1ª); ↑ vai à anterior (da 1ª, ou
+  sem ativa, à última); Enter com opção ativa escolhe, sem ativa envia o form (`/loja?q=`; vazio → `/loja`); Esc com o
+  popup aberto fecha e mantém o texto, fechado limpa, no modo tela não é tratado (o CDK fecha o sheet); Tab fecha o
+  popup; ←/→/Home/End zeram a opção ativa. O popup abre com clique, digitação ou ↓, **não** ao receber foco pelo Tab.
+  Clique fora (`focusout` para fora do componente) e `NavigationStart` fecham. Escolher limpa o campo e navega.
+- **Leitor de tela**: `<p role="status">`, só com a resposta do termo atual: "N peças encontradas. Use as setas para
+  ver as sugestões.", "1 peça encontrada…", a mensagem de vazio ou a de erro.
+- **Estilo**: popup `absolute top-full right-0 z-50 mt-3`, `w-[min(28rem,calc(100vw-2rem))]`, `rounded-xl`,
+  `shadow-lg`, `ring-1`; `(mousedown)` com `preventDefault` mantém o foco no campo. Opção ativa com `aria-selected` +
+  anel marrom `ring-2 ring-inset ring-ring` (a areia sozinha dá ~1,2:1). O campo é uma pílula (`hlm-input-group
+  rounded-full`), `type="search"`, `maxlength="100"`, sem autocorreção.
+
+**Home `/` (vitrine)** — uma chamada só: C1 `size=48&sort=criadoEm,desc` (no carregamento e no "Tentar novamente");
+nenhuma a `/categorias` (usa `CATEGORIAS`). Seções, na ordem:
+1. **Hero** (2 colunas `md:grid-cols-[2fr_3fr]`): legenda "Moda feminina minimalista", h1 `text-hero` "Peças pensadas
+   para o seu corpo", apoio e CTA "Ver coleção" → `/loja` (largura total no celular). Imagem: o banner da coleção Basic
+   Sis (`assets/banner-colecao.jpeg`, 16:9 com o texto da arte, `alt` descritivo, `fetchpriority="high"`). No celular
+   o banner vem **antes** só visualmente (`max-md:order-first`, no DOM o h1 vem primeiro) e sangra até as bordas.
+2. **Compre por categoria**: 9 círculos com foto (`ring-2 ring-brand/40`, 72 px; 80 px em `lg`, 112 px em `xl`) →
+   `/loja?categoria=X`. Capa = 1ª foto da peça mais nova com foto de cada categoria entre as 48 (`capasPorCategoria`);
+   sem capa, a inicial. Abaixo de `lg`, trilho com rolagem lateral e snap (metade do 4º círculo aparece a 390 px);
+   a partir de `lg`, uma linha de 9. Foto com `alt=""` (o nome do link é o da categoria).
+3. **Novidades**: as 8 primeiras em `uz-produto-card` + "Ver tudo" → `/loja`. Celular: trilho com cards de 42% e um
+   card final "Ver todas as N peças"; a partir de `md`, grade de 3 e 4 (`lg`) colunas. Vazio: "Novidades chegando em
+   breve" + "Acompanhe no Instagram"; erro: "Não foi possível carregar as novidades" + "Tentar novamente".
+4. **Envio, pagamento e trocas** (h2 só para leitor de tela; cartão com 4 itens, 1/2/4 colunas): "Enviamos para todo
+   o Brasil" (frete por estado, no checkout), "Pagamento seguro com cartão" (Stripe), "Trocas e atendimento" (e-mail e
+   Instagram) e "Peças em quantidade limitada" (o selo "Últimas unidades"). Sem valores, prazos nem `R$`.
+5. **Nossa história**: trecho literal do texto das irmãs ("Sonhada desde 2022, finalmente ganhamos forma.", h2
+   `text-h2 md:text-h1`).
+6. **Instagram** (`bg-brand-muted`, colada no rodapé): avatar com anel, "Siga a Uzusis no Instagram", "Seguir
+   @_uzusis" → `https://www.instagram.com/_uzusis/` e "Chamar no direct" → `https://ig.me/m/_uzusis`.
+
+Nenhum texto inventado: sem "mais vendidos", avaliações, cupom, desconto, contador ou frete grátis. Categorias com
+esqueleto enquanto carregam e iniciais em erro; Novidades com 8 esqueletos no formato do trilho ou da grade.
+
+**Loja `/loja` (vitrine)**
+- A URL é a fonte do estado: `?categoria=BLUSA&q=linho&ordem=recentes|menor-preco|maior-preco`, com `ordem` → `sort`
+  `criadoEm,desc` | `preco,asc` | `preco,desc`. Categoria ou ordem desconhecida vira o padrão.
+- `queryParamMap` + `switchMap` recomeçam a lista; mudança de filtro usa `router.navigate(..., {queryParamsHandling:'merge'})`,
+  e a busca usa `replaceUrl`.
+- Título: nome da categoria ou "Loja", com "N peças" (`aria-live`).
+- Filtros: chips `.uz-pill` com `aria-pressed` e "Todas" (rolagem horizontal no celular); busca "Buscar na loja" com
+  rótulo acima, lupa e "Limpar busca" (debounce de 300 ms, 1 letra não busca); `hlm-native-select` "Ordenar por".
+- Grade de 2, 3 e 4 colunas em `sm`, `md` e `lg`. **"Carregar mais"**: página `number+1` com os mesmos filtros,
+  acrescentada sem repetir; some quando `last`; desabilitado com spinner enquanto carrega; "Mostrando X de Y".
+  Página de 12.
 - Vazio: "Nenhuma peça encontrada" + "Limpar filtros".
-- **`uz-produto-card`** (g): um `<a routerLink>` com a foto 3:4 (`loading="lazy"`, alt = nome), nome, preço e o
-  selo "Últimas unidades" se algum tamanho tiver 1..3 peças.
+- **`uz-produto-card`**: um `<a routerLink>` com a foto 3:4 (`loading="lazy"`, alt = nome), nome (até 2 linhas),
+  preço e o selo **"Últimas unidades"** (`hlmBadge`) quando o **estoque total da peça** (soma dos tamanhos) está
+  **entre 1 e 3**.
 
-**Produto `/produto/:id` (g)**
+**Produto `/produto/:id` (vitrine)**
 - `GET /api/produtos/{id}`; se 404 → "Produto não encontrado" + link para a loja.
-- **Galeria** (`uz-galeria`):
-  - desktop: miniaturas (botões) + imagem principal;
-  - mobile: faixa com `scroll-snap` e indicadores;
-  - alt `"{nome} — foto i de n"`;
-  - sem foto: placeholder.
-- **Coluna de informação** (sticky ≥ `$lg`):
-  - categoria (link), nome em `h1`, preço;
-  - **seletor de tamanho** (`mat-button-toggle-group` com as siglas que o produto tem, na ordem PP..GG):
-    - tamanho zerado fica **desabilitado** e riscado, com `aria-label="M, esgotado"`;
-    - "Restam N" quando 1..3;
-  - link "Guia de medidas" → `MatDialog` com uma tabela estática (cm):
+- **Galeria** (`uz-galeria`): miniaturas (botões, a atual com `aria-current`) + imagem principal ≥ `md`; faixa com
+  `scroll-snap` e indicadores no celular; alt `"{nome} — foto i de n"`; sem foto, placeholder.
+- **Coluna de informação** (sticky ≥ `lg`): categoria (link), nome em `h1`, preço;
+  - **tamanhos** em **rádios nativos** estilizados como `.uz-pill`, num `role="radiogroup"` rotulado "Tamanho", na
+    ordem PP..GG: as setas trocam; esgotado fica `disabled`, riscado e com `aria-label="M, esgotado"`; "Restam N neste
+    tamanho" quando 1..3;
+  - "Guia de medidas" (`hlmBtn variant="link"`) abre um diálogo (`HlmDialogService`) com uma tabela estática em cm:
 
     | Tam. | Busto | Cintura | Quadril |
     |---|---|---|---|
@@ -1284,137 +1351,110 @@ Toda página tem os estados **carregando** (skeleton ou spinner com `aria-busy`)
     | GG | 98–104 | 78–84 | 104–110 |
 
   - `uz-qtd` de 1 até `min(estoque do tamanho, 10)`;
-  - **"Adicionar à sacola"** (largura total):
-    - desabilitado sem tamanho, com o texto de ajuda "Escolha um tamanho";
-    - anônimo → `auth.login('/produto/:id?tamanho=M')`, e na volta o tamanho vem pré-selecionado pela query;
-    - sucesso → abre a sacola e mostra um aviso;
-    - 422 → mostra o `detail`.
-- `mat-accordion`: "Descrição" e "Trocas e envio" (texto estático **sem valores**: "Frete calculado no checkout
-  conforme o estado"; os valores vêm de `FRETE_*` e podem mudar).
+  - **"Adicionar à sacola"** (`size="lg"`, largura total): desabilitado sem tamanho, com a ajuda "Escolha um tamanho";
+    anônimo → `auth.login('/produto/:id?tamanho=M')`, e na volta o tamanho vem pré-selecionado; sucesso → abre a
+    sacola e avisa; 422 → mostra o `detail`.
+- Dois `<details>`: "Descrição" (aberto) e "Trocas e envio" (texto estático **sem valores**: "Frete calculado no
+  checkout conforme o estado").
 
-**Checkout `/checkout` (h)**
+**Checkout `/checkout`**
 - Na entrada: `forkJoin(config, carrinho, perfil)`. Sacola vazia (e sem `?pedido`) → estado vazio + link para a loja.
-- **Passo 1 — Entrega**:
-  - `uz-endereco-form` (f) pré-preenchido com `perfil.endereco`, `destinatario = perfil.nome` e `telefone = perfil.celular`;
-  - ViaCEP preenche rua, bairro, cidade e UF;
-  - checkbox "Salvar este endereço no meu perfil" (marcado por padrão; salva com I3 antes de criar o pedido). Se o
-    perfil não tem `celular` e o telefone foi preenchido, salva também com I2 `{celular}`;
-  - UF válida → O5 mostra o frete.
-- **Resumo**: sticky à direita ≥ `$lg`, e um bloco recolhível no topo do mobile. Itens (miniatura, nome, tamanho,
-  quantidade, valor), subtotal, frete e total.
-- **Sem pagamento configurado** (`config.habilitado == false`):
-  - alerta `role="status"`: **"Pagamento ainda não configurado. Não é possível finalizar compras no momento."**;
-  - o botão "Ir para o pagamento" fica **desabilitado**;
-  - o pedido **não** é criado.
-- "Ir para o pagamento":
-  - desabilitado + spinner enquanto a requisição está em voo;
-  - O6 → atualiza a sacola (agora vazia) → passo 2;
-  - 422 `Itens indisponíveis: …` → mostra o `detail`, recarrega a sacola e fica no passo 1;
-  - 409 `Você já tem um pedido aguardando pagamento.` → mostra o `detail` e um link "Ver meus pedidos" →
-    `/conta/pedidos`, onde o pedido `CRIADO` tem "Concluir pagamento" (não há endpoint para o cliente cancelar: ele
-    paga o pendente ou espera a expiração).
+- Grade `lg:grid-cols-[1fr_24rem]`; etapas numeradas com `aria-current="step"`.
+- **Passo 1 — Entrega**: `uz-endereco-form` pré-preenchido com `perfil.endereco`, `destinatario = perfil.nome` e
+  `telefone = perfil.celular`; ViaCEP preenche rua, bairro, cidade e UF; `hlm-checkbox` "Salvar este endereço no meu
+  perfil" (marcado; salva com I3 antes de criar o pedido e, se o perfil não tem `celular` e o telefone veio, I2
+  `{celular}`); UF válida → O5 mostra o frete.
+- **Resumo** (`hlmCard`): sticky à direita ≥ `lg`, recolhível no topo do celular ("Ver itens"). Itens, subtotal, frete e total.
+- **Sem pagamento configurado** (`config.habilitado == false`): `hlmAlert` de aviso com `role="status"` **"Pagamento
+  ainda não configurado. Não é possível finalizar compras no momento."**; "Ir para o pagamento" **desabilitado**; o
+  pedido **não** é criado.
+- "Ir para o pagamento": desabilitado + spinner em voo; O6 → atualiza a sacola (vazia) → passo 2; 422 `Itens
+  indisponíveis: …` → `detail`, recarrega a sacola e fica no passo 1; 409 `Você já tem um pedido aguardando
+  pagamento.` → `detail` + "Ver meus pedidos" → `/conta/pedidos`, onde o pedido `CRIADO` tem "Concluir pagamento".
 - **Passo 2 — Pagamento**:
-  - P2 com nova tentativa a cada 1 s em caso de 404, por até 20 s. 409 → vai para `/pedido/:id`.
+  - P2 com nova tentativa a cada 1 s em caso de 404, por até 20 s. 409 → `/pedido/:id`.
   - `loadStripe(publishableKey)` uma vez, com cache. Falha → "Não foi possível carregar o pagamento. Verifique sua conexão."
-  - `stripe.elements({ clientSecret, locale: 'pt-BR', appearance: { theme: 'stripe', variables: { colorPrimary: '#7a5a41', colorText: '#292b2e', fontFamily: 'Inter, system-ui, sans-serif', borderRadius: '4px' } } })`
-    → `create('payment')` → `mount`.
-  - Botão **"Pagar R$ X"** (X = `valorTotal` do pedido, já com o preço revalidado):
+  - `stripe.elements({ clientSecret, locale: 'pt-BR', appearance: aparenciaStripe() })` → `create('payment')` →
+    `mount` (contêiner com `min-h-72`). `aparenciaStripe()` lê os tokens de §7.2 (`--primary`, `--card`,
+    `--foreground`, `--muted-foreground`, `--destructive`, `--input`, `--ring`, `--border`): Inter 16 px, rótulos
+    acima, campos brancos com borda `--input` e raio 10 px, foco marrom de 2 px, aba selecionada preta.
+  - **"Pagar R$ X"** (X = `valorTotal` do pedido):
     `stripe.confirmPayment({ elements, confirmParams: { return_url: location.origin + '/pedido/' + id }, redirect: 'if_required' })`.
-    - `error.type === 'validation_error'` (campo do cartão incompleto) → mostra `error.message` e **fica** na tela;
-    - **qualquer outro erro** (`card_error` etc.) → desabilita "Pagar" e navega para `/pedido/:id?recusado=1`.
-      Uma recusa cancela o pedido (webhook `payment_failed` → `CANCELADO`), e o intent é cancelado logo depois.
-      **Nunca** chamar `confirmPayment` duas vezes no mesmo intent depois de uma recusa: a 2ª tentativa falharia ou,
-      pior, cobraria um pedido cancelado (e seria estornada);
+    - `error.type === 'validation_error'` → mostra `error.message` e **fica** na tela;
+    - **qualquer outro erro** → desabilita "Pagar", marca o pedido como recusado (`localStorage`) e vai para
+      `/pedido/:id?recusado=1`. Uma recusa cancela o pedido (webhook `payment_failed`). **Nunca** chamar
+      `confirmPayment` duas vezes no mesmo intent depois de uma recusa;
     - sucesso → `/pedido/:id`.
   - Texto: "Conclua o pagamento até {expiraEm | date:'HH:mm'}".
-- **Retomar**: `/checkout?pedido=:id` → O8. Se `CRIADO`, vai direto ao passo 2; senão, `/pedido/:id`.
+- **Retomar**: `/checkout?pedido=:id` → O8. Se `CRIADO` (e não recusado), vai direto ao passo 2; senão, `/pedido/:id`.
 
-**Confirmação `/pedido/:id` (h)**
-- O8 com polling a cada 2 s enquanto `CRIADO`, por até 2 min. Depois disso: "Ainda processando — você receberá um
-  e-mail" + botão "Atualizar". O status é anunciado em `aria-live`.
+**Confirmação `/pedido/:id`**
+- O8 com polling a cada 2 s enquanto `CRIADO`, por até 2 min; depois, "Ainda processando — você receberá um e-mail" +
+  "Atualizar". O status é anunciado em `aria-live`.
 
 | Status | Tela |
 |---|---|
-| `CRIADO` | "Processando pagamento…" + link secundário "Ainda não pagou? Concluir pagamento" → `/checkout?pedido=id`. Com `?recusado=1` ou `redirect_status=failed`: "Pagamento recusado. Aguarde a confirmação do cancelamento…", **sem** o link de concluir (o polling leva a `CANCELADO`). |
-| `PAGO` | "Pedido confirmado!", número, `uz-linha-do-tempo`, itens, endereço e totais, + "Ver meus pedidos". |
-| `CANCELADO` | motivo e "Voltar à loja". Só com `sacolaRestaurada: true`: "Os itens voltaram para a sua sacola; finalize de novo para tentar outro cartão." + "Tentar novamente" → `/checkout` (e atualiza a sacola). |
-| `ENVIADO`, `RECEBIDO` | o mesmo layout de PAGO, com a linha do tempo. |
+| `CRIADO` | "Processando pagamento…" + "Ainda não pagou? Concluir pagamento" → `/checkout?pedido=id`. Com `?recusado=1` ou `redirect_status=failed`: "Pagamento recusado. Aguarde a confirmação do cancelamento…", **sem** o link. |
+| `PAGO` | "Pedido confirmado!", número, cards Andamento (`uz-linha-do-tempo`), Itens (com totais) e Entrega, + "Ver meus pedidos". |
+| `CANCELADO` | card com contorno vermelho, motivo e "Voltar à loja". Só com `sacolaRestaurada: true`: "Os itens voltaram para a sua sacola; finalize de novo para tentar outro cartão." + "Tentar novamente" → `/checkout`. |
+| `ENVIADO`, `RECEBIDO` | o layout de PAGO, com a linha do tempo. |
 
-**Conta `/conta` (i)** — `mat-tab-nav-bar` com as rotas `pedidos` e `dados`.
-- **Pedidos**: O7, em cartões com:
-  - "Pedido #id · dd/MM/yyyy", `uz-status-pedido` e até 4 miniaturas;
-  - total;
-  - painel expansível com `uz-linha-do-tempo` (`CRIADO → PAGO → ENVIADO → RECEBIDO`, ou o ramo `CANCELADO`
-    com o motivo e a data), itens, endereço e subtotal/frete/total.
-  - Ações:
-    - `CRIADO` → "Concluir pagamento";
-    - `ENVIADO` → "Confirmar recebimento" (diálogo de confirmação → O9).
-  - Vazio: "Você ainda não fez pedidos" + "Ir para a loja".
-- **Dados**:
-  - form de dados pessoais: nome, CPF (`uzMascara="cpf"`), celular (`uzMascara="celular"`), nascimento
-    (`<input type="date">`) → I2;
-  - form de endereço (`uz-endereco-form`) → I3;
-  - e-mail só para leitura, com a nota "E-mail e senha são gerenciados no login";
-  - o campo nome se chama "Nome para entrega", com a ajuda "Usado como destinatário padrão. O nome da conta é o do
-    cadastro." (§4.5);
-  - botão "Alterar senha" → `auth.alterarSenha()`;
-  - um botão "Salvar" por seção, erros inline (`mat-error`) e aviso de sucesso.
+**Conta `/conta`** — abas como **links** (`nav aria-label="Seções da conta"`, `routerLinkActive` +
+`ariaCurrentWhenActive="page"`, pílulas sobre `bg-muted`) para `pedidos` e `dados`.
+- **Pedidos**: O7, em `article.pedido` (`hlmCard`, `aria-labelledby`): "Pedido #id · dd/MM/yyyy", `uz-status-pedido`,
+  até 4 miniaturas e total; `<details>` "Detalhes do pedido #id" com `uz-linha-do-tempo`, itens, endereço e
+  subtotal/frete/total. Ações: `CRIADO` → "Concluir pagamento"; `ENVIADO` → "Confirmar recebimento" (confirmação →
+  O9). Vazio: "Você ainda não fez pedidos" + "Ir para a loja".
+- **Dados** (3 `section hlmCard`): dados pessoais (nome "Nome para entrega", com a ajuda "Usado como destinatário
+  padrão. O nome da conta é o do cadastro."; CPF `uzMascara="cpf"`; celular `uzMascara="celular"`; nascimento
+  `<input type="date">`) → I2; endereço (`uz-endereco-form`) → I3; e-mail só leitura ("E-mail e senha são gerenciados
+  no login") + "Alterar senha" → `auth.alterarSenha()`. Um "Salvar" por seção, erros por campo e toast de sucesso.
 
-**Admin `/admin` (j)** — `AdminShellComponent`:
-- `mat-sidenav` (`side` ≥ `$lg`, `over` abaixo) com Painel `/admin`, Produtos `/admin/produtos`, Pedidos a enviar
-  `/admin/pedidos`, Histórico `/admin/pedidos/historico`, "Ver loja" e "Sair";
-- barra superior com o nome do usuário.
+**Admin `/admin`** — `AdminShellComponent`, fora do shell da loja, com o próprio `<main>`:
+- menu (Painel, Produtos, Pedidos a enviar, Histórico, "Ver loja", "Sair"; links com `aria-current="page"`): `aside`
+  fixo `w-64` ≥ `lg` e `hlm-sheet side="left"` abaixo, com o mesmo template; o CSS decide qual aparece, e o sheet fecha
+  ao navegar. Barra superior com hambúrguer (`lg:hidden`), "Administração" e o nome do usuário.
 
 Telas:
-- **Painel**:
-  - `forkJoin(O12, C4 ativo=true&disponivel=false&size=1, O10 status=PAGO size=5)`;
-  - cartões KPI: Receita do mês, A enviar (`porStatus.PAGO`), Enviados (`porStatus.ENVIADO`), Sem estoque
-    (`totalElements` do C4). O KPI "Sem estoque" leva a `/admin/produtos?situacao=sem-estoque`;
-  - lista "Próximos a enviar";
-  - erro → estado de erro (**nunca** mostrar zeros falsos).
-- **Produtos** (`mat-table` com paginação no servidor, C4):
-  - colunas: miniatura, nome, categoria, preço, estoque (chips "P 3"), situação (Ativo/Inativo/Sem estoque),
-    ações (Editar; Desativar/Reativar com confirmação);
-  - filtros: busca com debounce, categoria e situação, refletidos na URL (`?situacao=…`). Situação → C4:
-    Ativo → `ativo=true`; Inativo → `ativo=false`; Sem estoque → `ativo=true&disponivel=false`;
-  - `mat-paginator` de 20;
-  - botão "Novo produto".
-- **Produto** (`/admin/produtos/novo` e `/admin/produtos/:id`, **um componente**, pré-preenchido na edição):
-  - **Informações**: nome, categoria (obrigatória), preço, descrição.
-    - O preço é `inputmode="decimal"` e aceita `59,90` → número.
-  - **Estoque**: 5 campos PP..GG (≥ 0). Envia só as siglas que já existem no produto ou que têm valor > 0.
-    Na criação vai em C6; na edição, em C8.
-    - Na criação, validação no cliente: pelo menos um tamanho > 0 ("Informe o estoque de pelo menos um tamanho"),
-      porque C6 recusa lista vazia.
-    - Aviso na tela: "Um tamanho criado não pode ser removido depois, só zerado."
-  - **Fotos** (`uz-gerenciador-fotos`):
-    - na criação: até 6 arquivos selecionados, validados no cliente (tipo e 5 MB), com prévia por
-      `URL.createObjectURL`. Ao salvar: C6 → C10 em sequência, com progresso. Uma falha deixa a tela de
-      edição aberta com o erro por foto.
-    - na edição: upload imediato ao selecionar; remover com confirmação (C11); reordenar com os botões "mover para
-      a esquerda/direita" → C12 (sem CDK `DragDrop`: os botões já cobrem mouse, toque e teclado). A primeira é a capa.
-  - "Salvar" desabilitado enquanto a requisição está em voo; os erros do servidor aparecem por `detail`.
-- **Pedidos a enviar**:
-  - O10 `status=PAGO`, `sort=pagoEm,asc`;
-  - por pedido: #id, data do pagamento, cliente (nome, e-mail), telefone, **endereço completo** (destinatário,
-    rua, número, complemento, bairro, cidade/UF, CEP), itens (miniatura, nome, **tamanho**, quantidade) e total;
-  - "Marcar como enviado" (confirmação → O11) tira o pedido da lista, recarrega a página atual e mostra um aviso;
-  - `mat-paginator` de 20 com paginação no servidor (`page`, `size`): com mais de 20 pedidos `PAGO`, nenhum some.
-- **Histórico**: O10 `status=ENVIADO&status=RECEBIDO&sort=enviadoEm,desc`, com o status e as datas, e o mesmo
-  `mat-paginator` de 20 no servidor.
+- **Painel**: `forkJoin(O12, C4 ativo=true&disponivel=false&size=1, O10 status=PAGO size=5)`; KPIs em `hlmCard`:
+  Receita do mês, A enviar (`porStatus.PAGO`), Enviados (`porStatus.ENVIADO`), Sem estoque (`totalElements` do C4, link
+  para `/admin/produtos?situacao=sem-estoque`); lista "Próximos a enviar"; erro → estado de erro (**nunca** zeros falsos).
+- **Produtos** (C4, paginação no servidor): tabela `hlmTable` dentro de `hlmTableContainer` (miniatura, nome,
+  categoria, preço, estoque em badges "P 3" com o zerado em vermelho, situação Ativo/Inativo/Sem estoque, ações Editar e
+  Desativar/Reativar com confirmação); abaixo de `md`, colunas empilhadas na célula do nome. Filtros refletidos na URL:
+  "Buscar por nome" (debounce), categoria e situação em `hlm-native-select` (Ativo → `ativo=true`; Inativo →
+  `ativo=false`; Sem estoque → `ativo=true&disponivel=false`). `uz-paginador` de 20. "Novo produto".
+- **Produto** (`/admin/produtos/novo` e `/admin/produtos/:id`, **um componente**, pré-preenchido na edição), em 3 cards:
+  - **Informações**: nome, categoria (`hlm-native-select`, obrigatória), preço (prefixo "R$", `inputmode="decimal"`,
+    aceita `59,90`), descrição com contador;
+  - **Estoque**: 5 campos PP..GG (≥ 0) num `fieldset`; envia só as siglas que já existem ou com valor > 0 (C6 na
+    criação, C8 na edição). Na criação, pelo menos um > 0 ("Informe o estoque de pelo menos um tamanho"). Aviso: "Um
+    tamanho criado não pode ser removido depois, só zerado.";
+  - **Fotos** (`uz-gerenciador-fotos`): na criação, até 6 arquivos validados no cliente (tipo e 5 MB), com prévia por
+    `URL.createObjectURL`; ao salvar, C6 → C10 em sequência, e uma falha deixa a edição aberta com o erro por foto. Na
+    edição, upload ao selecionar, remover com confirmação (C11) e reordenar pelos botões "mover para a
+    esquerda/direita" → C12 (mouse, toque e teclado). A primeira é a capa (selo "Capa");
+  - "Salvar" desabilitado em voo; ao salvar com erro, o foco vai ao primeiro campo inválido; erros do servidor por `detail`.
+- **Pedidos a enviar**: O10 `status=PAGO`, `sort=pagoEm,asc`; cards `article.pedido` com #id, data do pagamento,
+  cliente (nome, e-mail), telefone, **endereço completo**, itens (miniatura, nome, **tamanho**, quantidade) e total;
+  "Marcar como enviado" (confirmação → O11) recarrega a página atual e avisa. `uz-paginador` de 20 no servidor.
+- **Histórico**: O10 `status=ENVIADO&status=RECEBIDO&sort=enviadoEm,desc`, com status e datas, e o mesmo paginador.
 
-### 7.4 Componentes compartilhados (f), `SharedModule`
+### 7.4 Componentes compartilhados (`shared/`) e helm
+
 | Seletor | Entradas e saídas | Notas |
 |---|---|---|
-| `uz-icone` | `nome`, `tamanho=20`, `rotulo?` | `aria-hidden` sem rótulo |
-| `uz-qtd` | `valor`, `min=1`, `max`, `rotulo`, `(valorChange)` | botões −/+ com `aria-label`; input numérico |
-| `uz-estado` | `tipo: 'carregando'\|'vazio'\|'erro'`, `titulo`, `mensagem`, `(tentarNovamente)`; `ng-content` para ações | |
-| `uz-esqueleto` | `formato: 'cartao'\|'linha'`, `quantidade` | shimmer CSS; respeita reduced-motion |
-| `uz-status-pedido` | `status` | chip com o rótulo de §4.1 e as cores de §7.2 |
-| `uz-linha-do-tempo` | `pedido: PedidoResposta` | `<ol>` com as etapas e datas; o ramo cancelado fica destacado |
-| `uz-endereco-form` | `[form]: FormGroup` (de `criarFormEndereco(fb, inicial?)`) | CEP com ViaCEP (`CepService`, sem token), UF em `mat-select` com as 27; mensagens de §4.3 |
-| `[uzMascara]` | `'cpf'\|'celular'\|'cep'` | formata ao digitar; o valor enviado é normalizado pelo backend |
-| `AvisoService` | `sucesso(msg)`, `erro(err)`, `confirmar(titulo, texto, rotuloOk): Observable<boolean>` | `MatSnackBar` + um `MatDialog` pequeno; substitui o `notificacao` e o sweetalert |
+| `uz-icone` | `nome`, `tamanho=20`, `rotulo?` | `aria-hidden` sem rótulo; com rótulo, `role="img"` |
+| `uz-qtd` | `valor`, `min=1`, `max=99`, `rotulo`, `desabilitado`, `(valorChange)` | botões −/+ `ghost icon` com `aria-label`; input numérico central |
+| `uz-estado` | `tipo: 'carregando'\|'vazio'\|'erro'`, `titulo`, `mensagem`, `(tentarNovamente)`; `ng-content` para ações | `role="status"`/`aria-busy` carregando; `role="alert"` no erro |
+| `uz-esqueleto` | `formato: 'cartao'\|'linha'`, `quantidade` | `hlmSkeleton`; `display: contents`, `aria-hidden` |
+| `uz-status-pedido` | `status` | `hlmBadge` com o rótulo de §4.1 e as cores de §7.2 |
+| `uz-linha-do-tempo` | `pedido: PedidoResposta` | `<ol>` com etapas e datas, `aria-current="step"`; o ramo cancelado em destaque |
+| `uz-endereco-form` | `[form]: FormGroup` (de `criarFormEndereco(fb, inicial?)`) | CEP com ViaCEP (`CepService`, sem token) e spinner no adorno; UF em `hlm-native-select` com as 27; mensagens de §4.3 |
+| `[uzMascara]` | `'cpf'\|'celular'\|'cep'` | CVA que formata ao digitar; o backend normaliza |
+| `uz-paginador` | `pagina` (0-based), `tamanho`, `total`, `(mudar)` | `nav aria-label="Paginação"`, `rotuloIntervalo` (`'1 – 20 de 37'`, `'0 de N'`) em `aria-live`, "Página anterior"/"Próxima página" (somem com uma página só) |
+| `uz-confirmacao-dialog` | contexto `{titulo, texto, rotuloOk}` | aberto por `AvisoService.confirmar` |
+| `AvisoService` | `sucesso(msg)`, `erro(err)`, `confirmar(titulo, texto, rotuloOk): Observable<boolean>` | toast do `<hlm-toaster position="bottom-center">` (sucesso 5 s, `aria-live` polite; erro 8 s, `important` → assertive) e `HlmDialogService` com `role="alertdialog"` (Esc, fora e "Cancelar" = `false`; volta à zona do Angular ao fechar) |
 
 `mensagemDeErro(err)` (`core/api/erros.ts`), nesta ordem:
 1. corpo com ProblemDetail (`detail` string) → `detail`;
@@ -1424,22 +1464,29 @@ Telas:
 5. 502, 503 ou 504 → "Serviço temporariamente indisponível. Tente novamente.";
 6. resto → "Erro inesperado. Tente novamente.".
 
-A fundação implementa **todos** os serviços de `core/api` (tipos de §4, um método por endpoint). A sacola fica em
-`SacolaService` (`carrinho$`, `quantidade$`, `aberta$`, `carregar()`, `adicionar()`, `alterar()`, `remover()`,
-`abrir()`, `fechar()`). As features só consomem.
+`core/api` tem um serviço por grupo de endpoints (tipos de §4). A sacola fica no `SacolaService` (`carrinho$`,
+`quantidade$`, `aberta$`, `carregar()`, `adicionar()`, `alterar()`, `remover()`, `abrir()`, `fechar()`).
+
+**Helm (`libs/ui`)**: alert, badge, button, card, checkbox, dialog, dropdown-menu, field, input, input-group, label,
+native-select, progress, separator, sheet, skeleton, sonner, spinner, table, textarea e utils. Foram gerados com
+`components.json` = `{ componentsPath: "libs/ui", importAlias: "@spartan-ng/helm", style: "vega" }` e ajustados à
+mão: alturas de 44 px (`h-11`), anel de foco cheio (`ring-ring`) e textos em pt-BR ("Fechar", "Carregando"). Não
+gerados de propósito: select, pagination, tabs, accordion, toggle-group, sidebar, alert-dialog (nativo ou `uz-*`
+cobrem). Para gerar outro: instalar o `@spartan-ng/cli@1.5.0` (puxa o Nx, ~200 MB) só durante a geração,
+`npx ng g @spartan-ng/cli:ui <nome>`, desinstalar e reaplicar os ajustes. O código gerado é nosso.
 
 ### 7.5 Fluxo de autenticação
-- `angular-oauth2-oidc@16.0.0`, com este `AuthConfig`:
+- `angular-oauth2-oidc@22.0.2`, com este `AuthConfig`:
   - `issuer` (§7.1), `clientId: 'web-app'`, `responseType: 'code'`, `scope: 'openid profile email'`;
   - `redirectUri: location.origin + '/'`, `postLogoutRedirectUri: location.origin + '/'`;
   - `requireHttps: false` (TLS é da borda), `sessionChecksEnabled: false`, `clearHashAfterLogin: true`,
     `showDebugInformation: false`;
   - storage = `localStorage` (a sessão sobrevive a outra aba).
-- `APP_INITIALIZER`: `configure` → `setupAutomaticSilentRefresh()` (usa o refresh token) →
-  `loadDiscoveryDocumentAndTryLogin()` → se `!hasValidAccessToken() && getRefreshToken()`,
+- `AuthService.iniciar()` (`provideAppInitializer`): `configure` → `setupAutomaticSilentRefresh()` (usa o refresh
+  token) → `loadDiscoveryDocumentAndTryLogin()` → se `!hasValidAccessToken() && getRefreshToken()`,
   `await refreshToken().catch(() => logOut(true))`. Sem esse passo, quem volta depois de 15 min (vida do access
   token) parece deslogado, porque a lib só agenda o refresh de um token ainda válido. Se a discovery falhar
-  (Keycloak fora ou subindo), o app **continua anônimo**: a vitrine funciona e a falha só aparece no log.
+  (Keycloak fora ou subindo), o app **continua anônimo**: a vitrine funciona e a falha só vai para o log.
 - Depois do login, navegar para o `state` (a returnUrl).
 - `AuthService`:
   - `logado$`;
@@ -1449,59 +1496,53 @@ A fundação implementa **todos** os serviços de `core/api` (tipos de §4, um m
   - `login(returnUrl?)` → `initCodeFlow(returnUrl)`;
   - `cadastrar()` → `initCodeFlow('/', { prompt: 'create' })`. Se o Keycloak ignorar, cai no login, que tem o link "Cadastre-se".
   - `login()`, `cadastrar()` e `alterarSenha()` chamam antes `loadDiscoveryDocument()` quando a discovery não
-    carregou no boot (Keycloak ainda subindo). Se falhar: aviso "Login indisponível, tente em instantes".
+    carregou no boot. Se falhar: aviso "Login indisponível, tente em instantes".
   - `alterarSenha()` → `initCodeFlow(router.url, { kc_action: 'UPDATE_PASSWORD' })`;
   - `logout()` → `logOut()`, fim de sessão com `id_token_hint`.
 - `ApiInterceptor`:
   - anexa `Bearer` **só** para URLs que começam com `/api` **e** com `hasValidAccessToken()`. Token vencido não
     é enviado, porque em rota pública daria 401;
-  - 401 numa requisição **sem** token → só repassa o erro (nada de login automático; um anônimo nunca é jogado no Keycloak);
-  - 401 **com** token num GET público (`/api/produtos…` menos `/api/produtos/admin…`, e `/api/pagamentos/config`) → `logOut(true)` local e repete
-    **uma** vez sem `Authorization`. Acontece com uma assinatura que deixou de valer (realm reimportado);
+  - 401 numa requisição **sem** token → só repassa o erro (um anônimo nunca é jogado no Keycloak);
+  - 401 **com** token num GET público (`/api/produtos…` menos `/api/produtos/admin…`, e `/api/pagamentos/config`) →
+    `logOut(true)` local e repete **uma** vez sem `Authorization`. Acontece com uma assinatura que deixou de valer
+    (realm reimportado);
   - 401 **com** token nas demais rotas → `auth.login(router.url)`, no máximo uma vez a cada 60 s (marca com horário
     em `sessionStorage`, que sobrevive ao redirect). Com a marca recente: `logOut(true)` local e repassa o erro.
     Isso evita o laço login → 401 → login quando o `iss` diverge (`PUBLIC_URL` errado, acesso por IP);
   - nunca anexa token a `viacep.com.br` nem à Stripe.
-- Sem `console.log` de token.
+- Sem `console.log` de token (nem de nada: §11.6).
 
 ### 7.6 Acessibilidade (critério de aceite)
 - `lang="pt-BR"`.
 - Um `h1` por página; `title` por rota e foco no `h1` depois de navegar (§7.1).
-- Todo controle é `button` ou `a`. Nada de `(click)` em `div`, `img` ou `article`.
-- Labels em todos os campos (`mat-label`); erros em `mat-error`.
+- Todo controle é `button`, `a` ou campo nativo. Nada de `(click)` em `div`, `img` ou `article` (as opções da busca
+  são `role=option` de um combobox, com o foco no campo, §7.3).
+- Labels em todos os campos (`hlmFieldLabel` com `for`, ou `sr-only`); erros em `hlm-field-error`.
 - Imagens com `alt` (decorativas com `alt=""`).
-- Foco visível; diálogos e drawers com foco preso e Esc.
-- Tamanho esgotado com `aria-disabled` + texto.
-- `aria-live` na sacola, no polling do pedido e nos avisos.
-- Contraste de §7.2.
-- Página inteira utilizável por teclado, incluindo a reordenação de fotos pelos botões.
-- Sem rolagem horizontal em 390px.
+- Foco visível (§7.2); sheets e diálogos com foco preso, Esc e foco devolvido.
+- Tamanho esgotado `disabled` + texto.
+- `aria-live` na sacola, no polling do pedido, na contagem da loja, na busca e nos toasts.
+- Contraste de §7.2; alvos de 44 px.
+- Página inteira utilizável por teclado, incluindo a reordenação de fotos pelos botões e a busca pelas setas.
+- Sem rolagem horizontal em 390 px (e em 320, conferido).
 
-### 7.7 Dependências e limpeza
-- **Remover**: `bootstrap`, `@ng-bootstrap/ng-bootstrap`, `@popperjs/core`, `primeng`, `sweetalert2`, `swiper`,
-  `moment`, `ng-otp-input`, `ngx-mask`; dev `@angular/localize` (e `/// <reference types="@angular/localize" />`
-  do `main.ts`). O tema prebuilt `indigo-pink` sai. O `karma.conf.js` deixa de exigir o `karma-junit-reporter`,
-  que não está instalado.
-- **Adicionar**: `angular-oauth2-oidc@16.0.0` e `@stripe/stripe-js@^9.17.0`. **Manter**: `@angular/*` 16.2.x,
-  Material/CDK 16.2.x, `rxjs`, `zone.js`, `tslib` e `jwt-decode`.
-- Lock: `npm install` sem `--legacy-peer-deps`. O `package-lock.json` é regenerado e commitado junto.
-  Scripts: `"test:ci": "ng test --watch=false --browsers=ChromeHeadless"`; `name: "uzusis-front"`.
-- **Apagar** (a exclusão foi negada aos agentes; na conferência final os arquivos já não estavam no disco. O `ng test`
-  padrão, que segue `src/**/*.spec.ts`, ainda não rodou depois disso):
-  - `features/auth/**` (login, cadastro, confirmar-código, enviar-email, resetar-senha, login-adm e o componente
-    não declarado), `features/initial-page/**`, `features/user/**` e o `features/admin/**` antigo (recriado por (j));
-  - `shared/components/**`, `shared/layouts`, `shared/domain-types`, `shared/material.module.ts`;
-  - `core/adapters/**`, `core/interfaces/**`, `core/service/**` e o `auth.guard.ts`/`auth.interceptor.ts` antigos;
-  - `environment.staging.ts`;
-  - as 31 specs scaffold e o `app.component.spec.ts`;
-  - os assets sem uso: todos, menos `logoUzu.png` e o favicon. Os banners com texto embutido saem.
-  - `index.html`: Poppins, Roboto, Exo 2, Rubik, Material Icons e Font Awesome.
-- **Testes mínimos** (Jasmine, com `ng test --watch=false --browsers=ChromeHeadless` passando):
-  - `core/util/sacola.spec.ts`: subtotal e quantidade total, incluindo lista vazia e quantidade > 1;
-  - `core/auth/roles.spec.ts`: extrair `ADMIN` de um access token de exemplo, e lista vazia com token sem claim;
-  - `core/api/erros.spec.ts`: `mensagemDeErro` com ProblemDetail, com status 0 ("Sem conexão com o servidor"),
-    com 502 em HTML ("Serviço temporariamente indisponível. Tente novamente.") e com erro desconhecido.
-- Nenhuma chave `pk_test_`/`pk_live_` em `src` (nem em spec de teste): a publishable key só vem de P1.
+### 7.7 Dependências, testes e build
+- **Dependências**: `@angular/*` 22.2 (`core`, `common`, `compiler`, `forms`, `platform-browser`, `router`, `cdk`),
+  `@spartan-ng/brain` 1.5.0 (fixo), `@ng-icons/core` e `@ng-icons/lucide` 32, `class-variance-authority`, `clsx`,
+  `tailwind-merge`, `angular-oauth2-oidc` 22.0.2, `@stripe/stripe-js` ^9.17, `jwt-decode`, `rxjs` 7.8, `zone.js` 0.16,
+  `tslib`. Dev: `@angular/build`, `@angular/cli`, `@angular/compiler-cli`, `tailwindcss` 4 + `@tailwindcss/postcss` +
+  `postcss`, `tw-animate-css`, `typescript` ~6.0, `vitest` 5 e `jsdom`. **Fora**: `@angular/material`,
+  `@angular/animations` (o brain anima com `tw-animate-css`; o CDK fica, o brain depende dele), Karma e Jasmine.
+- Lock: `npm ci`/`npm install` sem `--legacy-peer-deps`; o `package-lock.json` é commitado junto.
+- **Testes** (Vitest + jsdom; `fakeAsync`/`tick` funcionam pelo patch do zone.js em `src/test-setup.ts`): 18 arquivos,
+  entre eles `core/util/sacola.spec.ts`, `core/auth/roles.spec.ts`, `core/api/erros.spec.ts`, `shared/paginador.spec.ts`
+  (`rotuloIntervalo`), `features/vitrine/vitrine.spec.ts` (filtro da URL, `acrescentar`, "Últimas unidades",
+  `capasPorCategoria`), `layout/busca.spec.ts` (`destacar`, `categoriasRelacionadas`, recentes, `montarPainel`),
+  `features/checkout/fluxo.spec.ts` e `aparencia-stripe.spec.ts`, e specs de template (produto, conta, dados,
+  produtos e formulário do admin). `package.json`: `"test:ci": "ng test --watch=false"`.
+- **Build**: `ng build` (produção por padrão) → `dist/uzusis/browser`, com hash de 8 caracteres base64url nos nomes
+  (`main-XXXXXXXX.js`, `chunk-…`); o `nginx.conf` depende desse formato (§8.2).
+- Nenhuma chave `pk_test_`/`pk_live_` em `src` (nem em spec): a publishable key só vem de P1.
 
 ---
 
@@ -1514,8 +1555,8 @@ O dono (a) pode ajustar detalhes, mas **não** a semântica.
 name: uzusis
 
 x-java: &java
-  image: uzusis-java:dev
-  build: { context: ./uzusis-java }          # igual nos 6 → um build (bake deduplica)
+  image: uzusis-api:dev
+  build: { context: ./uzusis-api }          # igual nos 6 → um build (bake deduplica)
   restart: unless-stopped
   mem_limit: 512m
   healthcheck:
@@ -1659,7 +1700,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - pg-data:/var/lib/postgresql/data
-      - ./uzusis-java/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./uzusis-api/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     mem_limit: 512m
     healthcheck: { test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"], interval: 5s, timeout: 5s, retries: 30 }
 
@@ -1667,7 +1708,7 @@ services:
     image: apache/kafka:3.8.0
     restart: unless-stopped
     environment:
-      # copiar os KAFKA_* (listeners, controller, replication) do uzusis-java/docker-compose.yml ATUAL (:39-50) antes de apagá-lo, mais:
+      # KAFKA_* de um nó só em KRaft (listeners, controller, replication = 1): ver o docker-compose.yml; mais:
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk      # UUID base64 válido (22 chars)
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
@@ -1679,7 +1720,7 @@ services:
     image: quay.io/debezium/connect:3.0.0.Final
     restart: unless-stopped
     environment:
-      # copiar BOOTSTRAP_SERVERS, GROUP_ID, *_STORAGE_TOPIC e os converters do compose Java atual (:66-73), mais:
+      # BOOTSTRAP_SERVERS, GROUP_ID, *_STORAGE_TOPIC e os converters: ver o docker-compose.yml; mais:
       HEAP_OPTS: "-Xms256m -Xmx512m"
     mem_limit: 768m
     depends_on: { kafka: { condition: service_healthy }, postgres: { condition: service_healthy } }
@@ -1692,7 +1733,7 @@ services:
     environment:
       <<: *db-senhas
       CONNECT_URL: http://connect:8083
-    volumes: ["./uzusis-java/infra/debezium/registrar-conectores.sh:/registrar.sh:ro"]
+    volumes: ["./uzusis-api/infra/debezium/registrar-conectores.sh:/registrar.sh:ro"]
     mem_limit: 128m
     depends_on:
       connect: { condition: service_healthy }
@@ -1728,8 +1769,8 @@ services:
       SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
       SMTP_FROM: ${SMTP_FROM:-nao-responda@uzusis.local}
     volumes:
-      - ./uzusis-java/infra/keycloak/import:/opt/keycloak/data/import:ro
-      - ./uzusis-java/infra/keycloak/themes/uzusis:/opt/keycloak/themes/uzusis:ro
+      - ./uzusis-api/infra/keycloak/import:/opt/keycloak/data/import:ro
+      - ./uzusis-api/infra/keycloak/themes/uzusis:/opt/keycloak/themes/uzusis:ro
     mem_limit: 1g
     depends_on: { postgres: { condition: service_healthy } }
     healthcheck:
@@ -1789,17 +1830,13 @@ services:
     mem_limit: 128m
     depends_on: { web: { condition: service_started } }
 
-  db:        # legado: o bloco atual da raiz, profiles: [legacy], com ${VAR:-}
-  api:       # legado: o bloco atual, profiles: [legacy], ports ["127.0.0.1:${API_PORT:-5141}:8080"], com ${VAR:-}
-
 volumes:
   pg-data:
   kafka-data:
-  fotos-data:     # novo; uzusis_minio-data não é montado
-  db-data:        # = uzusis_db-data (existente)
+  fotos-data:     # uzusis_minio-data e uzusis_db-data (antigos) ficam fora do compose
 ```
 
-**`uzusis-java/Dockerfile`** (build único):
+**`uzusis-api/Dockerfile`** (build único):
 - `# syntax=docker/dockerfile:1`
 - estágio `maven:3.9-eclipse-temurin-21`:
   `COPY . .` → `RUN --mount=type=cache,target=/root/.m2 MAVEN_OPTS=-Xmx1g mvn -B -q -Dmaven.test.skip=true package`
@@ -1811,13 +1848,15 @@ volumes:
 - runtime `eclipse-temurin:21-jre-alpine`: usuário não-root `app`, `COPY --from=build /out/ /app/`, `ENV MODULO=gateway`,
   `ENTRYPOINT ["sh","-c","exec java -jar /app/${MODULO}.jar"]`.
 - Sem `EXPOSE`.
-- `uzusis-java/.dockerignore`: `**/target`, `.env`, `.git`.
+- `uzusis-api/.dockerignore`: `**/target`, `.env`, `.git`.
 
 **`uzusis-front/Dockerfile`**:
-- `node:20-alpine`: `npm ci --no-audit --no-fund` (**sem** `--legacy-peer-deps`) →
-  `NODE_OPTIONS=--max-old-space-size=2048 npx ng build --configuration production`;
-- `nginx:alpine`: `COPY nginx.conf /etc/nginx/conf.d/default.conf` e `COPY --from=build /app/dist/uzusis /usr/share/nginx/html`.
-- `uzusis-front/.dockerignore` (em `b0752ed` só tinha `node_modules` e `dist`): `node_modules`, `dist`, `.angular`, `.git`.
+- `node:22-alpine` (o Angular 22 exige Node `^22.22.3 || ^24.15`): `npm ci --no-audit --no-fund` (**sem**
+  `--legacy-peer-deps`) → `NODE_OPTIONS=--max-old-space-size=2048 npx ng build --configuration production`. O
+  `COPY . .` leva o `libs/ui` (helm) junto;
+- `nginx:alpine`: `COPY nginx.conf /etc/nginx/conf.d/default.conf` e
+  `COPY --from=build /app/dist/uzusis/browser /usr/share/nginx/html` (o builder `application` grava em `browser/`).
+- `uzusis-front/.dockerignore`: `node_modules`, `dist`, `.angular`, `.git`.
 
 **`registrar-conectores.sh`**:
 - `set -euo pipefail`;
@@ -1833,14 +1872,17 @@ volumes:
   - `curl -fsS -X PUT …/connectors/outbox-<svc>/config`;
 - depois espera `…/status` com o connector **e** a task 0 em `RUNNING` (60 s). A imagem não tem `jq`: a checagem é
   com `grep -o '"state":"RUNNING"' | wc -l` = 2;
-- qualquer falha → imprime o status e `exit 1`;
+- task em `FAILED` (ex.: o `postgres` foi recriado e a task perdeu o host) → `POST …/connectors/outbox-<svc>/restart?includeTasks=true&onlyFailed=true`
+  e continua esperando; só depois dos 60 s sem `RUNNING` imprime o status e `exit 1` (re-`PUT` da mesma config não
+  reinicia task falhada);
 - **sem conector `notification`**;
 - `DRY_RUN=1` só imprime os 3 JSONs, um por linha, e sai. `testar-registrar.sh` (ao lado) usa o `DRY_RUN` com uma
   senha cheia de caracteres especiais e confere a senha no JSON e o `snapshot.mode`.
 
 ### 8.2 `uzusis-front/nginx.conf`
 ```nginx
-# Atrás de um proxy TLS na borda, repassa o esquema e o host que ele recebeu; sem ele (dev), os desta conexão.
+# Atrás de um proxy TLS na borda, repassa o esquema e o host que ele recebeu; sem
+# ele (dev), os desta conexão. As URLs do Keycloak vêm de KC_HOSTNAME de qualquer jeito.
 map $http_x_forwarded_proto $fwd_proto { default $http_x_forwarded_proto; "" $scheme; }
 map $http_x_forwarded_host  $fwd_host  { default $http_x_forwarded_host;  "" $http_host; }
 
@@ -1884,8 +1926,8 @@ server {
     }
     return 404;
   }
-  # arquivos com hash do build (entre aspas: sem elas o nginx recusa regex com chaves)
-  location ~* "\.[0-9a-f]{16,}\.(js|css|woff2?|ttf|svg|png|jpe?g|webp)$" {
+  # arquivos com hash do builder application: main-XXXXXXXX.js, chunk-Xx_x-xXx.js, media/... (entre aspas: regex com chaves)
+  location ~ "^/(?:(?:main|polyfills|styles|chunk)-[A-Za-z0-9_-]{8}\.(?:js|css)|media/.+-[A-Za-z0-9_-]{8}\.\w+)$" {
     expires max; add_header Cache-Control "public, immutable"; try_files $uri =404;
   }
   location /assets/ { expires 7d; try_files $uri =404; }
@@ -1898,6 +1940,8 @@ server {
   }
 }
 ```
+O hash do builder `application` tem 8 caracteres base64url, não hex: com a regex antiga os chunks cairiam em `location /`,
+e um chunk inexistente depois de um deploy voltaria como `index.html` com 200 (erro de MIME); com esta, 404.
 Os cabeçalhos de segurança ficam só no SPA (e o `nosniff` nas fotos). O Keycloak manda os dele, e repetir geraria duplicatas.
 O `X-Forwarded-For` é sempre `$remote_addr`: com `$proxy_add_x_forwarded_for`, o cliente forjaria o IP que o Keycloak
 registra (brute force, eventos). Os `X-Forwarded-Proto`/`-Host` do cliente passam adiante, mas o Keycloak monta todas
@@ -1906,7 +1950,7 @@ as URLs do discovery a partir de `KC_HOSTNAME` (§8.1): conferido que, com `X-Fo
 O `mc anonymous set download` do bucket também libera `s3:ListBucket`. Quem fecha a listagem é o nginx: o MinIO
 não é publicado, então `/storage` é o único caminho até ele.
 
-### 8.3 Keycloak (`uzusis-java/infra/keycloak/import/uzusis-realm.json`)
+### 8.3 Keycloak (`uzusis-api/infra/keycloak/import/uzusis-realm.json`)
 O arquivo sai de `infra/keycloak/uzusis-realm.json`, porque o tema passa a morar ao lado e o import só deve ver JSON.
 
 Configuração do realm:
@@ -1954,14 +1998,14 @@ Configuração do realm:
 `${SMTP_*}`) ficam **congelados** no primeiro boot. Trocar `PUBLIC_URL` ou `WEB_PORT` depois disso dá "Invalid redirect uri" no login,
 e o e2e não percebe, porque usa password grant. Por isso **toda troca de `PUBLIC_URL`/`WEB_PORT` exige reimportar o
 realm**, e também uma mudança no `uzusis-realm.json`. Isso também vale para um primeiro `up` que falhou no bind da 8080
-depois de o Keycloak já ter importado. Para reimportar **sem** perder fotos, pedidos nem o MySQL:
+depois de o Keycloak já ter importado. Para reimportar **sem** perder fotos nem pedidos:
 `docker compose stop keycloak && docker compose exec postgres psql -U postgres -c 'DROP DATABASE keycloak WITH (FORCE)' -c 'CREATE DATABASE keycloak' && docker compose up -d keycloak`.
 O reimport apaga **todos** os usuários do realm: os criados pelo cadastro somem, e `admin@`/`cliente@` voltam com um
 **`sub` novo** (o arquivo não fixa `id`). Pedidos, sacola e perfil ficam no banco, mas presos ao `sub` antigo: não são
 mais de ninguém (somem de "Minha conta"; o admin ainda vê os pedidos em O10), e a conta recriada começa vazia. O README avisa.
 O realm vivo da verificação (8088) **não** foi reimportado depois da última mudança do arquivo (Estado final, no topo).
 
-**Tema de login** em `uzusis-java/infra/keycloak/themes/uzusis/login/`. Só CSS e imagem, sem SPI.
+**Tema de login** em `uzusis-api/infra/keycloak/themes/uzusis/login/`. Só CSS e imagem, sem SPI.
 - `theme.properties`: `parent=keycloak`, `import=common/keycloak`, `styles=css/login.css css/uzusis.css`, `locales=pt-BR`.
 - `resources/css/uzusis.css`:
   - `@import` Google Fonts (Scope One, Inter);
@@ -1975,7 +2019,7 @@ O realm vivo da verificação (8088) **não** foi reimportado depois da última 
 - `resources/img/logo.png`: cópia de `uzusis-front/src/assets/logoUzu.png`, exibida acima do título.
 - `messages/messages_pt_BR.properties`: `loginAccountTitle=Entrar na Uzusis` e `registerTitle=Criar sua conta`.
 
-**Tema de e-mail** em `uzusis-java/infra/keycloak/themes/uzusis/email/`. Só mensagens, sem FTL (o tema `keycloak`
+**Tema de e-mail** em `uzusis-api/infra/keycloak/themes/uzusis/email/`. Só mensagens, sem FTL (o tema `keycloak`
 de e-mail do 26.0.8 herda de `base`, que já tem `messages_pt_BR.properties`; conferido no jar).
 - `theme.properties`: `parent=keycloak`, `locales=pt-BR`.
 - `messages/messages_pt_BR.properties` sobrescreve `emailVerificationSubject`, `emailVerificationBodyHtml`,
@@ -1985,10 +2029,12 @@ de e-mail do 26.0.8 herda de `base`, que já tem `messages_pt_BR.properties`; co
 ### 8.4 Stripe
 - **Real, em dev** (depois que o usuário tiver as chaves):
   1. `STRIPE_SECRET_KEY=sk_test_…` e `STRIPE_PUBLISHABLE_KEY=pk_test_…` no `.env`.
-  2. Obter o segredo do stripe-cli: `docker compose run --rm stripe-cli listen --api-key sk_test_… --print-secret`
-     → `whsec_…` (o `run` de um serviço nomeado liga o profile dele).
+  2. Obter o segredo do stripe-cli: `docker compose run --rm --no-deps stripe-cli listen --api-key sk_test_… --print-secret`
+     → `whsec_…` (o `run` de um serviço nomeado liga o profile dele; sem `--no-deps` ele recriaria o `web`, do
+     qual depende). O segredo é fixo por conta: basta pegar uma vez.
   3. No `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…` e `COMPOSE_PROFILES=stripe`, para o stripe-cli subir sempre junto,
-     com `restart: unless-stopped`.
+     com `restart: unless-stopped`. Fora da 8080, também `WEB_PORT` e `PUBLIC_URL`: assim todo `docker compose …`
+     usa a mesma porta, e um `up` sem as variáveis não troca a porta (o que exigiria reimportar o realm, §8.3).
   4. `docker compose up -d`.
 
   O README explica. Cartão de teste `4242 4242 4242 4242`; recusa com `4000 0000 0000 0002` → pedido `CANCELADO`
@@ -2097,8 +2143,6 @@ sacola do cliente. Assim uma falha no meio não deixa lixo na vitrine.
 - 1 ou 2 fotos PNG 600×800 geradas com `python3` stdlib (zlib + struct, cores da paleta);
 - serve para ter uma vitrine com cara de loja nos screenshots.
 
-Os `seed-dev.sh` e `smoke-auth.sh` da raiz (só servem ao .NET) vão para `scripts/legacy/`.
-
 ---
 
 ## 9. Segurança
@@ -2163,14 +2207,17 @@ Os `seed-dev.sh` e `smoke-auth.sh` da raiz (só servem ao .NET) vão para `scrip
 
 ## 10. Plano de execução
 
+Registro do plano da migração (fases 1–5). A troca do front para Angular 22 + helm seguiu as mesmas regras de posse,
+de `flock` e de git, com os comandos `npm`/`ng` no contêiner `node:22-alpine` (§11).
+
 ### Posse de caminhos (quem **escreve**; qualquer um lê)
 | Agente | Caminhos |
 |---|---|
-| **(a) infra + gateway** | `docker-compose.yml`, `docker-compose.e2e.yml`, `.env.example`, `.gitignore` (raiz), `README.md`, `scripts/**` (e mover `seed-dev.sh` e `smoke-auth.sh` da raiz para `scripts/legacy/`), `uzusis-java/Dockerfile`, `uzusis-java/.dockerignore`, `uzusis-java/README.md`, `uzusis-java/gateway/**`, `uzusis-java/infra/**` (realm, tema, debezium, postgres); apagar `uzusis-java/docker-compose.yml` e `uzusis-java/.env.example`; `uzusis-front/Dockerfile`, `uzusis-front/nginx.conf`, `uzusis-front/.dockerignore` |
-| **(b) catalog** | `uzusis-java/catalog-service/**` |
-| **(c) order + common** | `uzusis-java/pom.xml`, `uzusis-java/common/**`, `uzusis-java/order-service/**` |
-| **(d) payment** | `uzusis-java/payment-service/**` |
-| **(e) identity + notification** | `uzusis-java/identity-service/**`, `uzusis-java/notification-service/**` |
+| **(a) infra + gateway** | `docker-compose.yml`, `docker-compose.e2e.yml`, `.env.example`, `.gitignore` (raiz), `README.md`, `scripts/**`, `uzusis-api/Dockerfile`, `uzusis-api/.dockerignore`, `uzusis-api/README.md`, `uzusis-api/gateway/**`, `uzusis-api/infra/**` (realm, tema, debezium, postgres); `uzusis-front/Dockerfile`, `uzusis-front/nginx.conf`, `uzusis-front/.dockerignore` |
+| **(b) catalog** | `uzusis-api/catalog-service/**` |
+| **(c) order + common** | `uzusis-api/pom.xml`, `uzusis-api/common/**`, `uzusis-api/order-service/**` |
+| **(d) payment** | `uzusis-api/payment-service/**` |
+| **(e) identity + notification** | `uzusis-api/identity-service/**`, `uzusis-api/notification-service/**` |
 | **(f) front fundação** | `uzusis-front/` **menos** `Dockerfile`, `nginx.conf`, `.dockerignore` e `src/app/features/{vitrine,checkout,conta,admin}/**` depois do esqueleto |
 | **(g) vitrine** | `uzusis-front/src/app/features/vitrine/**` |
 | **(h) checkout** | `uzusis-front/src/app/features/checkout/**` |
@@ -2182,33 +2229,32 @@ Regras:
   feature ou no módulo, e registra no relatório final para a integração.
 - Só (f) roda `npm install` e mexe no lock.
 - Só (c) instala o `common` e o pom pai no `~/.m2`.
-- Os outros módulos Java compilam **sem `-am`**: `mvn -f uzusis-java/pom.xml -B -pl <modulo> verify`.
+- Os outros módulos Java compilam **sem `-am`**: `mvn -f uzusis-api/pom.xml -B -pl <modulo> verify`.
   Rebuilds paralelos do `common/target` corrompem.
 - **Um build por vez na máquina**: todo `mvn`, `npm` e `ng build`/`ng test` roda como
   `flock /tmp/uzusis-build.lock <comando>` (o mesmo arquivo para todos os agentes; o scratchpad é de cada um e não
   serve). Há 3,4 GB livres, e um `mvn verify` com Testcontainers (cerca de 1 GB) mais um `ng build` (cerca de 2 GB)
   não cabem juntos. O Maven 3.8.7 do host também não protege o `~/.m2` contra escrita concorrente, e os `ng build`
   compartilhariam `uzusis-front/.angular/cache`. Editar e ler código continua em paralelo.
-- Os builds de front das features usam saída própria:
-  `flock /tmp/uzusis-build.lock npx ng build --configuration development --output-path <scratchpad>/dist-<agente>`.
+- Os builds de front das features usam saída própria: `ng build --configuration development --output-path <saída>`,
+  no contêiner e sob o mesmo `flock`.
   O `ng build` compila o app inteiro: **erro de compilação fora do próprio diretório** (feature de outro agente pela
   metade) não bloqueia nem é corrigido por quem o viu. Repita o build depois. Os testes rodam no fim, pela integração.
 - Ninguém usa `ng serve` para validar (a 8080 desta máquina é de outro projeto; §7.1).
 - `docker compose build`/`up` só na fase 3. Na fase 1b, (a) roda só `docker compose config`.
 - **Git**: nenhum agente roda comando que altere a árvore, o índice ou o HEAD (`stash`, `checkout`, `switch`,
   `reset`, `clean`, `restore`, `commit`, `rebase`, `merge`, `pull`). Só leitura: `status`, `diff`, `log`, `show`,
-  `grep`. Os commits são feitos pela integração no fim, se o usuário pedir. `SPEC.md` nem está versionado: um `clean`
-  o apagaria.
-- Ninguém escreve em `uzusis-api/**` nem em `SPEC.md`.
+  `grep`. Os commits são feitos pela integração no fim, se o usuário pedir.
+- Ninguém escreve em `SPEC.md`.
 - Nunca parar contêineres de outros projetos, nunca `docker compose down -v`, nunca criar nem editar `.env`.
 
 ### Fases e dependências
 | Fase | Quem | Depende de | Entrega (critério para fechar a fase) |
 |---|---|---|---|
 | **1a** | (c) só o `common` e o pom pai (§6.1) | — | `mvn -N install` + `-pl common install` verdes |
-| **1b** (paralela a 1a) | (a) | — | compose, e2e, nginx, Dockerfiles, realm, temas de login e de e-mail, script Debezium (`DRY_RUN=1` gera JSON válido), gateway (`-pl gateway verify` verde), scripts e READMEs. `docker compose config -q` passa no default, com `--profile legacy`/`stripe`/`observability` e com `-f docker-compose.e2e.yml` |
-| **1c** (paralela) | (f) | — | deps trocadas, tema e tokens, shell, auth, interceptor, todos os serviços e modelos de `core/api`, componentes de §7.4, esqueletos lazy e limpeza. `npm run build` e `ng test` headless verdes |
-| **2** | (b), (c) order, (d), (e) | 1a | cada um: `mvn -f uzusis-java/pom.xml -B -pl <modulo> verify` verde, com os testes de §6 |
+| **1b** (paralela a 1a) | (a) | — | compose, e2e, nginx, Dockerfiles, realm, temas de login e de e-mail, script Debezium (`DRY_RUN=1` gera JSON válido), gateway (`-pl gateway verify` verde), scripts e READMEs. `docker compose config -q` passa no default, com `--profile stripe`/`observability` e com `-f docker-compose.e2e.yml` |
+| **1c** (paralela) | (f) | — | deps trocadas, tema e tokens, shell, auth, interceptor, todos os serviços e modelos de `core/api`, componentes de §7.4, esqueletos lazy e limpeza. `ng build` e `ng test` verdes |
+| **2** | (b), (c) order, (d), (e) | 1a | cada um: `mvn -f uzusis-api/pom.xml -B -pl <modulo> verify` verde, com os testes de §6 |
 | **2** | (g), (h), (i), (j) | 1c | build de desenvolvimento verde na saída própria; telas completas com todos os estados |
 | **3 integração** | um agente, com posse total e sequencial | 1 e 2 | §11 inteiro verde (build do `web` antes do resto; reimport do realm se a porta mudar). Corrige quebras de contrato no dono lógico do arquivo, uma de cada vez |
 | **4 revisão adversarial** | 3 revisores em paralelo, só leitura | 3 | (1) segurança: §9 linha a linha, tentar IDOR, papéis, upload malicioso e webhook forjado; (2) correção: saga, dinheiro, estoque, concorrência; (3) UI: screenshots (§11) contra §7, acessibilidade e mobile. Saída: lista de achados com arquivo:linha e severidade |
@@ -2236,27 +2282,29 @@ a 8080 está ocupada, então use `WEB_PORT=8088 PUBLIC_URL=http://localhost:8088
 
 ```bash
 # 1. Backend (precisa de Docker para o Testcontainers; postgres:16-alpine já é local)
-mvn -f uzusis-java/pom.xml -B verify
+mvn -f uzusis-api/pom.xml -B verify
 test ! -e ~/.testcontainers.properties                     # nada gravado no home (D5)
-grep -L 'locale-resolver: fixed' uzusis-java/{catalog,order,payment,identity,notification}-service/src/main/resources/application.yml   # vazio
+grep -L 'locale-resolver: fixed' uzusis-api/{catalog,order,payment,identity,notification}-service/src/main/resources/application.yml   # vazio
 
-# 2. Front
-cd uzusis-front && npm ci && npm run build && npx ng test --watch=false --browsers=ChromeHeadless && cd ..
+# 2. Front, no Node 22 do contêiner (o Angular 22 não roda no Node 20 do host). Nesta máquina, com flock na frente
+docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/.npm -v "$HOME/.npm":/tmp/.npm \
+  -v "$PWD/uzusis-front":/app -w /app node:22-alpine \
+  sh -c 'npm ci --no-audit --no-fund && npx ng build && npx ng test --watch=false'   # dist/uzusis/browser; Vitest + jsdom
 
 # 3. Compose válido em todas as combinações
 docker compose config -q
-docker compose --profile legacy --profile stripe --profile observability config -q
+docker compose --profile stripe --profile observability config -q
 docker compose -f docker-compose.yml -f docker-compose.e2e.yml config -q
 docker compose config --format json | jq -e '[.services[] | select(.mem_limit == null)] | length == 0'   # todo serviço padrão com limite
-env DRY_RUN=1 bash uzusis-java/infra/debezium/registrar-conectores.sh | python3 -c 'import sys,json;[json.loads(l) for l in sys.stdin if l.strip()]'
+env DRY_RUN=1 bash uzusis-api/infra/debezium/registrar-conectores.sh | python3 -c 'import sys,json;[json.loads(l) for l in sys.stdin if l.strip()]'
 bash -n scripts/*.sh
 
 # 4. Stack padrão (sem chaves Stripe). Nesta máquina, o web primeiro (Maven + ng juntos não cabem na RAM)
 env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose build web
 env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose up -d --build
-docker compose ps -a        # todos healthy/running; minio-init e connect-init "Exited (0)"; db/api/jaeger/stripe-* ausentes
+docker compose ps -a        # todos healthy/running; minio-init e connect-init "Exited (0)"; jaeger/stripe-* ausentes
 docker compose ps --format '{{.Service}} {{.Ports}}' | grep -- '->'   # só web e mailpit
-docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && mc ls local/produtos'   # credenciais aceitas no volume existente (§2.3)
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && mc ls local/produtos'   # credenciais aceitas no volume de fotos (§2.3)
 curl -fsS http://localhost:8088/api/pagamentos/config    # {"habilitado":false,"publishableKey":null}
 curl -fsS http://localhost:8088/api/produtos             # Page JSON
 curl -s -o /dev/null -w '%{http_code}' http://localhost:8088/storage/produtos/   # 404 (listagem fechada)
@@ -2291,10 +2339,15 @@ Se, ao final, o stack for ficar numa porta diferente da usada na verificação, 
   - (e) `/checkout` vem com o endereço do perfil pré-preenchido e, sem chaves, o botão desabilitado;
   - (f) admin cria um produto com foto **pela UI**, edita o estoque de um tamanho, desativa e reativa;
   - (g) admin marca como enviado um dos pedidos `PAGO` deixados pelo e2e; o cliente confirma o recebimento do
-    pedido `ENVIADO`.
+    pedido `ENVIADO`;
+  - (h) busca (§7.3): no desktop, focar o campo pelo Tab não abre o popup e clicar abre; digitar um termo mostra
+    "Produtos" com o termo em negrito, "Categorias" e "Ver todos os N resultados"; ↓/↑ movem o
+    `aria-activedescendant` sem tirar o foco do campo; Enter abre o produto; Esc fecha e um 2º Esc limpa; um termo
+    sem resultado mostra "Explore as categorias"; o termo buscado volta em "Buscas recentes". No celular, o ⌕ abre o
+    diálogo "Buscar peças", e Esc fecha e devolve o foco ao ⌕. Axe sem violação séria com o popup e o diálogo abertos.
 - **Screenshots** das páginas:
   - `/`, `/loja`, `/loja?categoria=BLUSA&ordem=menor-preco`, `/produto/:id`;
-  - a sacola aberta;
+  - a sacola aberta e o popup da busca (inicial, com resultado, vazio);
   - `/checkout` (cliente logado, sem chaves: mostra "Pagamento ainda não configurado" e o botão desabilitado);
   - `/pedido/:id` de um pedido do e2e;
   - `/conta/pedidos` (um painel expandido) e `/conta/dados`;
@@ -2308,28 +2361,30 @@ Se, ao final, o stack for ficar numa porta diferente da usada na verificação, 
   - nenhum erro no console;
   - ausência de texto `undefined` ou `NaN`;
   - `document.title` não vazio e exatamente um `h1`;
-  - `img` sem `alt` = 0, e campos (`input`, `select`, `textarea`, `button`) sem nome acessível = 0.
+  - `img` sem `alt` = 0, e campos (`input`, `select`, `textarea`, `button`, links, `role=option`/`combobox`) sem nome
+    acessível = 0.
 
 **Pronto** quando:
 1. Os passos 1–6 passam sem intervenção manual.
 2. `docker compose up -d --build` numa máquina com a 8080 livre sobe o sistema sem `.env`.
 3. `E2E OK`.
-4. Os fluxos (a)–(g) passam, e os screenshots das 16+ telas × 2 viewports batem com §7: tokens, estados, mobile e
+4. Os fluxos (a)–(h) passam, e os screenshots das 16+ telas × 2 viewports batem com §7: tokens, estados, mobile e
    o tema do Keycloak.
 5. Os revisores da fase 4 fecham sem achados altos abertos.
 6. Estas checagens passam (as buscas voltam vazias; `--untracked` porque os arquivos novos só são commitados no fim):
+   - `git grep --untracked -nE '@angular/material|@angular/animations|\bmat-[a-z]|\bMat[A-Z]|MAT_|karma|jasmine|--uz-' -- uzusis-front/src uzusis-front/libs uzusis-front/angular.json uzusis-front/package.json`
    - `git grep --untracked -nE '@ng-bootstrap|bootstrap\.min|bootstrap/scss|primeng|sweetalert|ngb-|ngx-mask|"moment"|swiper|ng-otp-input|@popperjs|@angular/localize|Poppins|Roboto|Exo\+2|Rubik|font-awesome|Material\+Icons|clienteauth|administradorauth|/api/produto/|tokenAdm' -- uzusis-front/src uzusis-front/angular.json uzusis-front/package.json`
-   - `git grep --untracked -nE 'legado-dotnet|order-service-secret|refund-requested|RefundRequested|springdoc' -- uzusis-java docker-compose.yml`
+   - `git grep --untracked -nE 'legado-dotnet|order-service-secret|refund-requested|RefundRequested|springdoc' -- uzusis-api docker-compose.yml`
    - `git grep --untracked -nE 'console\.log' -- uzusis-front/src`
    - `! grep -rE 'pk_(test|live)_' uzusis-front/src` e o mesmo no `dist/uzusis` do build
    - `! git grep -n stripe-mock -- docker-compose.yml` (o Stripe falso só existe no override)
    - `grep -q 'lang="pt-BR"' uzusis-front/src/index.html`
    - `! grep -rs legacy-peer-deps uzusis-front/.npmrc uzusis-front/Dockerfile`
-   - `test ! -e uzusis-java/docker-compose.yml && test ! -e uzusis-java/.env.example`
-   - `git diff --quiet b0752ed -- uzusis-api && test -z "$(git status --porcelain -- uzusis-api)"` (o .NET intocado)
-7. Os READMEs descrevem: subir, portas, chaves Stripe (whsec, `COMPOSE_PROFILES=stripe`, endpoint de produção),
-   e2e, seed, observability, legacy, reimport do realm (e quando é obrigatório), recuperação do Debezium (R10) e o
-   aviso sobre `down -v`.
+   - `test ! -e uzusis-java && test ! -e scripts/legacy && test ! -e uzusis-api/docker-compose.yml && test ! -e uzusis-api/.env.example`
+   - `! git grep -nE 'profiles: \[legacy\]|--profile legacy|scripts/legacy|uzusis-java|UZUSIS\.API' -- docker-compose.yml .env.example README.md uzusis-api scripts` (sem .NET)
+7. Os READMEs descrevem: subir, portas, chaves Stripe (whsec com `--no-deps`, `COMPOSE_PROFILES`/`WEB_PORT`/`PUBLIC_URL`
+   no `.env`, endpoint de produção), e2e, seed, observability, o front em contêiner (dev, build, teste), reimport do
+   realm (e quando é obrigatório), recuperação do Debezium (R10), o volume antigo `uzusis_db-data` e o aviso sobre `down -v`.
 
 ---
 
@@ -2355,56 +2410,58 @@ Se, ao final, o stack for ficar numa porta diferente da usada na verificação, 
 | R16 | Mudar `PUBLIC_URL`/`WEB_PORT` depois do primeiro boot quebra o login ("Invalid redirect uri"): o realm só é importado uma vez | Reimportar o realm (§8.3). A integração faz isso se a porta final diferir da de verificação; o README avisa |
 | R17 | C8 grava estoque absoluto: o admin lê 5, uma reserva baixa para 4, o admin grava 7 e surge uma peça fantasma | Aceito (um admin, volume baixo). Correção futura: `quantidadeAnterior` por sigla em C8 → 409 se mudou |
 | R18 | Com chaves reais e sem stripe-cli nem endpoint cadastrado, os webhooks se perdem | A reconciliação de 2 min confirma os pagamentos (§6.4 item 9); o README manda usar `COMPOSE_PROFILES=stripe` em dev e o endpoint em produção |
+| R19 | O Node do host (20) não roda o Angular 22 | `npm`/`ng` no contêiner `node:22-alpine` (§11, README); a imagem `web` já constrói com ele |
+| R20 | O helm tem textos fixos em inglês que o brain não expõe (o rótulo da região de toasts, "Notifications alt+T") | Aceito, impacto baixo. Os editáveis (sheet, diálogo, spinner) já estão em pt-BR (§7.4) |
 
 ---
 
-## Apêndice A — Procedimento de migração de dados (MySQL legado → Java)
+## Apêndice A — Dados do MySQL antigo (`uzusis_db-data`)
 
-Execução única e manual, **depois** do §11 verde. Faça antes um backup dos volumes
-(`docker run --rm -v uzusis_db-data:/v -v $PWD:/b alpine tar czf /b/db-data.tgz -C /v .`).
+O MySQL do .NET saiu do repositório e do compose, mas o volume `uzusis_db-data` (MySQL 8.0, database `uzusis`, cerca
+de 190 MB) continua no disco. Nada do projeto o monta ou apaga. Ele só serve se um dia quiserem migrar aqueles dados:
+execução única e manual (§1, "Fora do escopo"), depois do §11 verde.
 
-0. **Pré-requisito**: as credenciais originais do MySQL (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ROOT_PASSWORD`),
-   **fornecidas pelo usuário**. Elas não estão no repositório (só existe o `.env.example`, com valores de exemplo),
-   e o volume `uzusis_db-data` foi inicializado com elas. Sem essas credenciais, a migração não roda.
-1. `env DB_ROOT_PASSWORD=… DB_USER=… DB_PASSWORD=… DB_NAME=uzusis docker compose --profile legacy up -d db`.
-2. Checagem de e-mails duplicados por caixa (a migração não segue enquanto houver duplicata):
+1. **Backup** (o `mysqld` grava no volume ao subir):
+   `docker run --rm -v uzusis_db-data:/v -v "$PWD":/b alpine tar czf /b/db-data.tgz -C /v .`
+   (`db-data.tgz` está no `.gitignore`).
+2. **Abrir**, sem compose, num contêiner avulso:
+   ```bash
+   docker run --rm -d --name uzusis-mysql-antigo -v uzusis_db-data:/var/lib/mysql mysql:8.0
+   docker exec -it uzusis-mysql-antigo mysql -uroot -p uzusis       # senha root original
+   ```
+   Com o volume já inicializado, a imagem não recria nada nem pede `MYSQL_ROOT_PASSWORD`. As credenciais são as
+   originais do `.env` do .NET (`DB_ROOT_PASSWORD`, `DB_USER`, `DB_PASSWORD`), que **não** estão no repositório:
+   sem elas, não há migração. Exportar em TSV: `docker exec uzusis-mysql-antigo mysql -uroot -p… -N -B uzusis -e "SELECT …" > x.tsv`.
+3. Checagem de e-mails duplicados por caixa (a migração não segue enquanto houver duplicata):
    `SELECT LOWER(Email), COUNT(*) FROM Cliente GROUP BY LOWER(Email) HAVING COUNT(*) > 1;`
-3. **Produtos**:
-   - exportar `Produto`, `Tamanho` e `Foto` (`docker compose exec db mysql -N -B …`);
-   - inserir em `catalog`:
-     - `produto`: `OVERRIDING SYSTEM VALUE` mantém os ids; `categoria = UPPER(Categoria)` (a coluna guarda o
-       nome: `Calca`→`CALCA`…; se vier número, mapear 0..8 na ordem de §4.1); `ativo = true`;
-       `criado_em = CriadoEm`;
-     - `tamanho` P/M/G;
-     - `foto`: **não migra**. O bucket `produtos` do volume `uzusis_minio-data` está vazio (0 objetos), então as
-       linhas `Foto` do .NET apontariam para arquivos inexistentes. Os produtos entram sem foto (a vitrine mostra o
-       placeholder) e o admin envia as fotos de novo pelo painel (C10).
-   - Depois, `setval` nas sequences.
-4. **Clientes → Keycloak**:
+4. **Produtos** (`Produto`, `Tamanho`) → `catalog`:
+   - `produto`: `OVERRIDING SYSTEM VALUE` mantém os ids; `categoria = UPPER(Categoria)` (a coluna guarda o nome:
+     `Calca`→`CALCA`…; se vier número, mapear 0..8 na ordem de §4.1); `ativo = true`; `criado_em = CriadoEm`;
+   - `tamanho` P/M/G;
+   - `foto`: **não migra**. O bucket do MinIO antigo estava vazio (0 objetos), então as linhas `Foto` apontariam para
+     arquivos inexistentes. Os produtos entram sem foto (a vitrine mostra o placeholder) e o admin envia as fotos de
+     novo pelo painel (C10);
+   - depois, `setval` nas sequences.
+5. **Clientes → Keycloak**:
    - ler um `Cliente.Senha`. Se for PHC `$argon2id$v=19$m=…,t=…,p=…$salt$hash`, montar a credencial Argon2 do
      Keycloak (`credentialData` com algoritmo, versão, memória, iterações e paralelismo; `secretData` com
-     `value`/`salt` em base64) e importar pela Admin API **um** usuário conhecido, testando o login antes do lote.
-   - Se o formato não bater: importar sem senha, com `requiredActions: ["UPDATE_PASSWORD"]`, e avisar os clientes
-     para usar "Esqueci minha senha".
-   - `emailVerified: false`, papel `CUSTOMER`.
-   - Administradores do .NET **não** migram: criar no console do Keycloak com o papel `ADMIN`.
-5. **Perfis**:
-   - para cada usuário criado, pegar o `sub` (`GET /auth/admin/realms/uzusis/users?email=`);
-   - inserir em `identity.perfil`: e-mail em minúsculas, CPF e celular só com dígitos, `estado` convertido de nome
-     para UF ("Ceará"→`CE`: o front antigo mandava o nome do ViaCEP).
-6. **Histórico de compras**:
-   - `Compra`/`ItemCompra` → `orders.pedido`/`item_pedido`:
-     - status `RECEBIDO` se todos os itens foram recebidos, `ENVIADO` se todos foram enviados, senão `PAGO`;
-     - `cliente_sub` pelo mapa `ClienteId→sub`;
-     - `frete 0`, `subtotal = valor_total = ValorTotal`;
-     - `pago_em = criado_em = CriadoEm`;
-     - endereço = o endereço atual do cliente;
-     - `tamanho_id` remapeado por `(produto_id, sigla)`;
-     - `nome_produto` do produto.
-   - Inserção **direta por SQL, sem outbox**: nenhum e-mail sai.
-7. Sacolas pendentes (`Pedido` com `CarrinhoId`) **não** migram: os clientes adicionam de novo.
-8. Conferir contagens (produtos, tamanhos, usuários, perfis, pedidos) contra o MySQL, e abrir a loja com um cliente migrado.
-9. `docker compose --profile legacy stop db`. O volume `uzusis_db-data` fica como arquivo morto.
+     `value`/`salt` em base64) e importar pela Admin API **um** usuário conhecido, testando o login antes do lote;
+   - se o formato não bater: importar sem senha, com `requiredActions: ["UPDATE_PASSWORD"]`, e avisar os clientes
+     para usar "Esqueci minha senha";
+   - `emailVerified: false`, papel `CUSTOMER`. Administradores do .NET **não** migram: criar no console do Keycloak
+     com o papel `ADMIN`.
+6. **Perfis**: para cada usuário criado, pegar o `sub` (`GET /auth/admin/realms/uzusis/users?email=`) e inserir em
+   `identity.perfil`: e-mail em minúsculas, CPF e celular só com dígitos, `estado` convertido de nome para UF
+   ("Ceará"→`CE`: o front antigo mandava o nome do ViaCEP).
+7. **Histórico de compras** (`Compra`/`ItemCompra` → `orders.pedido`/`item_pedido`), por SQL direto, **sem outbox**
+   (nenhum e-mail sai):
+   - status `RECEBIDO` se todos os itens foram recebidos, `ENVIADO` se todos foram enviados, senão `PAGO`;
+   - `cliente_sub` pelo mapa `ClienteId→sub`; `frete 0`, `subtotal = valor_total = ValorTotal`;
+     `pago_em = criado_em = CriadoEm`; endereço = o endereço atual do cliente;
+   - `tamanho_id` remapeado por `(produto_id, sigla)`; `nome_produto` do produto.
+   Sacolas pendentes (`Pedido` com `CarrinhoId`) **não** migram.
+8. Conferir contagens (produtos, tamanhos, usuários, perfis, pedidos) contra o MySQL e abrir a loja com um cliente migrado.
+9. `docker stop uzusis-mysql-antigo` (o `--rm` apaga o contêiner; o volume fica).
 
 ---
 

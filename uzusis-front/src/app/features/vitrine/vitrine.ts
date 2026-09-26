@@ -37,9 +37,10 @@ export function acrescentar(atuais: ProdutoResposta[], novos: ProdutoResposta[])
   return [...atuais, ...novos.filter(p => !ids.has(p.id))];
 }
 
-/** Selo "Últimas unidades": algum tamanho com 1 a 3 peças. */
+/** Selo "Últimas unidades": a peça tem de 1 a 3 unidades disponíveis, somando os tamanhos. */
 export function ultimasUnidades(produto: ProdutoResposta): boolean {
-  return produto.tamanhos.some(t => t.quantidade >= 1 && t.quantidade <= 3);
+  const total = produto.tamanhos.reduce((soma, t) => soma + t.quantidade, 0);
+  return total >= 1 && total <= 3;
 }
 
 /** ?tamanho= (volta do login) só vale se o produto tem o tamanho e ele tem estoque. */

@@ -7,15 +7,14 @@
 # obrigatória; o .env.example documenta todas. Perfis opcionais:
 #   stripe         → stripe-cli encaminhando webhooks (precisa das chaves)
 #   observability  → Jaeger (com TRACING_ENABLED=true)
-#   legacy         → MySQL e API .NET antigos
 #
-# NUNCA rode "docker compose down -v": apaga o MySQL legado, as fotos e os pedidos.
+# NUNCA rode "docker compose down -v": apaga o Postgres (pedidos, clientes), as fotos e o Kafka.
 
-name: uzusis   # o uzusis_db-data (MySQL legado) só é montado com --profile legacy
+name: uzusis
 
 x-java: &java
-  image: uzusis-java:dev
-  build: { context: ./uzusis-java }          # igual nos 6 → um build só (o bake deduplica)
+  image: uzusis-api:dev
+  build: { context: ./uzusis-api }           # igual nos 6 → um build só (o bake deduplica)
   restart: unless-stopped
   mem_limit: 512m
   healthcheck:
@@ -140,7 +139,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/notifications
       DB_USER: notifications
       DB_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD:-notifications}
-      # SMTP_* e não EMAIL_*: o .env legado tem EMAIL_SERVER=smtp.gmail.com.
+      # os mesmos SMTP_* do Keycloak: um lugar só para configurar o e-mail
       EMAIL_SERVER: ${SMTP_HOST:-mailpit}
       EMAIL_PORT: ${SMTP_PORT:-1025}
       EMAIL_USER: ${SMTP_USER:-}
@@ -175,7 +174,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - pg-data:/var/lib/postgresql/data
-      - ./uzusis-java/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./uzusis-api/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     mem_limit: 512m
     healthcheck:
       # -h 127.0.0.1: durante o init.sql o servidor temporário só escuta no socket
@@ -245,7 +244,7 @@ services:
       <<: *db-senhas
       CONNECT_URL: http://connect:8083
     volumes:
-      - ./uzusis-java/infra/debezium/registrar-conectores.sh:/registrar.sh:ro
+      - ./uzusis-api/infra/debezium/registrar-conectores.sh:/registrar.sh:ro
     mem_limit: 128m
     depends_on:
       connect: { condition: service_healthy }
@@ -283,8 +282,8 @@ services:
       SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
       SMTP_FROM: ${SMTP_FROM:-nao-responda@uzusis.local}
     volumes:
-      - ./uzusis-java/infra/keycloak/import:/opt/keycloak/data/import:ro
-      - ./uzusis-java/infra/keycloak/themes/uzusis:/opt/keycloak/themes/uzusis:ro
+      - ./uzusis-api/infra/keycloak/import:/opt/keycloak/data/import:ro
+      - ./uzusis-api/infra/keycloak/themes/uzusis:/opt/keycloak/themes/uzusis:ro
     mem_limit: 1g
     depends_on:
       postgres: { condition: service_healthy }
@@ -357,51 +356,7 @@ services:
     depends_on:
       web: { condition: service_started }
 
-  # ---- Legado (.NET + MySQL), só com --profile legacy ----
-  db:
-    image: mysql:8.0
-    profiles: [legacy]
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-}
-      MYSQL_DATABASE: ${DB_NAME:-}
-      MYSQL_USER: ${DB_USER:-}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-}
-    volumes:
-      - db-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-}"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-
-  api:
-    build: ./uzusis-api
-    profiles: [legacy]
-    restart: unless-stopped
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ConnectionStrings__DefaultConnection: "server=db;port=3306;user=${DB_USER:-};password=${DB_PASSWORD:-};database=${DB_NAME:-}"
-      JwtSettings__Key: ${JWT_KEY:-}
-      Admin__SeedName: ${ADMIN_NAME:-Administrador}
-      Admin__SeedEmail: ${ADMIN_EMAIL:-}
-      Admin__SeedPassword: ${ADMIN_PASSWORD:-}
-      EmailConfiguration__User: ${EMAIL_USER:-}
-      EmailConfiguration__Password: ${EMAIL_PASSWORD:-}
-      EmailConfiguration__Server: ${EMAIL_SERVER:-}
-      EmailConfiguration__Port: ${EMAIL_PORT:-}
-      Minio__Endpoint: minio:9000
-      Minio__AccessKey: ${MINIO_ROOT_USER:-uzusis}
-      Minio__SecretKey: ${MINIO_ROOT_PASSWORD:-uzusis-minio-dev}
-      Minio__Bucket: ${MINIO_BUCKET:-produtos}
-      Minio__PublicBaseUrl: /storage
-    ports: ["127.0.0.1:${API_PORT:-5141}:8080"]
-    depends_on:
-      db: { condition: service_healthy }
-      minio: { condition: service_healthy }
-
 volumes:
   pg-data:
   kafka-data:
-  fotos-data:     # novo; o uzusis_minio-data do .NET não é montado (fica intocado)
-  db-data:        # = uzusis_db-data (existente)
+  fotos-data:

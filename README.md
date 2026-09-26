@@ -1,12 +1,14 @@
 # Uzusis
 
 Loja de roupas femininas: microserviços Java (Spring Boot, Kafka, Postgres,
-Keycloak, Stripe, MinIO) e front Angular 16 servido por nginx, tudo em Docker
-Compose. Detalhes do backend em [`uzusis-java/README.md`](uzusis-java/README.md).
+Keycloak, Stripe, MinIO) e front Angular 22 (Tailwind 4 + spartan/ui) servido
+por nginx, tudo em Docker Compose. Detalhes do backend em
+[`uzusis-api/README.md`](uzusis-api/README.md); a especificação completa está no
+[`SPEC.md`](SPEC.md).
 
-> **Nunca rode `docker compose down -v`.** O `-v` apaga os volumes: o MySQL
-> legado, as fotos dos produtos, os pedidos e os usuários do Keycloak. Para
-> parar, use `docker compose stop` ou `docker compose down` (sem `-v`).
+> **Nunca rode `docker compose down -v`.** O `-v` apaga os volumes: as fotos dos
+> produtos, os pedidos e os usuários do Keycloak. Para parar, use
+> `docker compose stop` ou `docker compose down` (sem `-v`).
 
 ## Subir
 
@@ -24,6 +26,7 @@ documenta todas; para mudar alguma, copie para `.env` ou use `env VAR=valor dock
 - Porta 8080 ocupada? Mude as duas juntas:
   `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose up -d --build`
   (e veja [Reimportar o realm](#reimportar-o-realm) se o Keycloak já tinha subido em outra porta).
+  Para não esquecer as duas num comando futuro, ponha `WEB_PORT` e `PUBLIC_URL` no `.env`.
 
 `docker compose ps -a` deve mostrar tudo `healthy`/`running`, e os one-shots
 `minio-init` (bucket de fotos) e `connect-init` (conectores do Debezium) em `Exited (0)`.
@@ -72,7 +75,7 @@ alcança a loja. Antes de expor o stack:
    crie o seu admin ("Email verified" ligado; depois Credentials → Set password e
    Role mapping → Assign role → filtro "Filter by realm roles" → `ADMIN`), entre com
    ele e apague `admin@uzusis.local` e `cliente@uzusis.local`. Ou, antes do primeiro
-   `up`, tire o bloco `users` de `uzusis-java/infra/keycloak/import/uzusis-realm.json`
+   `up`, tire o bloco `users` de `uzusis-api/infra/keycloak/import/uzusis-realm.json`
    (o e2e e o `seed-dev.sh` usam esses usuários; por isso eles existem em dev).
 4. **Password grant**: realm `uzusis` → Clients → `admin-cli` → Capability config →
    desligue "Direct access grants" (só os scripts de dev usam).
@@ -99,10 +102,14 @@ Sem chaves o sistema sobe normalmente: `/api/pagamentos/config` responde
    (Dashboard → Developers → API keys).
 2. Pegue o segredo de webhook do stripe-cli:
    `docker compose run --rm --no-deps stripe-cli listen --api-key sk_test_… --print-secret` → `whsec_…`
-   (o `--no-deps` evita recriar o `web`; o segredo é fixo por conta, basta pegar uma vez).
-3. No `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…` e `COMPOSE_PROFILES=stripe`
-   (o stripe-cli passa a subir junto, com `restart: unless-stopped`, e encaminha os
-   webhooks para `http://web/api/webhooks/stripe`).
+   (o `--no-deps` evita recriar o `web`, do qual o stripe-cli depende; o segredo é fixo
+   por conta, basta pegar uma vez).
+3. No `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…` e `COMPOSE_PROFILES=stripe` (o
+   stripe-cli passa a subir junto, com `restart: unless-stopped`, e encaminha os
+   webhooks para `http://web/api/webhooks/stripe`). Se a loja não está na 8080,
+   ponha também `WEB_PORT` e `PUBLIC_URL` no `.env`: assim todo `docker compose …`
+   usa a mesma porta e o mesmo perfil, e um `up` sem as variáveis não volta a loja
+   para a 8080 (o que quebraria o login até [reimportar o realm](#reimportar-o-realm)).
 4. `docker compose up -d`.
 
 Cartão aprovado: `4242 4242 4242 4242`. Recusado: `4000 0000 0000 0002` → o
@@ -128,8 +135,9 @@ docker compose up -d --remove-orphans # volta ao produto (sem o stripe-mock)
 ```
 
 Com outra porta: `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose ...`
-e `env BASE_URL=http://localhost:8088 bash scripts/e2e-compra.sh`. O e2e desativa o
-produto que cria, mas deixa alguns pedidos (pagos e enviado) para as telas do admin.
+(ou as duas no `.env`) e `env BASE_URL=http://localhost:8088 bash scripts/e2e-compra.sh`.
+O e2e desativa o produto que cria, mas deixa alguns pedidos (pagos e enviado) para as
+telas do admin.
 
 ## Dados de exemplo
 
@@ -139,6 +147,40 @@ bash scripts/seed-dev.sh              # ou: env BASE_URL=http://localhost:8088 b
 
 Cria uns 12 produtos com estoque PP–GG e fotos geradas, pela API do catálogo
 (token do `admin@uzusis.local`). Rodar de novo pula os que já existem.
+
+## Front (Angular 22)
+
+`uzusis-front/` é Angular 22 standalone com Tailwind 4 e componentes
+[spartan/ui](https://www.spartan.ng) no estilo shadcn (gerados em `libs/ui`, código
+do projeto). Testes em Vitest + jsdom; o build (esbuild) sai em
+`dist/uzusis/browser`, que o `Dockerfile` copia para o nginx.
+
+O Angular 22 exige Node `^22.22.3 || ^24.15`. Sem esse Node no host, rode tudo no
+contêiner `node:22-alpine`, a partir da raiz do repositório (vale em bash e em fish):
+
+```bash
+alias dnode='docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/.npm -v "$HOME/.npm":/tmp/.npm -v "$PWD/uzusis-front":/app -w /app node:22-alpine'
+mkdir -p ~/.npm                       # senão o Docker cria a pasta como root
+dnode npm ci --no-audit --no-fund     # uma vez, e depois de mudar o package-lock.json
+dnode npx ng build                    # produção → uzusis-front/dist/uzusis/browser
+dnode npx ng test --watch=false       # Vitest + jsdom
+```
+
+Servidor de desenvolvimento (recarrega ao salvar), com o compose no ar:
+
+```bash
+docker run --rm -it --network host -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/uzusis-front":/app -w /app node:22-alpine npx ng serve
+```
+
+Abre em http://localhost:4200. O `proxy.conf.json` manda `/api` e `/storage` para
+`http://localhost:8080`, e o login usa o Keycloak de
+`src/environments/environment.development.ts` (também 8080). Com o compose em outra
+porta, ajuste os dois arquivos localmente (sem commitar).
+
+Para gerar outro componente spartan: instale o `@spartan-ng/cli@1.5.0` só durante a
+geração (ele puxa o Nx, ~200 MB), rode `npx ng g @spartan-ng/cli:ui <nome>` e
+desinstale; os ajustes feitos à mão no `libs/ui` (44 px, foco, textos em pt-BR)
+estão no `SPEC.md` (§7.4).
 
 ## Observabilidade
 
@@ -150,7 +192,7 @@ Jaeger em http://127.0.0.1:16686. Sem o perfil, os serviços não exportam trace
 
 ## Reimportar o realm
 
-O Keycloak só importa `uzusis-java/infra/keycloak/import/uzusis-realm.json`
+O Keycloak só importa `uzusis-api/infra/keycloak/import/uzusis-realm.json`
 quando o realm ainda não existe, e as URLs de redirect do login (`${PUBLIC_URL}/*`)
 ficam congeladas nesse primeiro boot. **Reimportar é obrigatório** quando:
 
@@ -159,7 +201,7 @@ ficam congeladas nesse primeiro boot. **Reimportar é obrigatório** quando:
 - um primeiro `up` falhou (por exemplo, porta ocupada) depois de o Keycloak já ter importado;
 - o `uzusis-realm.json` mudou.
 
-Sem apagar fotos, pedidos nem o MySQL:
+Sem apagar fotos nem pedidos:
 
 ```bash
 docker compose stop keycloak
@@ -194,26 +236,26 @@ Debezium. O `connect-init` registra os três conectores a cada `up` (é idempote
   ao ver que a posição salva não existe no slot novo, ele refaz o snapshot da outbox
   (as linhas nunca são apagadas) e reenvia tudo; os consumidores ignoram o que já processaram.
 
-## Legado (.NET + MySQL)
+## Volume antigo do MySQL
 
-O .NET e o MySQL antigos ficam no perfil `legacy` e não sobem por padrão. Os
-dados continuam no volume `uzusis_db-data`. As credenciais originais do MySQL
-não estão no repositório:
+O volume `uzusis_db-data` guarda o MySQL 8.0 da versão .NET da loja, que já saiu do
+repositório. Ele continua no disco, mas nada do projeto o usa: o compose não o monta
+nem o apaga (nem com `down -v`). Não apague: é o que sobrou daqueles dados.
+
+Se um dia quiserem migrar esses dados, faça um backup e abra num contêiner avulso
+(as credenciais originais do MySQL não estão no repositório):
 
 ```bash
-env DB_ROOT_PASSWORD=… DB_USER=… DB_PASSWORD=… DB_NAME=uzusis docker compose --profile legacy up -d db api
+docker run --rm -v uzusis_db-data:/v -v "$PWD":/b alpine tar czf /b/db-data.tgz -C /v .
+docker run --rm -d --name uzusis-mysql-antigo -v uzusis_db-data:/var/lib/mysql mysql:8.0
+docker exec -it uzusis-mysql-antigo mysql -uroot -p uzusis   # alguns segundos depois do run
+docker stop uzusis-mysql-antigo       # o --rm apaga o contêiner; o volume fica
 ```
 
-A API .NET responde em `127.0.0.1:5141` (`API_PORT`); os scripts antigos estão
-em `scripts/legacy/`. A migração dos dados para o Java é um procedimento manual,
-descrito em [`uzusis-java/README.md`](uzusis-java/README.md#migrar-os-dados-do-net).
+O mapeamento para o Postgres e o Keycloak está no Apêndice A do [`SPEC.md`](SPEC.md).
 
 ## Notas
 
 - **MinIO**: a imagem é `pgsty/minio` (build comunitário do mesmo binário), porque
-  `minio/minio` e `minio/mc` saíram do Docker Hub. As fotos ficam no volume novo
-  `uzusis_fotos-data`; o `uzusis_minio-data` do .NET não é montado e fica intocado
-  (o bucket dele estava vazio).
-- **Front em dev** (`cd uzusis-front && npm start`): o `ng serve` usa o proxy de
-  `proxy.conf.json` para `/api` e `/storage` em `http://localhost:8080` e o Keycloak
-  em `http://localhost:8080/auth`, então o compose precisa estar no ar nessa porta.
+  `minio/minio` e `minio/mc` saíram do Docker Hub. As fotos ficam no volume
+  `uzusis_fotos-data`.

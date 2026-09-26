@@ -1,12 +1,20 @@
-# Build da API (.NET 8). Contexto é a raiz do uzusis-api.
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# syntax=docker/dockerfile:1
+# Uma imagem com os 6 serviços; o compose escolhe o jar por MODULO.
+# Um único `mvn package` (em vez de um por serviço) e um lib/ compartilhado:
+# as bibliotecas não se repetem 6 vezes nem no build nem na imagem.
+FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish src/UZUSIS.API/UZUSIS.API.csproj -c Release -o /app
+RUN --mount=type=cache,target=/root/.m2 \
+    MAVEN_OPTS=-Xmx1g mvn -B -q -Dmaven.test.skip=true package \
+ && for m in gateway catalog-service order-service payment-service notification-service identity-service; do \
+      java -Djarmode=tools -jar $m/target/$m-*.jar extract --force \
+        --destination /out --libraries lib --application-filename $m.jar || exit 1; \
+    done
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-WORKDIR /app
-COPY --from=build /app .
-# A imagem aspnet:8.0 já escuta em 8080 (ASPNETCORE_HTTP_PORTS).
-EXPOSE 8080
-ENTRYPOINT ["dotnet", "UZUSIS.API.dll"]
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S app && adduser -S -G app app
+COPY --from=build /out/ /app/
+USER app
+ENV MODULO=gateway
+ENTRYPOINT ["sh", "-c", "exec java -jar /app/${MODULO}.jar"]

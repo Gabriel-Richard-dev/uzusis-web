@@ -47,3 +47,10 @@ export function tamanhoInicial(produto: ProdutoResposta, sigla: string | null): 
   const tamanho = produto.tamanhos.find(t => t.sigla === sigla?.toUpperCase());
   return tamanho && tamanho.quantidade > 0 ? tamanho.sigla : null;
 }
+
+/** Capa de cada categoria: 1ª foto da peça mais nova que tenha foto (a lista vem em criadoEm,desc). */
+export function capasPorCategoria(produtos: ProdutoResposta[]): Map<CategoriaProduto, string> {
+  const capas = new Map<CategoriaProduto, string>();
+  for (const p of produtos) if (p.fotos[0] && !capas.has(p.categoria)) capas.set(p.categoria, p.fotos[0].url);
+  return capas;
+}

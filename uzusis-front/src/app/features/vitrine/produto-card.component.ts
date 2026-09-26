@@ -25,7 +25,7 @@ import { ultimasUnidades } from './vitrine';
           <span hlmBadge class="absolute top-2 left-2 bg-card text-foreground shadow-xs">Últimas unidades</span>
         }
       </span>
-      <span class="text-sm wrap-anywhere group-hover:underline">{{ produto.nome }}</span>
+      <span class="line-clamp-2 min-h-[2lh] text-sm wrap-anywhere group-hover:underline">{{ produto.nome }}</span>
       <span class="uz-preco">{{ produto.preco | currency }}</span>
     </a>
   `,

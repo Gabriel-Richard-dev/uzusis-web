@@ -1,6 +1,6 @@
 <!-- A página rola na janela: scrollPositionRestoration e position: sticky das features funcionam. -->
 <div class="flex min-h-svh flex-col">
-  <uz-header (abrirMenu)="menuAberto.set(true)"></uz-header>
+  <uz-header (abrirMenu)="menuAberto.set(true)" (abrirBusca)="buscaAberta.set(true)"></uz-header>
   <main id="conteudo" class="flex-1" tabindex="-1">
     <router-outlet></router-outlet>
   </main>
@@ -43,6 +43,16 @@
         <button [class]="link" type="button" (click)="auth.cadastrar()">Criar conta</button>
       }
     </nav>
+  </hlm-sheet-content>
+</hlm-sheet>
+
+<!-- Busca no celular: tela cheia. Foco preso, Esc, rolagem travada e foco devolvido ao ⌕ vêm do CDK. -->
+<hlm-sheet side="top" [state]="buscaAberta() ? 'open' : 'closed'" (closed)="buscaAberta.set(false)">
+  <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="gap-0 p-0 data-[side=top]:h-dvh data-[side=top]:border-b-0">
+    <h2 hlmSheetTitle class="sr-only">Buscar peças</h2>
+    <uz-busca modo="tela" class="flex min-h-0 flex-1 flex-col">
+      <button hlmBtn variant="ghost" type="button" hlmSheetClose>Cancelar</button>
+    </uz-busca>
   </hlm-sheet-content>
 </hlm-sheet>
 

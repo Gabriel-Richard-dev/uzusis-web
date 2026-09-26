@@ -1,4 +1,24 @@
 <header class="border-b border-border bg-background">
+  <!-- Faixa de avisos: estática (sem rotação nem região viva), sem números: o frete vem da configuração. -->
+  <div class="bg-primary text-primary-foreground">
+    <ul
+      role="list"
+      aria-label="Avisos da loja"
+      class="uz-container flex h-9 items-center justify-center gap-8 text-xs font-medium tracking-[0.04em]"
+    >
+      <li>Enviamos para todo o Brasil</li>
+      <li class="hidden md:block">Pagamento seguro com cartão via Stripe</li>
+      <li class="hidden lg:block">
+        Trocas e atendimento:
+        <!-- O foco global marrom some no preto (~2,8:1): aqui o contorno é claro. -->
+        <a
+          class="text-primary-foreground underline underline-offset-2 hover:text-primary-foreground/80 focus-visible:outline-primary-foreground"
+          href="mailto:uzusis@gmail.com"
+          >uzusis&#64;gmail.com</a
+        >
+      </li>
+    </ul>
+  </div>
   <!-- Mobile: [menu] [logo centralizado] [busca, conta, sacola] · ≥ lg: [logo] [Loja, Categorias] [busca] [conta, sacola] -->
   <div
     class="uz-container grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-x-1 lg:grid-cols-[auto_auto_1fr_auto] lg:gap-x-6"
@@ -21,7 +41,7 @@
       aria-label="Uzusis, página inicial"
     >
       <!-- A marca original é taupe claro (≈2,3:1 no papel): o filtro escurece sem trocar o arquivo. -->
-      <img src="assets/logoUzu.png" alt="" width="55" height="39" class="h-[23px] w-8 object-contain brightness-[.3] lg:h-7 lg:w-10" />
+      <img src="assets/logoUzu.png" alt="" width="55" height="39" class="h-[23px] w-8 object-contain brightness-[.3] max-[359px]:hidden lg:h-7 lg:w-10" />
       <span class="font-display text-lg tracking-[0.2em] lg:text-h3">UZUSIS</span>
     </a>
 
@@ -33,26 +53,7 @@
       </button>
     </nav>
 
-    <form class="hidden w-full max-w-[22rem] justify-self-end lg:flex" role="search" (ngSubmit)="buscar()">
-      <label for="busca-desktop" class="sr-only">Buscar peças</label>
-      <hlm-input-group class="rounded-full">
-        <input
-          hlmInputGroupInput
-          id="busca-desktop"
-          name="q"
-          type="search"
-          class="ps-4"
-          placeholder="Buscar peças"
-          autocomplete="off"
-          [(ngModel)]="termo"
-        />
-        <hlm-input-group-addon align="inline-end">
-          <button hlmInputGroupButton size="icon-sm" type="submit" aria-label="Buscar">
-            <uz-icone nome="busca"></uz-icone>
-          </button>
-        </hlm-input-group-addon>
-      </hlm-input-group>
-    </form>
+    <uz-busca class="hidden w-full max-w-[22rem] justify-self-end lg:block" />
 
     <div class="flex items-center justify-self-end">
       <button
@@ -61,10 +62,9 @@
         size="icon"
         type="button"
         class="lg:hidden"
-        aria-controls="busca-mobile"
-        [attr.aria-expanded]="buscaAberta"
-        aria-label="Abrir busca"
-        (click)="buscaAberta = !buscaAberta"
+        aria-label="Buscar peças"
+        aria-haspopup="dialog"
+        (click)="abrirBusca.emit()"
       >
         <uz-icone nome="busca" [tamanho]="24"></uz-icone>
       </button>
@@ -94,29 +94,6 @@
       }
     </div>
   </div>
-
-  @if (buscaAberta) {
-    <form id="busca-mobile" class="uz-container border-t border-border py-2" role="search" (ngSubmit)="buscar()">
-      <label for="busca-mobile-campo" class="sr-only">Buscar peças</label>
-      <hlm-input-group class="rounded-full">
-        <input
-          hlmInputGroupInput
-          id="busca-mobile-campo"
-          name="q"
-          type="search"
-          class="ps-4"
-          placeholder="Buscar peças"
-          autocomplete="off"
-          [(ngModel)]="termo"
-        />
-        <hlm-input-group-addon align="inline-end">
-          <button hlmInputGroupButton size="icon-sm" type="submit" aria-label="Buscar">
-            <uz-icone nome="busca"></uz-icone>
-          </button>
-        </hlm-input-group-addon>
-      </hlm-input-group>
-    </form>
-  }
 </header>
 
 <ng-template #menuCategorias>

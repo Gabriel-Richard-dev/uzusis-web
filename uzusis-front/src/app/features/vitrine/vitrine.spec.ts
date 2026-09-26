@@ -1,7 +1,7 @@
 import { convertToParamMap } from '@angular/router';
 
 import { ProdutoResposta, TamanhoResposta } from '../../core/api/modelos';
-import { acrescentar, lerFiltro, sortDe, tamanhoInicial, ultimasUnidades } from './vitrine';
+import { acrescentar, capasPorCategoria, lerFiltro, sortDe, tamanhoInicial, ultimasUnidades } from './vitrine';
 
 function produto(id: number, tamanhos: Partial<TamanhoResposta>[] = []): ProdutoResposta {
   return {
@@ -55,5 +55,16 @@ describe('vitrine', () => {
     expect(tamanhoInicial(p, 'P')).toBeNull();
     expect(tamanhoInicial(p, 'GG')).toBeNull();
     expect(tamanhoInicial(p, null)).toBeNull();
+  });
+
+  it('capasPorCategoria fica com a 1ª peça com foto de cada categoria', () => {
+    const foto = (url: string) => [{ id: 1, url, ordem: 0 }];
+    const capas = capasPorCategoria([
+      { ...produto(1), categoria: 'SAIA' },
+      { ...produto(2), categoria: 'SAIA', fotos: foto('saia-nova') },
+      { ...produto(3), categoria: 'SAIA', fotos: foto('saia-velha') },
+      { ...produto(4), fotos: foto('blusa') },
+    ]);
+    expect([...capas]).toEqual([['SAIA', 'saia-nova'], ['BLUSA', 'blusa']]);
   });
 });

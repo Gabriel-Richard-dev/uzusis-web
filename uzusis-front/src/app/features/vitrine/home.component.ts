@@ -1,22 +1,21 @@
-import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
 import { mensagemDeErro } from '../../core/api/erros';
 import { CATEGORIAS, ProdutoResposta } from '../../core/api/modelos';
-import { MatButton } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
-import { IconeComponent } from '../../shared/icone.component';
-import { EstadoComponent } from '../../shared/estado.component';
 import { EsqueletoComponent } from '../../shared/esqueleto.component';
+import { EstadoComponent } from '../../shared/estado.component';
+import { IconeComponent } from '../../shared/icone.component';
 import { ProdutoCardComponent } from './produto-card.component';
 
 @Component({
-    selector: 'uz-home',
-    templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatButton, RouterLink, IconeComponent, EstadoComponent, EsqueletoComponent, ProdutoCardComponent]
+  selector: 'uz-home',
+  templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [HlmButtonImports, RouterLink, IconeComponent, EstadoComponent, EsqueletoComponent, ProdutoCardComponent],
 })
 export class HomeComponent {
   private readonly catalogo = inject(CatalogoService);
@@ -39,9 +38,5 @@ export class HomeComponent {
       .listar({ size: 8, sort: 'criadoEm,desc' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({ next: p => (this.novidades = p.content), error: e => (this.erro = e) });
-  }
-
-  porId(_: number, p: ProdutoResposta): number {
-    return p.id;
   }
 }

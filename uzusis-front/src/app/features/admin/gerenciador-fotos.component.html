@@ -1,5 +1,5 @@
-<div class="fotos">
-  <p class="uz-texto-suave fotos__ajuda">
+<div class="flex flex-col gap-4">
+  <p class="m-0 text-sm text-muted-foreground">
     Até {{ max }} fotos JPEG, PNG ou WEBP de até 5 MB. A primeira é a capa.
     @if (!edicao) {
       As fotos são enviadas quando você salvar.
@@ -7,42 +7,53 @@
   </p>
 
   @if (grade.length) {
-    <ol class="fotos__grade">
-      @for (f of grade; track porChave(i, f); let i = $index; let primeira = $first; let ultima = $last) {
-        <li class="foto">
-          <img class="foto__img" [src]="f.src" [alt]="'Foto ' + (i + 1) + ' de ' + grade.length + (primeira ? ' (capa)' : '')" />
+    <!-- 3 botões de 44 px por foto: 2 colunas a 390 px; 4 só a partir de xl (ao lado do menu lateral). -->
+    <ol class="fotos__grade grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      @for (f of grade; track f.chave; let i = $index; let primeira = $first; let ultima = $last) {
+        <li class="relative flex flex-col overflow-hidden rounded-lg bg-card ring-1 ring-foreground/10">
+          <img
+            class="aspect-[3/4] w-full bg-muted object-cover"
+            [src]="f.src"
+            [alt]="'Foto ' + (i + 1) + ' de ' + grade.length + (primeira ? ' (capa)' : '')"
+          />
           @if (primeira) {
-            <span class="foto__capa" aria-hidden="true">Capa</span>
+            <span hlmBadge class="absolute top-2 left-2 bg-brand text-brand-foreground" aria-hidden="true">Capa</span>
           }
-          <div class="foto__acoes">
+          <div class="flex gap-1 p-1.5">
             <button
-              mat-icon-button
+              hlmBtn
+              variant="ghost"
+              size="icon"
               type="button"
               [id]="'mover-' + f.chave + '-esq'"
               [disabled]="primeira"
               [attr.aria-label]="'Mover foto ' + (i + 1) + ' para a esquerda'"
               (click)="mover(i, -1)"
-              >
-              <uz-icone nome="seta-esquerda"></uz-icone>
+            >
+              <uz-icone nome="seta-esquerda" />
             </button>
             <button
-              mat-icon-button
+              hlmBtn
+              variant="ghost"
+              size="icon"
               type="button"
               [id]="'mover-' + f.chave + '-dir'"
               [disabled]="ultima"
               [attr.aria-label]="'Mover foto ' + (i + 1) + ' para a direita'"
               (click)="mover(i, 1)"
-              >
-              <uz-icone nome="seta-direita"></uz-icone>
+            >
+              <uz-icone nome="seta-direita" />
             </button>
             <button
-              mat-icon-button
+              hlmBtn
+              variant="ghost"
+              size="icon"
               type="button"
-              color="warn"
+              class="ms-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
               [attr.aria-label]="(edicao ? 'Remover foto ' : 'Retirar foto ') + (i + 1)"
               (click)="remover(i)"
-              >
-              <uz-icone nome="lixeira"></uz-icone>
+            >
+              <uz-icone nome="lixeira" />
             </button>
           </div>
         </li>
@@ -51,26 +62,28 @@
   }
 
   @if (falhasOuEnvios.length) {
-    <ul class="envios">
-      @for (l of falhasOuEnvios; track l) {
-        <li class="envio" [class.envio--erro]="l.erro">
-          <img class="envio__img" [src]="l.previa" alt="" />
-          <div class="envio__info">
-            <span class="envio__nome">{{ l.arquivo.name }}</span>
+    <ul class="divide-y divide-border">
+      @for (l of falhasOuEnvios; track l.id) {
+        <li class="flex flex-wrap items-center gap-3 py-2">
+          <img class="h-16 w-12 rounded-md bg-muted object-cover" [src]="l.previa" alt="" />
+          <div class="flex min-w-0 flex-[1_1_10rem] flex-col text-sm">
+            <span class="[overflow-wrap:anywhere]">{{ l.arquivo.name }}</span>
             @if (l.enviando) {
-              <span class="uz-texto-suave">Enviando…</span>
+              <span class="text-muted-foreground">Enviando…</span>
             }
             @if (l.erro) {
-              <span class="envio__erro">{{ l.erro }}</span>
+              <span class="text-destructive">{{ l.erro }}</span>
             }
           </div>
           @if (l.enviando) {
-            <mat-progress-spinner mode="indeterminate" diameter="24" aria-hidden="true"></mat-progress-spinner>
+            <hlm-spinner class="text-2xl text-muted-foreground" aria-hidden="true" />
           }
           @if (l.erro) {
-            <div class="envio__acoes">
-              <button mat-stroked-button type="button" (click)="tentarDeNovo(l)">Tentar de novo</button>
-              <button mat-button type="button" [attr.aria-label]="'Dispensar ' + l.arquivo.name" (click)="dispensar(l)">Dispensar</button>
+            <div class="flex flex-wrap gap-2">
+              <button hlmBtn variant="outline" type="button" (click)="tentarDeNovo(l)">Tentar de novo</button>
+              <button hlmBtn variant="ghost" type="button" [attr.aria-label]="'Dispensar ' + l.arquivo.name" (click)="dispensar(l)">
+                Dispensar
+              </button>
             </div>
           }
         </li>
@@ -79,19 +92,22 @@
   }
 
   @if (recusados.length) {
-    <ul class="recusados" role="alert">
-      @for (r of recusados; track $index) {
-        <li>{{ r }}</li>
-      }
-    </ul>
+    <div hlmAlert variant="destructive">
+      <uz-icone nome="alerta" />
+      <ul class="[overflow-wrap:anywhere]">
+        @for (r of recusados; track $index) {
+          <li>{{ r }}</li>
+        }
+      </ul>
+    </div>
   }
 
-  <div class="fotos__rodape">
-    <button mat-stroked-button type="button" class="fotos__adicionar" [disabled]="total >= max" (click)="arquivo.click()">
-      <uz-icone nome="mais"></uz-icone>
+  <div class="flex flex-wrap items-center gap-3">
+    <button hlmBtn variant="outline" type="button" class="fotos__adicionar" [disabled]="total >= max" (click)="arquivo.click()">
+      <uz-icone nome="mais" [tamanho]="18" />
       Adicionar fotos
     </button>
-    <span class="uz-texto-suave">{{ total }} de {{ max }} fotos</span>
+    <span class="text-sm text-muted-foreground">{{ total }} de {{ max }} fotos</span>
     <input
       #arquivo
       type="file"
@@ -100,8 +116,8 @@
       accept="image/jpeg,image/png,image/webp"
       aria-label="Escolher fotos"
       (change)="selecionar(arquivo)"
-      />
+    />
   </div>
 
-  <p class="fotos__anuncio" aria-live="polite">{{ anuncio }}</p>
+  <p class="m-0 text-sm text-muted-foreground" aria-live="polite">{{ anuncio }}</p>
 </div>

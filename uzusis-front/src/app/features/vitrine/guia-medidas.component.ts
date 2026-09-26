@@ -1,7 +1,7 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
-import { CdkScrollable } from '@angular/cdk/scrolling';
-import { MatButton } from '@angular/material/button';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 
 // Medidas do corpo em cm (§7.3), iguais para todas as categorias.
 const MEDIDAS = [
@@ -12,61 +12,50 @@ const MEDIDAS = [
   { sigla: 'GG', busto: '98–104', cintura: '78–84', quadril: '104–110' },
 ];
 
+/** id do texto de apoio; quem abre passa em ariaDescribedBy (o hlmDialogDescription dá NG0100). */
+export const GUIA_MEDIDAS_DESCRICAO = 'uz-guia-medidas-texto';
+
+/** Aberto pelo HlmDialogService (produto). */
 @Component({
-    selector: 'uz-guia-medidas',
-    template: `
-    <h2 mat-dialog-title>Guia de medidas</h2>
-    <mat-dialog-content>
-      <table class="guia">
-        <caption>Medidas do corpo, em centímetros</caption>
-        <thead>
-          <tr>
-            <th scope="col">Tamanho</th>
-            <th scope="col">Busto</th>
-            <th scope="col">Cintura</th>
-            <th scope="col">Quadril</th>
+  selector: 'uz-guia-medidas',
+  template: `
+    <div hlmDialogHeader class="pe-10">
+      <h2 hlmDialogTitle>Guia de medidas</h2>
+      <p [id]="descricao" class="text-muted-foreground">Medidas do corpo, em centímetros.</p>
+    </div>
+    <div hlmTableContainer>
+      <table hlmTable>
+        <caption class="sr-only">Medidas do corpo, em centímetros</caption>
+        <thead hlmTHead>
+          <tr hlmTr>
+            <th hlmTh scope="col">Tamanho</th>
+            <th hlmTh scope="col">Busto</th>
+            <th hlmTh scope="col">Cintura</th>
+            <th hlmTh scope="col">Quadril</th>
           </tr>
         </thead>
-        <tbody>
-          @for (m of medidas; track m) {
-            <tr>
-              <th scope="row">{{ m.sigla }}</th>
-              <td>{{ m.busto }}</td>
-              <td>{{ m.cintura }}</td>
-              <td>{{ m.quadril }}</td>
+        <tbody hlmTBody>
+          @for (m of medidas; track m.sigla) {
+            <tr hlmTr>
+              <th hlmTh scope="row">{{ m.sigla }}</th>
+              <td hlmTd class="tabular-nums">{{ m.busto }}</td>
+              <td hlmTd class="tabular-nums">{{ m.cintura }}</td>
+              <td hlmTd class="tabular-nums">{{ m.quadril }}</td>
             </tr>
           }
         </tbody>
       </table>
-    </mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button mat-flat-button color="primary" type="button" mat-dialog-close>Fechar</button>
-    </mat-dialog-actions>
-    `,
-    styles: [`
-    .guia {
-      width: 100%;
-      border-collapse: collapse;
-      color: var(--uz-tinta);
-      font-size: var(--uz-fs-pequeno);
-    }
-    caption {
-      margin-bottom: var(--uz-esp-3);
-      color: var(--uz-tinta-suave);
-      text-align: left;
-    }
-    th, td {
-      padding: var(--uz-esp-2);
-      border-bottom: 1px solid var(--uz-borda);
-      text-align: left;
-      white-space: nowrap;
-    }
-    thead th { font-weight: 600; }
-    tbody th { font-weight: 600; }
-  `],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, MatDialogClose]
+    </div>
+    <div hlmDialogFooter>
+      <button hlmBtn type="button" hlmDialogClose>Fechar</button>
+    </div>
+  `,
+  // contents: cabeçalho, tabela e rodapé viram itens da grade do hlm-dialog-content (gap-6).
+  host: { class: 'contents' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [HlmButtonImports, HlmDialogImports, HlmTableImports],
 })
 export class GuiaMedidasComponent {
   readonly medidas = MEDIDAS;
+  readonly descricao = GUIA_MEDIDAS_DESCRICAO;
 }

@@ -15,57 +15,57 @@
   }
 
   @if (!carregando && painel; as p) {
-    <ul class="kpis">
-      <li class="kpi uz-cartao">
-        <span class="kpi__rotulo">Receita do mês</span>
-        <span class="kpi__valor">{{ p.resumo.receitaMes | currency }}</span>
+    <ul class="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <li hlmCard class="h-full gap-2 p-4">
+        <span class="text-sm text-muted-foreground">Receita do mês</span>
+        <span class="font-display text-h3 [overflow-wrap:anywhere] md:text-h2">{{ p.resumo.receitaMes | currency }}</span>
       </li>
       <li>
-        <a class="kpi kpi--link uz-cartao" routerLink="/admin/pedidos">
-          <span class="kpi__rotulo">A enviar</span>
-          <span class="kpi__valor">{{ p.resumo.porStatus.PAGO }}</span>
+        <a hlmCard class="h-full gap-2 p-4 transition-shadow hover:shadow-sm hover:ring-brand/40" routerLink="/admin/pedidos">
+          <span class="text-sm text-muted-foreground">A enviar</span>
+          <span class="font-display text-h3 text-brand md:text-h2">{{ p.resumo.porStatus.PAGO }}</span>
         </a>
       </li>
       <li>
-        <a class="kpi kpi--link uz-cartao" routerLink="/admin/pedidos/historico">
-          <span class="kpi__rotulo">Enviados</span>
-          <span class="kpi__valor">{{ p.resumo.porStatus.ENVIADO }}</span>
+        <a hlmCard class="h-full gap-2 p-4 transition-shadow hover:shadow-sm hover:ring-brand/40" routerLink="/admin/pedidos/historico">
+          <span class="text-sm text-muted-foreground">Enviados</span>
+          <span class="font-display text-h3 text-brand md:text-h2">{{ p.resumo.porStatus.ENVIADO }}</span>
         </a>
       </li>
       <li>
-        <a class="kpi kpi--link uz-cartao" routerLink="/admin/produtos" [queryParams]="{ situacao: 'sem-estoque' }">
-          <span class="kpi__rotulo">Sem estoque</span>
-          <span class="kpi__valor">{{ p.semEstoque }}</span>
+        <a hlmCard class="h-full gap-2 p-4 transition-shadow hover:shadow-sm hover:ring-brand/40" routerLink="/admin/produtos" [queryParams]="{ situacao: 'sem-estoque' }">
+          <span class="text-sm text-muted-foreground">Sem estoque</span>
+          <span class="font-display text-h3 text-brand md:text-h2">{{ p.semEstoque }}</span>
         </a>
       </li>
     </ul>
-    <section class="proximos" aria-labelledby="proximos-titulo">
-      <div class="proximos__topo">
-        <h2 id="proximos-titulo" class="proximos__titulo">Próximos a enviar</h2>
+    <section aria-labelledby="proximos-titulo">
+      <div class="mb-3 flex items-baseline justify-between gap-3">
+        <h2 id="proximos-titulo" class="m-0 text-h3">Próximos a enviar</h2>
         @if (p.proximos.length) {
-          <a routerLink="/admin/pedidos">Ver todos</a>
+          <a routerLink="/admin/pedidos" class="inline-flex min-h-11 items-center">Ver todos</a>
         }
       </div>
       @if (p.proximos.length) {
-        <ul class="lista uz-cartao">
-          @for (pedido of p.proximos; track pedido) {
-            <li class="lista__item">
-              <div class="lista__principal">
+        <ul hlmCard class="gap-0 divide-y divide-border py-0 text-base">
+          @for (pedido of p.proximos; track pedido.id) {
+            <li class="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-4 py-3">
+              <div class="col-start-1 flex flex-wrap gap-x-3">
                 <strong>Pedido #{{ pedido.id }}</strong>
                 <span>{{ pedido.cliente.nome }}</span>
               </div>
-              <div class="lista__detalhe uz-texto-suave">
+              <div class="col-start-1 flex flex-wrap gap-x-3 text-sm text-muted-foreground">
                 <span>Pago em {{ pedido.pagoEm | date: 'dd/MM/yyyy HH:mm' }}</span>
                 <span>{{ pedido.endereco.cidade }}/{{ pedido.endereco.uf }}</span>
                 <span>{{ pecas(pedido) }} {{ pecas(pedido) === 1 ? 'peça' : 'peças' }}</span>
               </div>
-              <span class="lista__valor">{{ pedido.valorTotal | currency }}</span>
+              <span class="col-start-2 row-span-2 row-start-1 self-center font-semibold tabular-nums">{{ pedido.valorTotal | currency }}</span>
             </li>
           }
         </ul>
       } @else {
         <uz-estado tipo="vazio" titulo="Nenhum pedido aguardando envio">
-          <a mat-stroked-button routerLink="/admin/pedidos/historico">Ver histórico</a>
+          <a hlmBtn variant="outline" routerLink="/admin/pedidos/historico">Ver histórico</a>
         </uz-estado>
       }
     </section>

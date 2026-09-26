@@ -9,9 +9,10 @@ import { PedidosService } from '../../core/api/pedidos.service';
 import { SacolaService } from '../../core/api/sacola.service';
 import { acompanharPedido, foiRecusado, marcarRecusado } from './fluxo';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
 import { StatusPedidoComponent } from '../../shared/status-pedido.component';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { LinhaDoTempoComponent } from '../../shared/linha-do-tempo.component';
 import { ItensPedidoComponent } from './itens-pedido.component';
 import { CurrencyPipe, DatePipe } from '@angular/common';
@@ -28,9 +29,19 @@ const TITULO: Record<StatusPedido, string> = {
 @Component({
     selector: 'uz-pedido-status',
     templateUrl: './pedido-status.component.html',
-    styleUrls: ['./pedido-status.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, MatButton, RouterLink, StatusPedidoComponent, MatProgressSpinner, LinhaDoTempoComponent, ItensPedidoComponent, CurrencyPipe, DatePipe]
+    imports: [
+      EstadoComponent,
+      RouterLink,
+      StatusPedidoComponent,
+      LinhaDoTempoComponent,
+      ItensPedidoComponent,
+      HlmButtonImports,
+      HlmCardImports,
+      HlmSpinnerImports,
+      CurrencyPipe,
+      DatePipe,
+    ]
 })
 export class PedidoStatusComponent {
   private readonly route = inject(ActivatedRoute);

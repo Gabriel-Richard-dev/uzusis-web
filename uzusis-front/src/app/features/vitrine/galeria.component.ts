@@ -3,14 +3,14 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FotoResposta } from '../../core/api/modelos';
 
 /**
- * Fotos do produto. Os dois layouts ficam no DOM e o CSS mostra um: miniaturas + principal a partir de $md,
+ * Fotos do produto. Os dois layouts ficam no DOM e o CSS mostra um: miniaturas + principal a partir de md,
  * faixa com scroll-snap e indicadores no mobile. O escondido (display: none) sai da ordem de foco e do leitor.
  */
 @Component({
     selector: 'uz-galeria',
     templateUrl: './galeria.component.html',
+    host: { class: 'block min-w-0' },
     changeDetection: ChangeDetectionStrategy.Eager,
-    styleUrls: ['./galeria.component.scss']
 })
 export class GaleriaComponent {
   @Input({ required: true }) nome!: string;

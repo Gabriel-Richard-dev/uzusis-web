@@ -7,20 +7,21 @@ import { PedidosService } from '../../core/api/pedidos.service';
 import { AvisoService } from '../../core/util/aviso.service';
 import { aplicarMascara } from '../../shared/mascara.directive';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { StatusPedidoComponent } from '../../shared/status-pedido.component';
-import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelContent } from '@angular/material/expansion';
 import { LinhaDoTempoComponent } from '../../shared/linha-do-tempo.component';
+import { IconeComponent } from '../../shared/icone.component';
 import { SlicePipe, CurrencyPipe, DatePipe } from '@angular/common';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 
-/** /conta/pedidos: O7 em cartões, com detalhes expansíveis e confirmação de recebimento (O9). */
+/** /conta/pedidos: O7 em cartões, com detalhes em <details> e confirmação de recebimento (O9). */
 @Component({
     selector: 'uz-conta-pedidos',
     templateUrl: './pedidos.component.html',
-    styleUrls: ['./pedidos.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, MatButton, RouterLink, StatusPedidoComponent, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelContent, LinhaDoTempoComponent, SlicePipe, CurrencyPipe, DatePipe]
+    imports: [EstadoComponent, RouterLink, StatusPedidoComponent, LinhaDoTempoComponent, IconeComponent, SlicePipe, CurrencyPipe, DatePipe, HlmButtonImports, HlmCardImports, HlmSpinnerImports]
 })
 export class PedidosComponent implements OnInit {
   private readonly api = inject(PedidosService);
@@ -63,9 +64,5 @@ export class PedidosComponent implements OnInit {
 
   telefone(valor: string): string {
     return aplicarMascara('celular', valor);
-  }
-
-  porId(_: number, pedido: PedidoResposta): number {
-    return pedido.id;
   }
 }

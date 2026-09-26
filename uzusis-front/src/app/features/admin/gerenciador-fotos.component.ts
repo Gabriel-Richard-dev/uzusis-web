@@ -6,9 +6,11 @@ import { mensagemDeErro } from '../../core/api/erros';
 import { FotoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
 import { MAX_FOTOS, erroDoArquivo, trocar } from './admin-util';
-import { MatIconButton, MatButton } from '@angular/material/button';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { IconeComponent } from '../../shared/icone.component';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 /** Arquivo escolhido e ainda não gravado: pendente (criação), enviando ou com erro. */
 interface FotoLocal {
@@ -26,9 +28,8 @@ interface FotoLocal {
 @Component({
     selector: 'uz-gerenciador-fotos',
     templateUrl: './gerenciador-fotos.component.html',
-    styleUrls: ['./gerenciador-fotos.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatIconButton, IconeComponent, MatProgressSpinner, MatButton]
+    imports: [HlmAlertImports, HlmBadgeImports, HlmButtonImports, HlmSpinnerImports, IconeComponent]
 })
 export class GerenciadorFotosComponent implements OnDestroy {
   @Input() produtoId: number | null = null;
@@ -149,10 +150,6 @@ export class GerenciadorFotosComponent implements OnDestroy {
         },
         error: e => this.aviso.erro(e),
       });
-  }
-
-  porChave(_: number, item: { chave: string }): string {
-    return item.chave;
   }
 
   ngOnDestroy(): void {

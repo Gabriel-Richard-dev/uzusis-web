@@ -1,8 +1,8 @@
-<footer class="rodape">
-  <div class="uz-container rodape__colunas">
+<footer class="mt-16 bg-secondary text-foreground">
+  <div class="uz-container grid gap-8 pt-12 pb-8 md:grid-cols-[2fr_1fr_1fr]">
     <section aria-labelledby="rodape-sobre">
-      <h2 id="rodape-sobre" class="uz-legenda rodape__titulo">Sobre a loja</h2>
-      <p class="rodape__texto">
+      <h2 id="rodape-sobre" class="uz-legenda mb-3 font-sans font-semibold">Sobre a loja</h2>
+      <p class="max-w-[34rem] text-sm">
         Sonhada desde 2022, finalmente ganhamos forma. Com o desejo de vestir mulheres com almas grandes em corpos
         pequenos, desenvolvemos peças exclusivas e do tamanho da sua liberdade. Com o mesmo sangue e agora com o mesmo
         sonho. Irmãs, melhores amigas e apaixonadas pelo estilo minimal, com o propósito de te inspirar a amar quem se
@@ -11,27 +11,29 @@
     </section>
 
     <section aria-labelledby="rodape-atendimento">
-      <h2 id="rodape-atendimento" class="uz-legenda rodape__titulo">Atendimento</h2>
-      <ul class="rodape__lista">
-        <li><a href="mailto:uzusis@gmail.com">uzusis&#64;gmail.com</a></li>
-        <li><a href="https://www.instagram.com/_uzusis/" rel="noopener">Instagram &#64;_uzusis</a></li>
+      <h2 id="rodape-atendimento" class="uz-legenda mb-3 font-sans font-semibold">Atendimento</h2>
+      <ul>
+        <li><a [class]="link" href="mailto:uzusis@gmail.com">uzusis&#64;gmail.com</a></li>
+        <li><a [class]="link" href="https://www.instagram.com/_uzusis/" rel="noopener">Instagram &#64;_uzusis</a></li>
       </ul>
     </section>
 
     <nav aria-labelledby="rodape-categorias">
-      <h2 id="rodape-categorias" class="uz-legenda rodape__titulo">Categorias</h2>
-      <ul class="rodape__lista rodape__lista--categorias">
+      <h2 id="rodape-categorias" class="uz-legenda mb-3 font-sans font-semibold">Categorias</h2>
+      <ul class="grid grid-cols-2 gap-x-4">
         @for (c of categorias; track c) {
           <li>
-            <a routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+            <a [class]="link" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
           </li>
         }
       </ul>
     </nav>
   </div>
 
-  <div class="uz-container rodape__base">
-    <p>© {{ ano }} Uzusis. Feita de irmãs para as nossas Sis.</p>
-    <p>Desenvolvido por JRL Team</p>
+  <div class="uz-container">
+    <div class="flex flex-wrap justify-between gap-2 border-t border-border py-4 text-sm text-muted-foreground">
+      <p>© {{ ano }} Uzusis. Feita de irmãs para as nossas Sis.</p>
+      <p>Desenvolvido por JRL Team</p>
+    </div>
   </div>
 </footer>

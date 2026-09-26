@@ -1,4 +1,4 @@
-<section class="uz-container checkout">
+<section class="uz-container pb-16">
   <h1 class="uz-titulo" tabindex="-1">Finalizar compra</h1>
 
   @if (passo === 'carregando') {
@@ -21,123 +21,140 @@
         titulo="Sua sacola está vazia"
         mensagem="Escolha suas peças e volte para finalizar a compra."
         >
-        <a mat-flat-button color="primary" routerLink="/loja">Explorar a loja</a>
+        <a hlmBtn routerLink="/loja">Explorar a loja</a>
       </uz-estado>
     } @else {
-      <div class="checkout__grade">
+      <!-- Mobile: resumo recolhível no topo. ≥ lg: formulário à esquerda e resumo fixo à direita. -->
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-12">
         @if (resumo(carrinho); as r) {
-          <aside class="resumo uz-cartao" aria-labelledby="resumo-titulo">
-            <div class="resumo__topo">
-              <h2 id="resumo-titulo" class="resumo__titulo">Resumo do pedido</h2>
+          <aside
+            hlmCard
+            class="gap-0 p-4 text-base lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:p-6"
+            aria-labelledby="resumo-titulo"
+            >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="resumo-titulo" class="m-0 text-lg">Resumo do pedido</h2>
               <button
-                mat-button
+                hlmBtn
+                variant="ghost"
                 type="button"
-                class="resumo__alternar"
+                class="-me-3 lg:hidden"
                 aria-controls="resumo-detalhes"
                 [attr.aria-expanded]="resumoAberto"
                 (click)="resumoAberto = !resumoAberto"
                 >
-                {{ resumoAberto ? 'Ocultar itens' : 'Ver itens (' + r.itens.length + ')' }}
+                {{ resumoAberto ? 'Ocultar itens' : 'Ver itens (' + r.pecas + ')' }}
               </button>
             </div>
-            <div id="resumo-detalhes" class="resumo__detalhes" [class.resumo__detalhes--aberto]="resumoAberto">
+            <div id="resumo-detalhes" class="lg:block" [class.hidden]="!resumoAberto">
               <uz-itens-pedido [itens]="r.itens"></uz-itens-pedido>
-              <dl class="valores">
-                <div class="valores__linha">
+              <dl class="mt-3">
+                <div class="flex justify-between gap-3 py-1">
                   <dt>Subtotal</dt>
-                  <dd>{{ r.subtotal | currency }}</dd>
+                  <dd class="text-right">{{ r.subtotal | currency }}</dd>
                 </div>
-                <div class="valores__linha">
+                <div class="flex justify-between gap-3 py-1">
                   <dt>Frete</dt>
-                  <dd>
+                  <dd class="text-right">
                     @if (r.frete !== null) {
                       {{ r.frete | currency }}
                     } @else {
-                      <span class="uz-texto-suave">{{ calculandoFrete ? 'Calculando…' : 'Informe a UF' }}</span>
+                      <span class="text-muted-foreground">{{ calculandoFrete ? 'Calculando…' : 'Informe a UF' }}</span>
                     }
                   </dd>
                 </div>
               </dl>
             </div>
-            <dl class="valores valores--total">
-              <div class="valores__linha">
+            <dl class="mt-3 border-t pt-3 text-lg font-semibold">
+              <div class="flex justify-between gap-3 py-1">
                 <dt>Total</dt>
-                <dd>
+                <dd class="text-right">
                   @if (r.total !== null) {
-                    {{ r.total | currency }}
+                    <span class="text-brand">{{ r.total | currency }}</span>
                   } @else {
-                    <span class="uz-texto-suave">Falta o frete</span>
+                    <span class="font-normal text-muted-foreground">Falta o frete</span>
                   }
                 </dd>
               </div>
             </dl>
           </aside>
         }
-        <div class="checkout__principal">
-          <ol class="passos" aria-label="Etapas da compra">
-            <li class="passos__item" [class.passos__item--atual]="passo === 'entrega'" [attr.aria-current]="passo === 'entrega' ? 'step' : null">
-              <span class="passos__numero" aria-hidden="true">1</span> Entrega
-            </li>
-            <li class="passos__item" [class.passos__item--atual]="passo === 'pagamento'" [attr.aria-current]="passo === 'pagamento' ? 'step' : null">
-              <span class="passos__numero" aria-hidden="true">2</span> Pagamento
-            </li>
+        <div class="flex min-w-0 flex-col gap-6">
+          <ol class="flex flex-wrap gap-6 text-muted-foreground" aria-label="Etapas da compra">
+            @for (e of etapas; track e.passo; let i = $index) {
+              <li
+                class="flex items-center gap-2"
+                [class.font-semibold]="passo === e.passo"
+                [class.text-foreground]="passo === e.passo"
+                [attr.aria-current]="passo === e.passo ? 'step' : null"
+                >
+                <span
+                  class="inline-flex size-7 items-center justify-center rounded-full text-sm"
+                  [class]="passo === e.passo ? 'bg-primary text-primary-foreground' : 'ring-1 ring-input'"
+                  aria-hidden="true"
+                  >{{ i + 1 }}</span
+                >
+                {{ e.rotulo }}
+              </li>
+            }
           </ol>
           @if (config && !config.habilitado) {
-            <p class="alerta" role="status">
+            <div hlmAlert class="border-warning/30 bg-warning-muted text-warning" role="status">
               <uz-icone nome="alerta"></uz-icone>
-              <span>Pagamento ainda não configurado. Não é possível finalizar compras no momento.</span>
-            </p>
+              <p class="m-0">Pagamento ainda não configurado. Não é possível finalizar compras no momento.</p>
+            </div>
           }
           @if (passo === 'entrega' && form) {
             <form
-              class="etapa"
+              class="flex flex-col gap-6"
               [formGroup]="form"
               (ngSubmit)="criarPedido()"
               novalidate
               aria-labelledby="entrega-titulo"
               >
-              <h2 id="entrega-titulo" class="etapa__titulo">Entrega</h2>
+              <h2 id="entrega-titulo" class="sr-only">Entrega</h2>
               <uz-endereco-form [form]="form"></uz-endereco-form>
-              <mat-checkbox [formControl]="salvarNoPerfil">Salvar este endereço no meu perfil</mat-checkbox>
-              <p class="frete" aria-live="polite">
+              <div hlmField orientation="horizontal" class="min-h-11">
+                <hlm-checkbox inputId="salvar-endereco" [formControl]="salvarNoPerfil" />
+                <label hlmFieldLabel for="salvar-endereco">Salvar este endereço no meu perfil</label>
+              </div>
+              <p class="m-0 empty:hidden" aria-live="polite">
                 @if (frete) {
-                  Frete para {{ frete.uf }}: <strong>{{ frete.valor | currency }}</strong>
+                  Frete para {{ frete.uf }}: <strong class="font-semibold">{{ frete.valor | currency }}</strong>
                 }
                 @if (erroFrete) {
-                  <span class="frete__erro">Não foi possível calcular o frete: {{ erroFrete }}</span>
+                  <span class="text-destructive">Não foi possível calcular o frete: {{ erroFrete }}</span>
                 }
               </p>
               @if (erroPedido) {
-                <p class="alerta alerta--erro" role="alert">
+                <div hlmAlert variant="destructive" role="alert">
                   <uz-icone nome="alerta"></uz-icone>
-                  <span>
+                  <p hlmAlertDescription class="m-0">
                     {{ erroPedido }}
                     @if (pedidoPendente) {
-                      <a routerLink="/conta/pedidos">Ver meus pedidos</a>
+                      <a routerLink="/conta/pedidos" class="font-semibold text-current">Ver meus pedidos</a>
                     }
-                  </span>
-                </p>
+                  </p>
+                </div>
               }
               <button
-                mat-flat-button
-                color="primary"
+                hlmBtn
+                size="lg"
                 type="submit"
-                class="etapa__acao"
+                class="w-full md:w-auto md:min-w-64 md:self-start"
                 [disabled]="!config?.habilitado || enviando"
                 >
-                <span class="etapa__rotulo">
-                  @if (enviando) {
-                    <mat-progress-spinner mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
-                  }
-                  {{ enviando ? 'Criando pedido…' : 'Ir para o pagamento' }}
-                </span>
+                @if (enviando) {
+                  <hlm-spinner aria-hidden="true" />
+                }
+                {{ enviando ? 'Criando pedido…' : 'Ir para o pagamento' }}
               </button>
             </form>
           }
           @if (passo === 'pagamento' && pedido) {
-            <section class="etapa" aria-labelledby="pagamento-titulo">
-              <h2 id="pagamento-titulo" class="etapa__titulo">Pagamento</h2>
-              <p class="uz-texto-suave">
+            <section class="flex flex-col gap-4" aria-labelledby="pagamento-titulo">
+              <h2 id="pagamento-titulo" class="sr-only">Pagamento</h2>
+              <p class="m-0 text-muted-foreground">
                 Pedido #{{ pedido.id }}@if (pedido.expiraEm) {
                 · Conclua o pagamento até {{ pedido.expiraEm | date: 'HH:mm' }}
               }
@@ -150,33 +167,33 @@
                   [mensagem]="erroPreparo"
                   (tentarNovamente)="prepararPagamento()"
                 ></uz-estado>
-              } @else {
-                @if (!pronto) {
-                  <uz-estado tipo="carregando" mensagem="Preparando o pagamento…"></uz-estado>
-                }
               }
-              <div #elementoPagamento class="pagamento"></div>
+              <!-- Reserva a altura aproximada do Payment Element enquanto ele carrega (sem salto grande). -->
+              <div class="relative" [class.min-h-56]="!pronto && !erroPreparo">
+                @if (!pronto && !erroPreparo) {
+                  <uz-estado class="absolute inset-0" tipo="carregando" mensagem="Preparando o pagamento…"></uz-estado>
+                }
+                <div #elementoPagamento></div>
+              </div>
               @if (erroPagamento) {
-                <p class="alerta alerta--erro" role="alert">
+                <div hlmAlert variant="destructive" role="alert">
                   <uz-icone nome="alerta"></uz-icone>
-                  <span>{{ erroPagamento }}</span>
-                </p>
+                  <p hlmAlertDescription class="m-0">{{ erroPagamento }}</p>
+                </div>
               }
               @if (!erroPreparo) {
                 <button
-                  mat-flat-button
-                  color="primary"
+                  hlmBtn
+                  size="lg"
                   type="button"
-                  class="etapa__acao"
+                  class="w-full md:w-auto md:min-w-64 md:self-start"
                   [disabled]="!pronto || pagando || bloqueado"
                   (click)="pagar()"
                   >
-                  <span class="etapa__rotulo">
-                    @if (pagando) {
-                      <mat-progress-spinner mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
-                    }
-                    Pagar {{ pedido.valorTotal | currency }}
-                  </span>
+                  @if (pagando) {
+                    <hlm-spinner aria-hidden="true" />
+                  }
+                  {{ pagando ? 'Pagando…' : 'Pagar ' + (pedido.valorTotal | currency) }}
                 </button>
               }
             }

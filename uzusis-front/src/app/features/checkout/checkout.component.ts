@@ -1,9 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, ElementRef, NgZone, OnDestroy, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import type { Appearance, Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { loadStripe } from '@stripe/stripe-js/pure';
 import {
   EMPTY,
@@ -40,12 +46,9 @@ import { criarFormEndereco } from '../../core/util/endereco-form';
 import { UFS } from '../../core/util/ufs';
 import { foiRecusado, marcarRecusado, repetirEnquanto404 } from './fluxo';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
 import { ItensPedidoComponent } from './itens-pedido.component';
 import { IconeComponent } from '../../shared/icone.component';
 import { EnderecoFormComponent } from '../../shared/endereco-form.component';
-import { MatCheckbox } from '@angular/material/checkbox';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
 
 const ERRO_STRIPE = 'Não foi possível carregar o pagamento. Verifique sua conexão.';
@@ -62,8 +65,48 @@ function carregarStripe(chave: string): Promise<Stripe> {
   return stripe$;
 }
 
+/**
+ * Appearance do Payment Element com os tokens do tema (styles.css): mudar um token muda o Stripe.
+ * Os tokens são hex porque o iframe da Stripe não aceita oklch nem var().
+ */
+export function aparenciaStripe(
+  token = (nome: string) => getComputedStyle(document.documentElement).getPropertyValue(nome).trim(),
+): Appearance {
+  const sombra = '0 1px 2px rgba(28,25,23,0.06)'; // = shadow-xs
+  return {
+    theme: 'stripe',
+    labels: 'above',
+    variables: {
+      colorPrimary: token('--primary'), // aba selecionada = preto, como as pills
+      colorBackground: token('--card'),
+      colorText: token('--foreground'),
+      colorTextSecondary: token('--muted-foreground'),
+      colorTextPlaceholder: token('--muted-foreground'),
+      colorDanger: token('--destructive'),
+      fontFamily: 'Inter, system-ui, sans-serif',
+      fontSizeBase: '16px',
+      fontWeightMedium: '500',
+      borderRadius: '10px', // = rounded-md dos inputs
+      spacingUnit: '4px',
+      focusOutline: 'none',
+      focusBoxShadow: `0 0 0 2px ${token('--ring')}`,
+    },
+    rules: {
+      '.Input': { border: `1px solid ${token('--input')}`, boxShadow: sombra },
+      '.Input:focus': { borderColor: token('--ring'), boxShadow: `0 0 0 2px ${token('--ring')}` },
+      '.Input--invalid': { borderColor: token('--destructive'), boxShadow: 'none' },
+      '.Label': { fontSize: '14px', fontWeight: '500', color: token('--foreground') },
+      '.Tab': { border: `1px solid ${token('--border')}`, boxShadow: sombra },
+      '.Tab--selected': { borderColor: token('--primary'), boxShadow: `0 0 0 1px ${token('--primary')}` },
+      '.Error': { color: token('--destructive') },
+    },
+  };
+}
+
 interface Resumo {
   itens: ItemResposta[];
+  /** Soma das quantidades (igual ao badge da sacola). */
+  pecas: number;
   subtotal: number;
   frete: number | null;
   total: number | null;
@@ -72,9 +115,24 @@ interface Resumo {
 @Component({
     selector: 'uz-checkout',
     templateUrl: './checkout.component.html',
-    styleUrls: ['./checkout.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, MatButton, RouterLink, ItensPedidoComponent, IconeComponent, FormsModule, ReactiveFormsModule, EnderecoFormComponent, MatCheckbox, MatProgressSpinner, AsyncPipe, CurrencyPipe, DatePipe]
+    imports: [
+      EstadoComponent,
+      RouterLink,
+      ItensPedidoComponent,
+      IconeComponent,
+      ReactiveFormsModule,
+      EnderecoFormComponent,
+      HlmAlertImports,
+      HlmButtonImports,
+      HlmCardImports,
+      HlmCheckboxImports,
+      HlmFieldImports,
+      HlmSpinnerImports,
+      AsyncPipe,
+      CurrencyPipe,
+      DatePipe,
+    ]
 })
 export class CheckoutComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
@@ -95,6 +153,10 @@ export class CheckoutComponent implements OnDestroy {
   erro = '';
   config?: ConfigPagamento;
   resumoAberto = false;
+  readonly etapas = [
+    { passo: 'entrega', rotulo: 'Entrega' },
+    { passo: 'pagamento', rotulo: 'Pagamento' },
+  ] as const;
 
   // Passo 1
   perfil?: PerfilResposta;
@@ -186,13 +248,15 @@ export class CheckoutComponent implements OnDestroy {
   }
 
   resumo(carrinho: CarrinhoResposta): Resumo {
+    const pecas = (itens: ItemResposta[]) => itens.reduce((n, i) => n + i.quantidade, 0);
     if (this.pedido) {
       const p = this.pedido;
-      return { itens: p.itens, subtotal: p.subtotal, frete: p.frete, total: p.valorTotal };
+      return { itens: p.itens, pecas: pecas(p.itens), subtotal: p.subtotal, frete: p.frete, total: p.valorTotal };
     }
     const frete = this.frete?.valor ?? null;
     return {
       itens: carrinho.itens,
+      pecas: pecas(carrinho.itens),
       subtotal: carrinho.valorTotal,
       frete,
       total: frete === null ? null : carrinho.valorTotal + frete,
@@ -205,7 +269,9 @@ export class CheckoutComponent implements OnDestroy {
     if (!form || !this.config?.habilitado || this.enviando) return;
     if (form.invalid) {
       form.markAllAsTouched();
-      this.host.querySelector<HTMLElement>('form .ng-invalid[formcontrolname]')?.focus();
+      // No select nativo o ng-invalid fica no host hlm-native-select, que não recebe foco.
+      const el = this.host.querySelector<HTMLElement>('form .ng-invalid[formcontrolname]');
+      (el?.matches('input,textarea,select') ? el : el?.querySelector('select'))?.focus();
       return;
     }
     const endereco = form.getRawValue() as EnderecoEntrega;
@@ -250,15 +316,8 @@ export class CheckoutComponent implements OnDestroy {
         this.elements = stripe.elements({
           clientSecret: segredo.clientSecret,
           locale: 'pt-BR',
-          appearance: {
-            theme: 'stripe',
-            variables: {
-              colorPrimary: '#7a5a41',
-              colorText: '#292b2e',
-              fontFamily: 'Inter, system-ui, sans-serif',
-              borderRadius: '4px',
-            },
-          },
+          fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap' }],
+          appearance: aparenciaStripe(),
         });
         this.paymentElement = this.elements.create('payment');
         this.paymentElement.on('ready', () => this.zone.run(() => (this.pronto = true)));

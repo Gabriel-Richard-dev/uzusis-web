@@ -9,15 +9,14 @@ import {
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
-import { MatPaginatorIntl } from '@angular/material/paginator';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { provideNgIconsConfig } from '@ng-icons/core';
+import { provideSpartanHlm } from '@spartan-ng/helm/utils';
 import { OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 
 import { ROTAS } from './app.routes';
 import { AuthService } from './core/auth/auth.service';
 import { ApiInterceptor } from './core/interceptors/api.interceptor';
-import { PaginadorPtBr } from './core/util/paginador-pt-br';
 
 registerLocaleData(localePt, 'pt-BR');
 
@@ -35,7 +34,9 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => inject(AuthService).iniciar()),
     { provide: LOCALE_ID, useValue: 'pt-BR' },
     { provide: DEFAULT_CURRENCY_CODE, useValue: 'BRL' },
-    { provide: MatPaginatorIntl, useClass: PaginadorPtBr },
-    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
+    // Overlays do CDK sem popover: sheet e diálogo ficam acima do <hlm-toaster>.
+    provideSpartanHlm(),
+    // Ícones do helm (lucide) com o mesmo traço do uz-icone.
+    provideNgIconsConfig({ strokeWidth: 1.75 }),
   ],
 };

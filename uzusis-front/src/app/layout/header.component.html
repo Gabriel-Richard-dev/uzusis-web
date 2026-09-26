@@ -1,109 +1,145 @@
-<header class="header">
-  <div class="header__barra uz-container">
-    <button mat-icon-button type="button" class="header__menu" aria-label="Abrir menu" (click)="abrirMenu.emit()">
+<header class="border-b border-border bg-background">
+  <!-- Mobile: [menu] [logo centralizado] [busca, conta, sacola] · ≥ lg: [logo] [Loja, Categorias] [busca] [conta, sacola] -->
+  <div
+    class="uz-container grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-x-1 lg:grid-cols-[auto_auto_1fr_auto] lg:gap-x-6"
+  >
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      type="button"
+      class="justify-self-start lg:hidden"
+      aria-label="Abrir menu"
+      (click)="abrirMenu.emit()"
+    >
       <uz-icone nome="menu" [tamanho]="24"></uz-icone>
     </button>
 
-    <a routerLink="/" class="logo" aria-label="Uzusis, página inicial">
-      <img src="assets/logoUzu.png" alt="" width="40" height="32" class="logo__monograma" />
-      <span class="logo__texto">UZUSIS</span>
+    <a
+      routerLink="/"
+      class="inline-flex min-h-11 items-center gap-2 justify-self-center text-foreground no-underline hover:text-foreground lg:justify-self-start"
+      aria-label="Uzusis, página inicial"
+    >
+      <!-- A marca original é taupe claro (≈2,3:1 no papel): o filtro escurece sem trocar o arquivo. -->
+      <img src="assets/logoUzu.png" alt="" width="55" height="39" class="h-[23px] w-8 object-contain brightness-[.3] lg:h-7 lg:w-10" />
+      <span class="font-display text-lg tracking-[0.2em] lg:text-h3">UZUSIS</span>
     </a>
 
-    <nav class="header__nav" aria-label="Principal">
-      <a mat-button routerLink="/loja">Loja</a>
-      <button mat-button type="button" [matMenuTriggerFor]="menuCategorias">
+    <nav class="hidden gap-1 lg:flex" aria-label="Principal">
+      <a hlmBtn variant="ghost" routerLink="/loja">Loja</a>
+      <button hlmBtn variant="ghost" type="button" [hlmDropdownMenuTrigger]="menuCategorias">
         Categorias
         <uz-icone nome="seta-baixo" [tamanho]="16"></uz-icone>
       </button>
     </nav>
 
-    <form class="busca header__busca" role="search" (ngSubmit)="buscar()">
-      <label for="busca-desktop" class="uz-visualmente-oculto">Buscar peças</label>
-      <input
-        id="busca-desktop"
-        name="q"
-        type="search"
-        class="busca__campo"
-        placeholder="Buscar peças"
-        autocomplete="off"
-        [(ngModel)]="termo"
+    <form class="hidden w-full max-w-[22rem] justify-self-end lg:flex" role="search" (ngSubmit)="buscar()">
+      <label for="busca-desktop" class="sr-only">Buscar peças</label>
+      <hlm-input-group class="rounded-full">
+        <input
+          hlmInputGroupInput
+          id="busca-desktop"
+          name="q"
+          type="search"
+          class="ps-4"
+          placeholder="Buscar peças"
+          autocomplete="off"
+          [(ngModel)]="termo"
         />
-      <button mat-icon-button type="submit" aria-label="Buscar">
-        <uz-icone nome="busca"></uz-icone>
-      </button>
+        <hlm-input-group-addon align="inline-end">
+          <button hlmInputGroupButton size="icon-sm" type="submit" aria-label="Buscar">
+            <uz-icone nome="busca"></uz-icone>
+          </button>
+        </hlm-input-group-addon>
+      </hlm-input-group>
     </form>
 
-    <div class="header__acoes">
+    <div class="flex items-center justify-self-end">
       <button
-        mat-icon-button
+        hlmBtn
+        variant="ghost"
+        size="icon"
         type="button"
-        class="header__lupa"
+        class="lg:hidden"
         aria-controls="busca-mobile"
         [attr.aria-expanded]="buscaAberta"
         aria-label="Abrir busca"
         (click)="buscaAberta = !buscaAberta"
-        >
+      >
         <uz-icone nome="busca" [tamanho]="24"></uz-icone>
       </button>
-      <button mat-icon-button type="button" aria-label="Conta" [matMenuTriggerFor]="menuConta">
+      <button hlmBtn variant="ghost" size="icon" type="button" aria-label="Conta" [hlmDropdownMenuTrigger]="menuConta" align="end">
         <uz-icone nome="usuario" [tamanho]="24"></uz-icone>
       </button>
       @if ({ n: (quantidade$ | async) ?? 0 }; as sacolaVm) {
         <button
-          mat-icon-button
+          hlmBtn
+          variant="ghost"
+          size="icon"
           type="button"
+          class="relative"
           [attr.aria-label]="sacolaVm.n === 1 ? 'Sacola, 1 item' : 'Sacola, ' + sacolaVm.n + ' itens'"
           (click)="sacola.abrir()"
-          >
-          <uz-icone
-            nome="sacola"
-            aria-hidden="true"
-            [tamanho]="24"
-            [matBadge]="sacolaVm.n"
-            [matBadgeHidden]="sacolaVm.n === 0"
-            matBadgeSize="small"
-            matBadgeColor="primary"
-          ></uz-icone>
+        >
+          <uz-icone nome="sacola" [tamanho]="24"></uz-icone>
+          @if (sacolaVm.n > 0) {
+            <span
+              hlmBadge
+              aria-hidden="true"
+              class="absolute -top-0.5 -right-0.5 h-5 min-w-5 bg-brand px-1 text-brand-foreground tabular-nums"
+              >{{ sacolaVm.n }}</span
+            >
+          }
         </button>
       }
     </div>
   </div>
 
   @if (buscaAberta) {
-    <form id="busca-mobile" class="busca busca--mobile uz-container" role="search" (ngSubmit)="buscar()">
-      <label for="busca-mobile-campo" class="uz-visualmente-oculto">Buscar peças</label>
-      <input
-        id="busca-mobile-campo"
-        name="q"
-        type="search"
-        class="busca__campo"
-        placeholder="Buscar peças"
-        autocomplete="off"
-        [(ngModel)]="termo"
+    <form id="busca-mobile" class="uz-container border-t border-border py-2" role="search" (ngSubmit)="buscar()">
+      <label for="busca-mobile-campo" class="sr-only">Buscar peças</label>
+      <hlm-input-group class="rounded-full">
+        <input
+          hlmInputGroupInput
+          id="busca-mobile-campo"
+          name="q"
+          type="search"
+          class="ps-4"
+          placeholder="Buscar peças"
+          autocomplete="off"
+          [(ngModel)]="termo"
         />
-      <button mat-icon-button type="submit" aria-label="Buscar">
-        <uz-icone nome="busca"></uz-icone>
-      </button>
+        <hlm-input-group-addon align="inline-end">
+          <button hlmInputGroupButton size="icon-sm" type="submit" aria-label="Buscar">
+            <uz-icone nome="busca"></uz-icone>
+          </button>
+        </hlm-input-group-addon>
+      </hlm-input-group>
     </form>
   }
 </header>
 
-<mat-menu #menuCategorias="matMenu">
-  @for (c of categorias; track c) {
-    <a mat-menu-item routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
-  }
-</mat-menu>
-
-<mat-menu #menuConta="matMenu" xPosition="before">
-  @if (usuario$ | async; as usuario) {
-    <a mat-menu-item routerLink="/conta/dados">Minha conta</a>
-    <a mat-menu-item routerLink="/conta/pedidos">Meus pedidos</a>
-    @if (usuario.roles.includes('ADMIN')) {
-      <a mat-menu-item routerLink="/admin">Administração</a>
+<ng-template #menuCategorias>
+  <hlm-dropdown-menu class="w-56">
+    @for (c of categorias; track c) {
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
     }
-    <button mat-menu-item type="button" (click)="auth.logout()">Sair</button>
-  } @else {
-    <button mat-menu-item type="button" (click)="auth.login()">Entrar</button>
-    <button mat-menu-item type="button" (click)="auth.cadastrar()">Criar conta</button>
-  }
-</mat-menu>
+  </hlm-dropdown-menu>
+</ng-template>
+
+<ng-template #menuConta>
+  <hlm-dropdown-menu class="w-56">
+    @if (usuario$ | async; as usuario) {
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/conta/dados">Minha conta</a>
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/conta/pedidos">Meus pedidos</a>
+      @if (usuario.roles.includes('ADMIN')) {
+        <a hlmDropdownMenuItem class="min-h-11" routerLink="/admin">Administração</a>
+      }
+      <hlm-dropdown-menu-separator />
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.logout()">Sair</button>
+    } @else {
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.login()">Entrar</button>
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.cadastrar()">Criar conta</button>
+    }
+  </hlm-dropdown-menu>
+</ng-template>

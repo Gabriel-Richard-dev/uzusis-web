@@ -29,7 +29,7 @@ export function aplicarMascara(tipo: TipoMascara, valor: string): string {
 }
 
 /**
- * <input matInput formControlName="cpf" uzMascara="cpf">. O control recebe o valor já formatado
+ * <input hlmInput formControlName="cpf" uzMascara="cpf"> (o hlmInput não é value accessor; esta diretiva é). O control recebe o valor já formatado
  * ("123.456.789-09"); o backend normaliza para só dígitos.
  */
 @Directive({

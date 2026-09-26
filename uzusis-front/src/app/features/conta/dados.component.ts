@@ -1,7 +1,7 @@
 import { formatDate } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { mensagemDeErro } from '../../core/api/erros';
@@ -11,11 +11,13 @@ import { AuthService } from '../../core/auth/auth.service';
 import { criarFormEndereco } from '../../core/util/endereco-form';
 import { AvisoService } from '../../core/util/aviso.service';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatFormField, MatLabel, MatHint, MatError } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
 import { MascaraDirective } from '../../shared/mascara.directive';
-import { MatButton } from '@angular/material/button';
 import { EnderecoFormComponent } from '../../shared/endereco-form.component';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 
 const digitos = (v: unknown) => String(v ?? '').replace(/\D/g, '');
 
@@ -34,7 +36,7 @@ function hoje(): string {
   return formatDate(new Date(), 'yyyy-MM-dd', 'en-US');
 }
 
-/** Põe no campo a mensagem de `erros[]` do ProblemDetail (400 de validação), para aparecer no mat-error. */
+/** Põe no campo a mensagem de `erros[]` do ProblemDetail (400 de validação), para aparecer no hlm-field-error. */
 export function marcarErrosDoServidor(form: FormGroup, err: unknown): void {
   const corpo = err instanceof HttpErrorResponse ? (err.error as ProblemDetail | null) : null;
   for (const e of corpo?.erros ?? []) {
@@ -55,9 +57,8 @@ const MENSAGENS: Record<string, string> = {
 @Component({
     selector: 'uz-conta-dados',
     templateUrl: './dados.component.html',
-    styleUrls: ['./dados.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatHint, MatError, MascaraDirective, MatButton, EnderecoFormComponent]
+    imports: [EstadoComponent, ReactiveFormsModule, MascaraDirective, EnderecoFormComponent, HlmButtonImports, HlmCardImports, HlmFieldImports, HlmInputImports, HlmSpinnerImports]
 })
 export class DadosComponent implements OnInit {
   private readonly api = inject(PerfilService);

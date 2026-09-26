@@ -1,6 +1,5 @@
 import { Component, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PageEvent, MatPaginator } from '@angular/material/paginator';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, catchError, filter, finalize, of, switchMap, tap } from 'rxjs';
 
@@ -10,8 +9,11 @@ import { PedidosService } from '../../core/api/pedidos.service';
 import { AvisoService } from '../../core/util/aviso.service';
 import { aplicarMascara } from '../../shared/mascara.directive';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
-import { MatProgressBar } from '@angular/material/progress-bar';
+import { PaginadorComponent } from '../../shared/paginador.component';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmProgressImports } from '@spartan-ng/helm/progress';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { StatusPedidoComponent } from '../../shared/status-pedido.component';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 
@@ -26,9 +28,19 @@ const FILTROS: Record<'enviar' | 'historico', FiltroPedidosAdmin> = {
 @Component({
     selector: 'uz-pedidos-admin',
     templateUrl: './pedidos-admin.component.html',
-    styleUrls: ['./pedidos-admin.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, MatButton, RouterLink, MatProgressBar, StatusPedidoComponent, MatPaginator, CurrencyPipe, DatePipe]
+    imports: [
+      RouterLink,
+      CurrencyPipe,
+      DatePipe,
+      HlmButtonImports,
+      HlmCardImports,
+      HlmProgressImports,
+      HlmSpinnerImports,
+      EstadoComponent,
+      PaginadorComponent,
+      StatusPedidoComponent,
+    ]
 })
 export class PedidosAdminComponent {
   private readonly pedidos = inject(PedidosService);
@@ -81,8 +93,8 @@ export class PedidosAdminComponent {
     this.pedido$.next();
   }
 
-  mudarPagina(e: PageEvent): void {
-    this.indice = e.pageIndex;
+  mudarPagina(indice: number): void {
+    this.indice = indice;
     this.carregar();
     this.focarTitulo();
   }
@@ -117,10 +129,6 @@ export class PedidosAdminComponent {
 
   pecas(p: PedidoResposta): number {
     return p.itens.reduce((n, i) => n + i.quantidade, 0);
-  }
-
-  porId(_: number, p: PedidoResposta): number {
-    return p.id;
   }
 
   private focarTitulo(): void {

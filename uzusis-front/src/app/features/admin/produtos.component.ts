@@ -1,7 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { PageEvent, MatPaginator } from '@angular/material/paginator';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, filter, finalize, map, of, switchMap, tap } from 'rxjs';
 
@@ -9,16 +8,19 @@ import { CatalogoService } from '../../core/api/catalogo.service';
 import { mensagemDeErro } from '../../core/api/erros';
 import { CATEGORIAS, CategoriaProduto, FiltroProdutosAdmin, Pagina, ProdutoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
-import { SITUACOES, filtroDaSituacao, situacaoDo } from './admin-util';
-import { MatButton } from '@angular/material/button';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatSelect, MatOption } from '@angular/material/select';
+import { SITUACOES, Situacao, filtroDaSituacao, situacaoDo } from './admin-util';
+import { NgTemplateOutlet, CurrencyPipe } from '@angular/common';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmProgressImports } from '@spartan-ng/helm/progress';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { EsqueletoComponent } from '../../shared/esqueleto.component';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatProgressBar } from '@angular/material/progress-bar';
-import { MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
-import { NgTemplateOutlet, NgClass, CurrencyPipe } from '@angular/common';
+import { IconeComponent } from '../../shared/icone.component';
+import { PaginadorComponent } from '../../shared/paginador.component';
 
 const POR_PAGINA = 20;
 
@@ -26,9 +28,24 @@ const POR_PAGINA = 20;
 @Component({
     selector: 'uz-produtos',
     templateUrl: './produtos.component.html',
-    styleUrls: ['./produtos.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatButton, RouterLink, MatFormField, MatLabel, MatInput, FormsModule, ReactiveFormsModule, MatSelect, MatOption, EsqueletoComponent, EstadoComponent, MatProgressBar, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, NgTemplateOutlet, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, NgClass, CurrencyPipe]
+    imports: [
+      RouterLink,
+      ReactiveFormsModule,
+      NgTemplateOutlet,
+      CurrencyPipe,
+      HlmButtonImports,
+      HlmCardImports,
+      HlmFieldImports,
+      HlmInputGroupImports,
+      HlmNativeSelectImports,
+      HlmProgressImports,
+      HlmTableImports,
+      EsqueletoComponent,
+      EstadoComponent,
+      IconeComponent,
+      PaginadorComponent,
+    ]
 })
 export class ProdutosComponent {
   private readonly catalogo = inject(CatalogoService);
@@ -41,8 +58,13 @@ export class ProdutosComponent {
   readonly categorias = CATEGORIAS;
   readonly situacoes = SITUACOES;
   readonly porPagina = POR_PAGINA;
-  readonly colunas = ['foto', 'nome', 'categoria', 'preco', 'estoque', 'situacao', 'acoes'];
   readonly rotuloSituacao = Object.fromEntries(SITUACOES.map(s => [s.valor, s.nome]));
+  /** Mesmas cores do uz-status-pedido (AA sobre o fundo). */
+  readonly corSituacao: Record<Situacao, string> = {
+    ativo: 'bg-success-muted text-success',
+    inativo: 'bg-muted text-muted-foreground',
+    'sem-estoque': 'bg-warning-muted text-warning',
+  };
 
   readonly busca = new FormControl('', { nonNullable: true });
   readonly categoria = new FormControl('', { nonNullable: true });
@@ -120,8 +142,9 @@ export class ProdutosComponent {
     this.pedido$.next(this.filtro);
   }
 
-  mudarPagina(e: PageEvent): void {
-    this.navegar({ pagina: e.pageIndex ? e.pageIndex + 1 : null });
+  /** Índice 0-based do uz-paginador; na URL a página começa em 1 (e a primeira some). */
+  mudarPagina(indice: number): void {
+    this.navegar({ pagina: indice ? indice + 1 : null });
   }
 
   limparFiltros(): void {
@@ -152,10 +175,6 @@ export class ProdutosComponent {
         },
         error: e => this.aviso.erro(e),
       });
-  }
-
-  porId(_: number, p: ProdutoResposta): number {
-    return p.id;
   }
 
   private filtrar(params: Params, substituir = false): void {

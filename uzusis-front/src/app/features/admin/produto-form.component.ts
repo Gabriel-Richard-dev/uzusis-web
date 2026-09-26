@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { Component, ElementRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormControl, FormGroup, NonNullableFormBuilder, ValidatorFn, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, NonNullableFormBuilder, ValidatorFn, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, finalize, map, of, switchMap, tap } from 'rxjs';
@@ -13,10 +13,15 @@ import { formatarPreco, lerPreco, tamanhosParaEnviar } from './admin-util';
 import { GerenciadorFotosComponent } from './gerenciador-fotos.component';
 import { IconeComponent } from '../../shared/icone.component';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
-import { MatFormField, MatLabel, MatError, MatPrefix, MatHint } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatSelect, MatOption } from '@angular/material/select';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
+import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 
 const precoValido: ValidatorFn = c => {
   if (!c.value) return null; // o required cuida do vazio
@@ -34,9 +39,23 @@ const quantidade = () => new FormControl<number | null>(null, Validators.pattern
 @Component({
     selector: 'uz-produto-form',
     templateUrl: './produto-form.component.html',
-    styleUrls: ['./produto-form.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [RouterLink, IconeComponent, EstadoComponent, MatButton, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSelect, MatOption, MatPrefix, MatHint, GerenciadorFotosComponent]
+    imports: [
+      RouterLink,
+      ReactiveFormsModule,
+      HlmAlertImports,
+      HlmButtonImports,
+      HlmCardImports,
+      HlmFieldImports,
+      HlmInputImports,
+      HlmInputGroupImports,
+      HlmNativeSelectImports,
+      HlmSpinnerImports,
+      HlmTextareaImports,
+      IconeComponent,
+      EstadoComponent,
+      GerenciadorFotosComponent,
+    ]
 })
 export class ProdutoFormComponent {
   private readonly catalogo = inject(CatalogoService);
@@ -91,7 +110,11 @@ export class ProdutoFormComponent {
     this.erroSalvar = null;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      setTimeout(() => this.el.querySelector<HTMLElement>('.ng-invalid:is(input, textarea, mat-select)')?.focus());
+      // O ng-invalid do select fica no host hlm-native-select; o do estoque sem nenhum tamanho, no fieldset.
+      setTimeout(() => {
+        const el = this.el.querySelector<HTMLElement>('.ng-invalid:is(input, textarea, hlm-native-select, fieldset)');
+        (el?.matches('input, textarea') ? el : el?.querySelector<HTMLElement>('select, input'))?.focus();
+      });
       return;
     }
     const v = this.form.getRawValue();
@@ -139,10 +162,6 @@ export class ProdutoFormComponent {
       },
       error: e => (this.erroSalvar = mensagemDeErro(e)),
     });
-  }
-
-  erroEstoque(s: Sigla): boolean {
-    return this.form.controls.estoque.controls[s].invalid;
   }
 
   private preencher(p: ProdutoResposta): void {

@@ -1,14 +1,15 @@
 import { Component, Input, OnChanges, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Subscription, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs';
 
 import { CepService } from '../core/api/cep.service';
 import { UFS } from '../core/util/ufs';
-import { MatFormField, MatLabel, MatError, MatHint, MatSuffix } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
 import { MascaraDirective } from './mascara.directive';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSelect, MatOption } from '@angular/material/select';
 
 /**
  * Campos de endereço para um form de criarFormEndereco(fb, inicial?, entrega?).
@@ -17,9 +18,16 @@ import { MatSelect, MatOption } from '@angular/material/select';
 @Component({
     selector: 'uz-endereco-form',
     templateUrl: './endereco-form.component.html',
-    styleUrls: ['./endereco-form.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MascaraDirective, MatHint, MatProgressSpinner, MatSuffix, MatSelect, MatOption]
+    imports: [
+      ReactiveFormsModule,
+      MascaraDirective,
+      HlmFieldImports,
+      HlmInputImports,
+      HlmInputGroupImports,
+      HlmNativeSelectImports,
+      HlmSpinnerImports,
+    ]
 })
 export class EnderecoFormComponent implements OnChanges, OnDestroy {
   @Input({ required: true }) form!: FormGroup;

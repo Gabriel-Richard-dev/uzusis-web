@@ -1,34 +1,25 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 import { STATUS_ROTULO, StatusPedido } from '../core/api/modelos';
-import { NgClass } from '@angular/common';
 
-const COR: Record<StatusPedido, 'sucesso' | 'aviso' | 'erro'> = {
-  CRIADO: 'aviso',
-  PAGO: 'sucesso',
-  ENVIADO: 'aviso',
-  RECEBIDO: 'sucesso',
-  CANCELADO: 'erro',
+// Contraste do texto sobre o fundo: 5,58 (success) · 5,28 (warning) · 6,13 (destructive).
+const COR: Record<StatusPedido, string> = {
+  CRIADO: 'bg-warning-muted text-warning',
+  PAGO: 'bg-success-muted text-success',
+  ENVIADO: 'bg-warning-muted text-warning',
+  RECEBIDO: 'bg-success-muted text-success',
+  CANCELADO: 'bg-destructive-muted text-destructive',
 };
 
 @Component({
-    selector: 'uz-status-pedido',
-    template: `<span class="status" [ngClass]="'status--' + cor">{{ rotulo }}</span>`,
-    styles: [`
-    .status {
-      display: inline-block;
-      padding: var(--uz-esp-1) var(--uz-esp-3);
-      border-radius: var(--uz-raio-pill);
-      font-size: var(--uz-fs-pequeno);
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    .status--sucesso { color: var(--uz-sucesso); background: var(--uz-sucesso-fundo); }
-    .status--aviso { color: var(--uz-aviso); background: var(--uz-aviso-fundo); }
-    .status--erro { color: var(--uz-erro); background: var(--uz-erro-fundo); }
-  `],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgClass]
+  selector: 'uz-status-pedido',
+  // Mesmo desenho do hlmBadge, sem a diretiva: a cor muda com o status e não disputa com a variante.
+  template: `<span
+    class="inline-flex h-6 items-center rounded-full px-2.5 text-sm font-semibold whitespace-nowrap"
+    [class]="cor"
+    >{{ rotulo }}</span
+  >`,
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class StatusPedidoComponent {
   @Input({ required: true }) status!: StatusPedido;
@@ -38,6 +29,6 @@ export class StatusPedidoComponent {
   }
 
   get cor(): string {
-    return COR[this.status] ?? 'aviso';
+    return COR[this.status] ?? COR.CRIADO;
   }
 }

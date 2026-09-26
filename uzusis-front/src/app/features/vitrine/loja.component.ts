@@ -1,31 +1,42 @@
-import { Component, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
+import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Subject, catchError, debounceTime, filter, map, of, switchMap } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
 import { mensagemDeErro } from '../../core/api/erros';
 import { CATEGORIAS, Pagina, ProdutoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
-import { FiltroLoja, ORDENS, acrescentar, lerFiltro, sortDe } from './vitrine';
-import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatIconButton, MatButton } from '@angular/material/button';
-import { IconeComponent } from '../../shared/icone.component';
-import { MatSelect, MatOption } from '@angular/material/select';
-import { EstadoComponent } from '../../shared/estado.component';
 import { EsqueletoComponent } from '../../shared/esqueleto.component';
+import { EstadoComponent } from '../../shared/estado.component';
+import { IconeComponent } from '../../shared/icone.component';
 import { ProdutoCardComponent } from './produto-card.component';
+import { FiltroLoja, ORDENS, acrescentar, lerFiltro, sortDe } from './vitrine';
 
 const TAMANHO_PAGINA = 12;
 
 @Component({
     selector: 'uz-loja',
     templateUrl: './loja.component.html',
-    styleUrls: ['./loja.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatFormField, MatLabel, MatInput, FormsModule, ReactiveFormsModule, MatIconButton, MatSuffix, IconeComponent, MatSelect, MatOption, EstadoComponent, EsqueletoComponent, MatButton, ProdutoCardComponent]
+    imports: [
+      ReactiveFormsModule,
+      HlmButtonImports,
+      HlmFieldImports,
+      HlmInputGroupImports,
+      HlmNativeSelectImports,
+      HlmSpinnerImports,
+      IconeComponent,
+      EstadoComponent,
+      EsqueletoComponent,
+      ProdutoCardComponent,
+    ]
 })
 export class LojaComponent {
   private readonly route = inject(ActivatedRoute);
@@ -78,7 +89,7 @@ export class LojaComponent {
       this.carregar();
       // no celular a faixa de categorias rola na horizontal: a categoria vinda por link fica visível
       setTimeout(() =>
-        this.el.nativeElement.querySelector('.chip[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }),
+        this.el.nativeElement.querySelector('.uz-pill[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' }),
       );
     });
 
@@ -118,10 +129,6 @@ export class LojaComponent {
   limparFiltros(): void {
     this.busca.setValue('', { emitEvent: false });
     this.filtrar({ categoria: null, q: null });
-  }
-
-  porId(_: number, p: ProdutoResposta): number {
-    return p.id;
   }
 
   private consulta(page: number) {

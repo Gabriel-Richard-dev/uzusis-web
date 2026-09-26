@@ -31,104 +31,49 @@ export function montarEtapas(p: PedidoResposta): Etapa[] {
 
 /** CRIADO → PAGO → ENVIADO → RECEBIDO, ou o ramo cancelado (com motivo e data) destacado. */
 @Component({
-    selector: 'uz-linha-do-tempo',
-    template: `
-    <ol class="linha">
+  selector: 'uz-linha-do-tempo',
+  template: `
+    <ol class="m-0 list-none p-0">
       @for (e of etapas; track e) {
         <li
-          class="etapa"
-          [class.etapa--feita]="e.feita"
-          [class.etapa--cancelada]="e.cancelada"
+          class="relative flex gap-3 pb-4 not-last:before:absolute not-last:before:top-6 not-last:before:bottom-0 not-last:before:left-[0.6875rem] not-last:before:w-0.5 not-last:before:bg-border"
+          [class]="e.cancelada ? 'text-destructive' : e.feita ? 'text-foreground' : 'text-muted-foreground'"
           [attr.aria-current]="e.atual ? 'step' : null"
+        >
+          <span
+            class="inline-flex size-6 flex-none items-center justify-center rounded-full border-2"
+            [class]="
+              e.cancelada
+                ? 'border-destructive bg-destructive text-brand-foreground'
+                : e.feita
+                  ? 'border-brand bg-brand text-brand-foreground'
+                  : 'border-input bg-card'
+            "
+            aria-hidden="true"
           >
-          <span class="etapa__marca" aria-hidden="true">
             @if (e.feita) {
               <uz-icone [nome]="e.cancelada ? 'fechar' : 'check'" [tamanho]="14"></uz-icone>
             }
           </span>
-          <span class="etapa__texto">
-            <span class="etapa__rotulo">
+          <span class="flex flex-col">
+            <span class="font-semibold">
               {{ e.rotulo }}@if (!e.feita) {
-              <span class="uz-visualmente-oculto"> (pendente)</span>
+                <span class="sr-only"> (pendente)</span>
+              }
+            </span>
+            @if (e.data) {
+              <span class="text-sm text-muted-foreground">{{ e.data | date: 'dd/MM/yyyy HH:mm' }}</span>
+            }
+            @if (e.detalhe) {
+              <span class="text-sm" [class]="e.cancelada ? 'text-destructive' : 'text-muted-foreground'">{{ e.detalhe }}</span>
             }
           </span>
-          @if (e.data) {
-            <span class="etapa__data">{{ e.data | date: 'dd/MM/yyyy HH:mm' }}</span>
-          }
-          @if (e.detalhe) {
-            <span class="etapa__detalhe">{{ e.detalhe }}</span>
-          }
-        </span>
-      </li>
-    }
+        </li>
+      }
     </ol>
-    `,
-    styles: [`
-    .linha {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .etapa {
-      position: relative;
-      display: flex;
-      gap: var(--uz-esp-3);
-      padding-bottom: var(--uz-esp-4);
-      color: var(--uz-tinta-suave);
-    }
-    .etapa:not(:last-child)::before {
-      content: '';
-      position: absolute;
-      left: 0.6875rem;
-      top: 1.5rem;
-      bottom: 0;
-      width: 2px;
-      background: var(--uz-borda);
-    }
-    .etapa__marca {
-      display: inline-flex;
-      flex: none;
-      align-items: center;
-      justify-content: center;
-      width: 1.5rem;
-      height: 1.5rem;
-      border: 2px solid var(--uz-borda-campo);
-      border-radius: 50%;
-      background: var(--uz-superficie);
-    }
-    .etapa--feita {
-      color: var(--uz-tinta);
-    }
-    .etapa--feita .etapa__marca {
-      border-color: var(--uz-marca);
-      background: var(--uz-marca);
-      color: var(--uz-sobre-marca);
-    }
-    .etapa--cancelada {
-      color: var(--uz-erro);
-    }
-    .etapa--cancelada .etapa__marca {
-      border-color: var(--uz-erro);
-      background: var(--uz-erro);
-    }
-    .etapa__texto {
-      display: flex;
-      flex-direction: column;
-    }
-    .etapa__rotulo {
-      font-weight: 600;
-    }
-    .etapa__data,
-    .etapa__detalhe {
-      font-size: var(--uz-fs-pequeno);
-      color: var(--uz-tinta-suave);
-    }
-    .etapa--cancelada .etapa__detalhe {
-      color: var(--uz-erro);
-    }
-  `],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [IconeComponent, DatePipe]
+  `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IconeComponent, DatePipe],
 })
 export class LinhaDoTempoComponent implements OnChanges {
   @Input({ required: true }) pedido!: PedidoResposta;

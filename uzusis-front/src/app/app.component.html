@@ -1,2 +1,8 @@
-<a class="pular" href="#conteudo" (click)="pularParaConteudo($event)">Pular para o conteúdo</a>
+<a
+  href="#conteudo"
+  class="fixed top-2 left-2 z-[1100] -translate-y-[200%] rounded-md bg-primary px-4 py-3 text-primary-foreground no-underline focus:translate-y-0"
+  (click)="pularParaConteudo($event)"
+  >Pular para o conteúdo</a
+>
 <router-outlet></router-outlet>
+<hlm-toaster position="bottom-center" />

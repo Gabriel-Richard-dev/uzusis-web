@@ -1,9 +1,13 @@
+import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmDialogService } from '@spartan-ng/helm/dialog';
+import { HlmSpinnerImports } from '@spartan-ng/helm/spinner';
 import { Subscription } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
@@ -12,25 +16,30 @@ import { ProdutoResposta, Sigla } from '../../core/api/modelos';
 import { SacolaService } from '../../core/api/sacola.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { AvisoService } from '../../core/util/aviso.service';
-import { GuiaMedidasComponent } from './guia-medidas.component';
-import { tamanhoInicial } from './vitrine';
 import { EstadoComponent } from '../../shared/estado.component';
-import { MatButton } from '@angular/material/button';
-import { GaleriaComponent } from './galeria.component';
 import { IconeComponent } from '../../shared/icone.component';
-import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { QtdComponent } from '../../shared/qtd.component';
-import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
-import { CurrencyPipe } from '@angular/common';
+import { GaleriaComponent } from './galeria.component';
+import { GUIA_MEDIDAS_DESCRICAO, GuiaMedidasComponent } from './guia-medidas.component';
+import { tamanhoInicial } from './vitrine';
 
 const MAX_QTD = 10;
 
 @Component({
     selector: 'uz-produto',
     templateUrl: './produto.component.html',
-    styleUrls: ['./produto.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, MatButton, RouterLink, GaleriaComponent, IconeComponent, MatButtonToggleGroup, MatButtonToggle, QtdComponent, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, CurrencyPipe]
+    imports: [
+      RouterLink,
+      CurrencyPipe,
+      HlmAlertImports,
+      HlmButtonImports,
+      HlmSpinnerImports,
+      EstadoComponent,
+      GaleriaComponent,
+      IconeComponent,
+      QtdComponent,
+    ]
 })
 export class ProdutoComponent {
   private readonly route = inject(ActivatedRoute);
@@ -39,7 +48,7 @@ export class ProdutoComponent {
   private readonly auth = inject(AuthService);
   private readonly aviso = inject(AvisoService);
   private readonly title = inject(Title);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialog = inject(HlmDialogService);
   private readonly destroyRef = inject(DestroyRef);
   private pedido?: Subscription;
 
@@ -100,7 +109,11 @@ export class ProdutoComponent {
   }
 
   abrirGuia(): void {
-    this.dialog.open(GuiaMedidasComponent, { width: '32rem', maxWidth: 'calc(100vw - 2rem)' });
+    // Descrição por id fixo: o hlmDialogDescription dá NG0100 (bug do brain), igual ao AvisoService.confirmar.
+    this.dialog.open(GuiaMedidasComponent, {
+      contentClass: 'sm:max-w-lg',
+      ariaDescribedBy: GUIA_MEDIDAS_DESCRICAO,
+    });
   }
 
   async adicionar(): Promise<void> {

@@ -1,152 +1,158 @@
 @if (!pedidos && !erro) {
-  <uz-estado tipo="carregando" mensagem="Carregando seus pedidos…"></uz-estado>
+  <uz-estado tipo="carregando" mensagem="Carregando seus pedidos…" />
 }
 
 @if (erro) {
-  <uz-estado
-    tipo="erro"
-    titulo="Não foi possível carregar seus pedidos"
-    [mensagem]="erro"
-    (tentarNovamente)="carregar()"
-  ></uz-estado>
+  <uz-estado tipo="erro" titulo="Não foi possível carregar seus pedidos" [mensagem]="erro" (tentarNovamente)="carregar()" />
 }
 
 @if (pedidos && !pedidos.length) {
   <uz-estado tipo="vazio" titulo="Você ainda não fez pedidos">
-    <a mat-flat-button color="primary" routerLink="/loja">Ir para a loja</a>
+    <a hlmBtn routerLink="/loja">Ir para a loja</a>
   </uz-estado>
 }
 
 @if (pedidos?.length) {
-  <ul class="pedidos">
-    @for (p of pedidos; track porId($index, p)) {
+  <ul class="flex max-w-4xl flex-col gap-4">
+    @for (p of pedidos; track p.id) {
       <li>
-        <article class="uz-cartao pedido" [attr.aria-labelledby]="'pedido-' + p.id">
-          <div class="pedido__resumo">
-            <div class="pedido__topo">
-              <h2 class="pedido__titulo" [id]="'pedido-' + p.id">Pedido #{{ p.id }} · {{ p.criadoEm | date: 'dd/MM/yyyy' }}</h2>
-              <uz-status-pedido [status]="p.status"></uz-status-pedido>
+        <!-- article.pedido[aria-labelledby] é gancho do e2e. -->
+        <article hlmCard class="pedido gap-0 py-0 text-base" [attr.aria-labelledby]="'pedido-' + p.id">
+          <div class="flex flex-col gap-4 p-4 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <h2 class="m-0 font-sans text-lg font-semibold" [id]="'pedido-' + p.id">
+                Pedido #{{ p.id }} · {{ p.criadoEm | date: 'dd/MM/yyyy' }}
+              </h2>
+              <uz-status-pedido [status]="p.status" />
             </div>
-            <div class="pedido__meio">
-              <ul class="miniaturas">
-                @for (item of p.itens | slice: 0 : 4; track item) {
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <ul class="flex gap-2">
+                @for (item of p.itens | slice: 0 : 4; track $index) {
                   <li>
                     @if (item.fotoUrl) {
                       <img
-                        class="miniatura"
+                        class="block h-16 w-12 rounded-md bg-secondary object-cover"
                         [src]="item.fotoUrl"
                         [alt]="item.nomeProduto"
                         width="48"
                         height="64"
                         loading="lazy"
-                        />
+                      />
                     } @else {
-                      <span class="miniatura" role="img" [attr.aria-label]="item.nomeProduto"></span>
+                      <span class="block h-16 w-12 rounded-md bg-secondary" role="img" [attr.aria-label]="item.nomeProduto"></span>
                     }
                   </li>
                 }
                 @if (p.itens.length > 4) {
-                  <li class="miniatura miniatura--mais">
-                    +{{ p.itens.length - 4 }}<span class="uz-visualmente-oculto"> peças</span>
+                  <li class="flex h-16 w-12 items-center justify-center rounded-md bg-secondary font-semibold text-muted-foreground">
+                    +{{ p.itens.length - 4 }}<span class="sr-only"> peças</span>
                   </li>
                 }
               </ul>
-              <p class="pedido__total">
-                <span class="uz-texto-suave">Total</span>
+              <p class="m-0 flex items-baseline gap-2">
+                <span class="text-muted-foreground">Total</span>
                 <span class="uz-preco">{{ p.valorTotal | currency }}</span>
               </p>
             </div>
-            @if (p.status === 'CRIADO' || p.status === 'ENVIADO') {
-              <div class="pedido__acoes">
-                @if (p.status === 'CRIADO') {
-                  <a
-                    mat-flat-button
-                    color="primary"
-                    routerLink="/checkout"
-                    [queryParams]="{ pedido: p.id }"
-                    [attr.aria-describedby]="'pedido-' + p.id"
-                    >
-                    Concluir pagamento
-                  </a>
-                  @if (p.expiraEm) {
-                    <span class="pedido__prazo">Conclua até {{ p.expiraEm | date: 'HH:mm' }}</span>
-                  }
-                }
-                @if (p.status === 'ENVIADO') {
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    [disabled]="recebendo === p.id"
-                    [attr.aria-describedby]="'pedido-' + p.id"
-                    (click)="confirmarRecebimento(p)"
-                    >
-                    Confirmar recebimento
-                  </button>
+            @if (p.status === 'CRIADO') {
+              <div class="flex flex-wrap items-center gap-3">
+                <a hlmBtn routerLink="/checkout" [queryParams]="{ pedido: p.id }" [attr.aria-describedby]="'pedido-' + p.id">
+                  Concluir pagamento
+                </a>
+                @if (p.expiraEm) {
+                  <span class="text-sm text-muted-foreground">Conclua até {{ p.expiraEm | date: 'HH:mm' }}</span>
                 }
               </div>
             }
-          </div>
-          <mat-expansion-panel class="pedido__painel">
-            <mat-expansion-panel-header>
-              <mat-panel-title>Detalhes<span class="uz-visualmente-oculto"> do pedido #{{ p.id }}</span></mat-panel-title>
-            </mat-expansion-panel-header>
-            <ng-template matExpansionPanelContent>
-              <div class="detalhes">
-                <section>
-                  <h3 class="detalhes__titulo">Andamento</h3>
-                  <uz-linha-do-tempo [pedido]="p"></uz-linha-do-tempo>
-                </section>
-                <section>
-                  <h3 class="detalhes__titulo">Itens</h3>
-                  <ul class="itens">
-                    @for (item of p.itens; track item) {
-                      <li class="item">
-                        @if (item.fotoUrl) {
-                          <img
-                            class="miniatura"
-                            [src]="item.fotoUrl"
-                            alt=""
-                            width="48"
-                            height="64"
-                            loading="lazy"
-                            />
-                        } @else {
-                          <span class="miniatura"></span>
-                        }
-                        <span class="item__info">
-                          <span class="item__nome">{{ item.nomeProduto }}</span>
-                          <span class="item__detalhe">
-                            Tamanho {{ item.sigla }} · {{ item.quantidade }} × {{ item.valorUnitario | currency }}
-                          </span>
-                        </span>
-                        <span class="item__valor">{{ item.valorTotal | currency }}</span>
-                      </li>
-                    }
-                  </ul>
-                  <dl class="totais">
-                    <div><dt>Subtotal</dt><dd>{{ p.subtotal | currency }}</dd></div>
-                    <div><dt>Frete</dt><dd>{{ p.frete | currency }}</dd></div>
-                    <div class="totais__total"><dt>Total</dt><dd>{{ p.valorTotal | currency }}</dd></div>
-                  </dl>
-                </section>
-                <section>
-                  <h3 class="detalhes__titulo">Endereço de entrega</h3>
-                  <address class="endereco">
-                    <strong>{{ p.endereco.destinatario }}</strong><br />
-                    {{ p.endereco.rua }}, {{ p.endereco.numero }}@if (p.endereco.complemento) {
-                    — {{ p.endereco.complemento }}
-                    }<br />
-                    {{ p.endereco.bairro }} · {{ p.endereco.cidade }}/{{ p.endereco.uf }}<br />
-                    CEP {{ p.endereco.cep }}
-                    @if (p.endereco.telefone) {
-                      <br />Telefone {{ telefone(p.endereco.telefone) }}
-                    }
-                  </address>
-                </section>
+            @if (p.status === 'ENVIADO') {
+              <div class="flex flex-wrap items-center gap-3">
+                <button
+                  hlmBtn
+                  type="button"
+                  class="w-full sm:w-auto"
+                  [disabled]="recebendo === p.id"
+                  [attr.aria-describedby]="'pedido-' + p.id"
+                  (click)="confirmarRecebimento(p)"
+                >
+                  @if (recebendo === p.id) {
+                    <hlm-spinner aria-hidden="true" />
+                  }
+                  {{ recebendo === p.id ? 'Confirmando…' : 'Confirmar recebimento' }}
+                </button>
               </div>
-            </ng-template>
-          </mat-expansion-panel>
+            }
+          </div>
+
+          <details class="group border-t border-border">
+            <summary
+              class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 font-medium focus-visible:-outline-offset-2 sm:px-6 [&::-webkit-details-marker]:hidden"
+            >
+              <span>Detalhes<span class="sr-only"> do pedido #{{ p.id }}</span></span>
+              <uz-icone nome="seta-baixo" class="transition-transform group-open:rotate-180" />
+            </summary>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))] gap-6 px-4 pt-2 pb-6 sm:px-6 lg:grid-cols-[14rem_minmax(0,1fr)_14rem]">
+              <section>
+                <h3 class="mb-3 font-sans text-base font-semibold">Andamento</h3>
+                <uz-linha-do-tempo [pedido]="p" />
+              </section>
+              <section>
+                <h3 class="mb-3 font-sans text-base font-semibold">Itens</h3>
+                <ul class="mb-3">
+                  @for (item of p.itens; track $index) {
+                    <li class="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-border py-2">
+                      @if (item.fotoUrl) {
+                        <img
+                          class="block h-16 w-12 rounded-md bg-secondary object-cover"
+                          [src]="item.fotoUrl"
+                          alt=""
+                          width="48"
+                          height="64"
+                          loading="lazy"
+                        />
+                      } @else {
+                        <span class="block h-16 w-12 rounded-md bg-secondary"></span>
+                      }
+                      <span class="flex flex-col wrap-anywhere">
+                        <span class="font-medium">{{ item.nomeProduto }}</span>
+                        <span class="text-sm text-muted-foreground">
+                          Tamanho {{ item.sigla }} · {{ item.quantidade }} × {{ item.valorUnitario | currency }}
+                        </span>
+                      </span>
+                      <span class="font-semibold whitespace-nowrap">{{ item.valorTotal | currency }}</span>
+                    </li>
+                  }
+                </ul>
+                <dl>
+                  <div class="flex justify-between py-1">
+                    <dt class="text-muted-foreground">Subtotal</dt>
+                    <dd>{{ p.subtotal | currency }}</dd>
+                  </div>
+                  <div class="flex justify-between py-1">
+                    <dt class="text-muted-foreground">Frete</dt>
+                    <dd>{{ p.frete | currency }}</dd>
+                  </div>
+                  <div class="flex justify-between py-1 font-semibold">
+                    <dt>Total</dt>
+                    <dd class="text-brand">{{ p.valorTotal | currency }}</dd>
+                  </div>
+                </dl>
+              </section>
+              <section>
+                <h3 class="mb-3 font-sans text-base font-semibold">Endereço de entrega</h3>
+                <address class="not-italic wrap-anywhere">
+                  <strong>{{ p.endereco.destinatario }}</strong><br />
+                  {{ p.endereco.rua }}, {{ p.endereco.numero }}@if (p.endereco.complemento) {
+                    — {{ p.endereco.complemento }}
+                  }<br />
+                  {{ p.endereco.bairro }} · {{ p.endereco.cidade }}/{{ p.endereco.uf }}<br />
+                  CEP {{ p.endereco.cep }}
+                  @if (p.endereco.telefone) {
+                    <br />Telefone {{ telefone(p.endereco.telefone) }}
+                  }
+                </address>
+              </section>
+            </div>
+          </details>
         </article>
       </li>
     }

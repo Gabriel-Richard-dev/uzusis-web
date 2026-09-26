@@ -7,7 +7,8 @@ import { PedidoResposta, ResumoAdmin } from '../../core/api/modelos';
 import { PedidosService } from '../../core/api/pedidos.service';
 import { EstadoComponent } from '../../shared/estado.component';
 import { RouterLink } from '@angular/router';
-import { MatButton } from '@angular/material/button';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 
 interface Painel {
@@ -19,9 +20,8 @@ interface Painel {
 @Component({
     selector: 'uz-painel',
     templateUrl: './painel.component.html',
-    styleUrls: ['./painel.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [EstadoComponent, RouterLink, MatButton, CurrencyPipe, DatePipe]
+    imports: [EstadoComponent, RouterLink, HlmButtonImports, HlmCardImports, CurrencyPipe, DatePipe]
 })
 export class PainelComponent {
   private readonly pedidos = inject(PedidosService);

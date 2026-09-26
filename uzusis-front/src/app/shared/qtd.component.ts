@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
-import { MatIconButton } from '@angular/material/button';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+
 import { IconeComponent } from './icone.component';
 
 /**
@@ -7,11 +8,18 @@ import { IconeComponent } from './icone.component';
  * Use [(valor)] para estado local, ou [valor] + (valorChange) quando a mudança depende do servidor.
  */
 @Component({
-    selector: 'uz-qtd',
-    template: `
-    <div class="qtd" role="group" [attr.aria-label]="rotulo">
+  selector: 'uz-qtd',
+  template: `
+    <div
+      class="inline-flex items-center rounded-md border border-input bg-card shadow-xs"
+      role="group"
+      [attr.aria-label]="rotulo"
+      [class.opacity-50]="desabilitado"
+    >
       <button
-        mat-icon-button
+        hlmBtn
+        variant="ghost"
+        size="icon"
         type="button"
         [disabled]="desabilitado || valor <= min"
         [attr.aria-label]="'Diminuir ' + rotulo.toLowerCase()"
@@ -21,7 +29,7 @@ import { IconeComponent } from './icone.component';
       </button>
       <input
         #entrada
-        class="qtd__entrada"
+        class="h-11 w-12 [appearance:textfield] border-0 bg-transparent text-center text-base tabular-nums text-foreground outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         type="number"
         inputmode="numeric"
         [min]="min"
@@ -32,7 +40,9 @@ import { IconeComponent } from './icone.component';
         (change)="mudar(entrada.valueAsNumber); entrada.value = '' + valor"
       />
       <button
-        mat-icon-button
+        hlmBtn
+        variant="ghost"
+        size="icon"
         type="button"
         [disabled]="desabilitado || valor >= max"
         [attr.aria-label]="'Aumentar ' + rotulo.toLowerCase()"
@@ -42,32 +52,8 @@ import { IconeComponent } from './icone.component';
       </button>
     </div>
   `,
-    styles: [`
-    .qtd {
-      display: inline-flex;
-      align-items: center;
-      border: 1px solid var(--uz-borda-campo);
-      border-radius: var(--uz-raio-s);
-      background: var(--uz-superficie);
-    }
-    .qtd__entrada {
-      width: 3rem;
-      height: var(--uz-alvo);
-      border: 0;
-      background: transparent;
-      color: var(--uz-tinta);
-      font: inherit;
-      text-align: center;
-      -moz-appearance: textfield;
-    }
-    .qtd__entrada::-webkit-inner-spin-button,
-    .qtd__entrada::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-  `],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatIconButton, IconeComponent]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [HlmButtonImports, IconeComponent],
 })
 export class QtdComponent {
   @Input() valor = 1;

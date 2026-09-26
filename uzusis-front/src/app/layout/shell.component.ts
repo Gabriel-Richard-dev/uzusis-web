@@ -1,46 +1,43 @@
-import { Component, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatSidenav, MatSidenavContainer, MatSidenavContent } from '@angular/material/sidenav';
+import { AsyncPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationSkipped, NavigationStart, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { filter } from 'rxjs';
 
-import { SacolaService } from '../core/api/sacola.service';
 import { CATEGORIAS } from '../core/api/modelos';
+import { SacolaService } from '../core/api/sacola.service';
 import { AuthService } from '../core/auth/auth.service';
-import { MatIconButton } from '@angular/material/button';
-import { IconeComponent } from '../shared/icone.component';
-import { SacolaDrawerComponent } from './sacola-drawer.component';
-import { HeaderComponent } from './header.component';
 import { FooterComponent } from './footer.component';
-import { AsyncPipe } from '@angular/common';
+import { HeaderComponent } from './header.component';
+import { SacolaDrawerComponent } from './sacola-drawer.component';
 
-/** Layout da loja: header, conteúdo, footer, menu mobile (sidenav start) e sacola (sidenav end). */
+/** Layout da loja: header, conteúdo, footer, menu mobile (sheet à esquerda) e sacola (sheet à direita). */
 @Component({
-    selector: 'uz-shell',
-    templateUrl: './shell.component.html',
-    styleUrls: ['./shell.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatSidenavContainer, MatSidenav, MatIconButton, IconeComponent, RouterLink, SacolaDrawerComponent, MatSidenavContent, HeaderComponent, RouterOutlet, FooterComponent, AsyncPipe]
+  selector: 'uz-shell',
+  templateUrl: './shell.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [AsyncPipe, RouterLink, RouterOutlet, HlmSheetImports, HeaderComponent, FooterComponent, SacolaDrawerComponent],
 })
 export class ShellComponent {
-  @ViewChild('menu') menu?: MatSidenav;
-
   readonly auth = inject(AuthService);
   readonly sacola = inject(SacolaService);
   readonly usuario$ = this.auth.usuario$;
   readonly categorias = CATEGORIAS;
+  readonly menuAberto = signal(false);
+  readonly sacolaAberta = toSignal(this.sacola.aberta$, { initialValue: false });
+
+  /** Link do menu mobile: 44 px, sem sublinhado. */
+  readonly link =
+    'flex min-h-11 w-full items-center rounded-lg px-3 text-start text-foreground no-underline hover:bg-muted hover:text-foreground';
 
   constructor() {
     // Um link para a URL atual ("Finalizar compra" em /checkout) não gera NavigationStart, só NavigationSkipped.
     inject(Router)
       .events.pipe(filter(e => e instanceof NavigationStart || e instanceof NavigationSkipped), takeUntilDestroyed())
       .subscribe(() => {
-        this.menu?.close();
+        this.menuAberto.set(false);
         this.sacola.fechar();
       });
-  }
-
-  sacolaMudou(aberta: boolean): void {
-    if (!aberta) this.sacola.fechar();
   }
 }

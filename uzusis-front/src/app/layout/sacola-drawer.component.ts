@@ -5,7 +5,8 @@ import { ItemResposta } from '../core/api/modelos';
 import { SacolaService } from '../core/api/sacola.service';
 import { AuthService } from '../core/auth/auth.service';
 import { AvisoService } from '../core/util/aviso.service';
-import { MatIconButton, MatButton } from '@angular/material/button';
+import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { IconeComponent } from '../shared/icone.component';
 import { EstadoComponent } from '../shared/estado.component';
 import { RouterLink } from '@angular/router';
@@ -15,9 +16,10 @@ import { AsyncPipe, CurrencyPipe } from '@angular/common';
 @Component({
     selector: 'uz-sacola-drawer',
     templateUrl: './sacola-drawer.component.html',
-    styleUrls: ['./sacola-drawer.component.scss'],
+    // Coluna que ocupa o sheet: cabeçalho, lista rolável e rodapé fixo embaixo.
+    host: { class: 'flex min-h-0 flex-1 flex-col' },
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatIconButton, IconeComponent, EstadoComponent, MatButton, RouterLink, QtdComponent, AsyncPipe, CurrencyPipe]
+    imports: [HlmButtonImports, HlmSheetImports, IconeComponent, EstadoComponent, RouterLink, QtdComponent, AsyncPipe, CurrencyPipe]
 })
 export class SacolaDrawerComponent {
   readonly auth = inject(AuthService);
@@ -56,9 +58,5 @@ export class SacolaDrawerComponent {
         next: () => (this.anuncio = `${item.nomeProduto}, tamanho ${item.sigla}, removido da sacola`),
         error: err => this.aviso.erro(err),
       });
-  }
-
-  porId(_: number, item: ItemResposta): number {
-    return item.id;
   }
 }

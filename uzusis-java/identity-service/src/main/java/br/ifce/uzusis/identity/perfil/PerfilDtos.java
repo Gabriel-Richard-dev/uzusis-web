@@ -1,5 +1,6 @@
 package br.ifce.uzusis.identity.perfil;
 
+import br.ifce.uzusis.identity.perfil.CpfValidator.Cpf;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -8,11 +9,12 @@ import java.time.LocalDate;
 
 public final class PerfilDtos {
 
-    public record EnderecoResposta(String cep, String rua, String numero, String bairro, String cidade, String estado) {
+    public record EnderecoResposta(String cep, String rua, String numero, String complemento, String bairro,
+                                   String cidade, String uf) {
 
         static EnderecoResposta de(Endereco endereco) {
             return new EnderecoResposta(endereco.getCep(), endereco.getRua(), endereco.getNumero(),
-                    endereco.getBairro(), endereco.getCidade(), endereco.getEstado());
+                    endereco.getComplemento(), endereco.getBairro(), endereco.getCidade(), endereco.getUf());
         }
     }
 
@@ -31,20 +33,27 @@ public final class PerfilDtos {
         }
     }
 
+    /** {@code null} = mantém o valor atual. */
     public record AtualizarPerfil(
-            @Size(max = 200) String nome,
-            @Pattern(regexp = "\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}", message = "CPF inválido") String cpf,
-            @Size(max = 20) String celular,
-            @Past(message = "data de nascimento deve estar no passado") LocalDate dataNascimento) {
+            @Size(min = 1, max = 200, message = "Nome deve ter de 1 a 200 caracteres")
+            @Pattern(regexp = "(?s).*\\S.*", message = "Nome não pode ficar em branco")
+            String nome,
+            @Cpf String cpf,
+            @Pattern(regexp = "[()\\s-]*(\\d[()\\s-]*){10,11}", message = "Celular inválido (DDD + número)")
+            String celular,
+            @Past(message = "Data de nascimento inválida") LocalDate dataNascimento) {
     }
 
+    /** {@code null} = mantém; {@code ""} em {@code complemento} limpa. */
     public record AtualizarEndereco(
             @Pattern(regexp = "\\d{5}-?\\d{3}", message = "CEP inválido") String cep,
-            @Size(max = 200) String rua,
-            @Size(max = 20) String numero,
-            @Size(max = 100) String bairro,
-            @Size(max = 100) String cidade,
-            @Size(min = 2, max = 2, message = "estado deve ter 2 letras") String estado) {
+            @Size(min = 1, max = 200, message = "Rua deve ter de 1 a 200 caracteres") String rua,
+            @Size(min = 1, max = 20, message = "Número deve ter de 1 a 20 caracteres") String numero,
+            @Size(max = 100, message = "Complemento deve ter até 100 caracteres") String complemento,
+            @Size(min = 1, max = 100, message = "Bairro deve ter de 1 a 100 caracteres") String bairro,
+            @Size(min = 1, max = 100, message = "Cidade deve ter de 1 a 100 caracteres") String cidade,
+            @Pattern(regexp = "(?i)AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO",
+                    message = "UF inválida") String uf) {
     }
 
     private PerfilDtos() {

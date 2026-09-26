@@ -1,7 +1,10 @@
 package br.ifce.uzusis.identity.perfil;
 
+import br.ifce.uzusis.identity.perfil.PerfilDtos.AtualizarEndereco;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+
+import java.util.Locale;
 
 @Embeddable
 public class Endereco {
@@ -16,35 +19,44 @@ public class Endereco {
     private String numero;
 
     @Column(length = 100)
+    private String complemento;
+
+    @Column(length = 100)
     private String bairro;
 
     @Column(length = 100)
     private String cidade;
 
-    @Column(length = 2)
-    private String estado;
+    /** A coluna continua {@code estado}; na API o nome é {@code uf}, o mesmo do pedido. */
+    @Column(name = "estado", length = 2)
+    private String uf;
 
     protected Endereco() {
     }
 
-    void atualizar(String cep, String rua, String numero, String bairro, String cidade, String estado) {
-        if (cep != null) {
-            this.cep = cep;
+    /** Campos {@code null} ficam como estão; {@code complemento} vazio limpa. Entrada já validada. */
+    void atualizar(AtualizarEndereco novo) {
+        if (novo.cep() != null) {
+            var digitos = novo.cep().replace("-", "");
+            this.cep = digitos.substring(0, 5) + "-" + digitos.substring(5);
         }
-        if (rua != null) {
-            this.rua = rua;
+        if (novo.rua() != null) {
+            this.rua = novo.rua();
         }
-        if (numero != null) {
-            this.numero = numero;
+        if (novo.numero() != null) {
+            this.numero = novo.numero();
         }
-        if (bairro != null) {
-            this.bairro = bairro;
+        if (novo.complemento() != null) {
+            this.complemento = novo.complemento().isBlank() ? null : novo.complemento();
         }
-        if (cidade != null) {
-            this.cidade = cidade;
+        if (novo.bairro() != null) {
+            this.bairro = novo.bairro();
         }
-        if (estado != null) {
-            this.estado = estado.toUpperCase();
+        if (novo.cidade() != null) {
+            this.cidade = novo.cidade();
+        }
+        if (novo.uf() != null) {
+            this.uf = novo.uf().toUpperCase(Locale.ROOT);
         }
     }
 
@@ -60,6 +72,10 @@ public class Endereco {
         return numero;
     }
 
+    public String getComplemento() {
+        return complemento;
+    }
+
     public String getBairro() {
         return bairro;
     }
@@ -68,7 +84,7 @@ public class Endereco {
         return cidade;
     }
 
-    public String getEstado() {
-        return estado;
+    public String getUf() {
+        return uf;
     }
 }

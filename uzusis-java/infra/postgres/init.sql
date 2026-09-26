@@ -9,11 +9,18 @@
 -- O Keycloak também guarda o estado dele aqui, no próprio database.
 CREATE DATABASE keycloak;
 
-CREATE USER catalog       WITH PASSWORD 'catalog'       REPLICATION;
-CREATE USER orders        WITH PASSWORD 'orders'        REPLICATION;
-CREATE USER payments      WITH PASSWORD 'payments'      REPLICATION;
-CREATE USER notifications WITH PASSWORD 'notifications' REPLICATION;
-CREATE USER identity      WITH PASSWORD 'identity';
+-- Senhas do ambiente do contêiner (*_DB_PASSWORD no compose; padrão = nome do database).
+\getenv catalog_senha       CATALOG_DB_PASSWORD
+\getenv orders_senha        ORDERS_DB_PASSWORD
+\getenv payments_senha      PAYMENTS_DB_PASSWORD
+\getenv notifications_senha NOTIFICATIONS_DB_PASSWORD
+\getenv identity_senha      IDENTITY_DB_PASSWORD
+
+CREATE USER catalog       WITH PASSWORD :'catalog_senha'       REPLICATION;
+CREATE USER orders        WITH PASSWORD :'orders_senha'        REPLICATION;
+CREATE USER payments      WITH PASSWORD :'payments_senha'      REPLICATION;
+CREATE USER notifications WITH PASSWORD :'notifications_senha';
+CREATE USER identity      WITH PASSWORD :'identity_senha';
 
 CREATE DATABASE catalog       OWNER catalog;
 CREATE DATABASE orders        OWNER orders;
@@ -21,6 +28,9 @@ CREATE DATABASE payments      OWNER payments;
 CREATE DATABASE notifications OWNER notifications;
 CREATE DATABASE identity      OWNER identity;
 
--- REPLICATION nos usuários acima é o que o Debezium precisa para ler o WAL.
--- O identity não publica evento, então não recebe a permissão: menos
--- privilégio, menos superfície.
+-- REPLICATION é o que o Debezium precisa para ler o WAL. Só catalog, orders e
+-- payments publicam evento (outbox); notification e identity não recebem a
+-- permissão: menos privilégio, menos superfície.
+--
+-- Os padrões das senhas são de dev (o Postgres não é publicado). Em produção,
+-- defina as *_DB_PASSWORD antes do primeiro boot: este arquivo só roda com o volume vazio.

@@ -1,0 +1,6 @@
+# Soma-se ao application.yml do serviço (o Boot lê o config/ por cima dele);
+# um application.yml na raiz do test/resources esconderia o principal.
+spring:
+  kafka:
+    listener:
+      auto-startup: false

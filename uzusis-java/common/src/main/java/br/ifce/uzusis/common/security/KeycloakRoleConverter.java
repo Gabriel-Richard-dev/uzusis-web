@@ -15,10 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * O Keycloak não põe as roles em "scope"/"authorities", que é onde o Spring
- * procura por padrão: elas ficam em realm_access.roles (papéis amplos) e
- * resource_access.&lt;client&gt;.roles (permissão fina). Sem este converter todo
+ * O Keycloak não põe os papéis em "scope"/"authorities", que é onde o Spring
+ * procura por padrão: eles ficam em realm_access.roles. Sem este converter todo
  * &#64;PreAuthorize("hasRole(...)") passa a negar tudo, silenciosamente.
+ *
+ * <p>Só os papéis do realm contam. resource_access fica de fora: um papel de
+ * client chamado ADMIN, em qualquer client, viraria ROLE_ADMIN.
  */
 public class KeycloakRoleConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
@@ -28,32 +30,14 @@ public class KeycloakRoleConverter implements Converter<Jwt, AbstractAuthenticat
     public AbstractAuthenticationToken convert(Jwt jwt) {
         Set<GrantedAuthority> authorities = new HashSet<>(padrao.convert(jwt));
         authorities.addAll(rolesDoRealm(jwt));
-        authorities.addAll(rolesDeClients(jwt));
         // O "sub" do token é o vínculo com o perfil no identity-service.
         return new JwtAuthenticationToken(jwt, authorities, jwt.getSubject());
     }
 
+    @SuppressWarnings("unchecked")
     private Collection<GrantedAuthority> rolesDoRealm(Jwt jwt) {
         Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-        return paraAuthorities(realmAccess);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Collection<GrantedAuthority> rolesDeClients(Jwt jwt) {
-        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-        if (resourceAccess == null) {
-            return List.of();
-        }
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        resourceAccess.values().stream()
-                .filter(Map.class::isInstance)
-                .forEach(client -> authorities.addAll(paraAuthorities((Map<String, Object>) client)));
-        return authorities;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Collection<GrantedAuthority> paraAuthorities(Map<String, Object> claim) {
-        if (claim == null || !(claim.get("roles") instanceof Collection<?> roles)) {
+        if (realmAccess == null || !(realmAccess.get("roles") instanceof Collection<?> roles)) {
             return List.of();
         }
         return ((Collection<String>) roles).stream()

@@ -29,14 +29,55 @@ public final class Events {
             List<Item> itens) {
     }
 
-    public record OrderPaid(long orderId, String clienteSub, String clienteEmail, long valorTotalCentavos) {
+    public record EnderecoEntrega(
+            String destinatario,
+            String telefone,
+            String cep,
+            String rua,
+            String numero,
+            String complemento,
+            String bairro,
+            String cidade,
+            String uf) {
     }
 
-    public record OrderCancelled(long orderId, String clienteSub, String clienteEmail, String motivo) {
+    /** Item como o e-mail mostra: sem ids, com o nome gravado no pedido. */
+    public record ItemResumo(String nomeProduto, String sigla, int quantidade, long valorTotalCentavos) {
     }
 
-    /** Compensação da saga: o pedido caiu depois de pago, a Stripe tem que estornar. */
-    public record RefundRequested(long orderId, String paymentIntentId, String motivo) {
+    /** {@code valorTotalCentavos} já inclui o frete. */
+    public record OrderPaid(
+            long orderId,
+            String clienteSub,
+            String clienteEmail,
+            String clienteNome,
+            long valorTotalCentavos,
+            long freteCentavos,
+            List<ItemResumo> itens,
+            EnderecoEntrega endereco) {
+    }
+
+    /**
+     * Também é a compensação da saga: o payment cancela o intent ou estorna.
+     * {@code sacolaRestaurada} diz se os itens voltaram para a sacola; ninguém
+     * interpreta o texto do motivo.
+     */
+    public record OrderCancelled(
+            long orderId,
+            String clienteSub,
+            String clienteEmail,
+            String clienteNome,
+            String motivo,
+            boolean sacolaRestaurada) {
+    }
+
+    public record OrderShipped(
+            long orderId,
+            String clienteSub,
+            String clienteEmail,
+            String clienteNome,
+            List<ItemResumo> itens,
+            EnderecoEntrega endereco) {
     }
 
     public record StockReserved(long orderId, List<Item> itens) {

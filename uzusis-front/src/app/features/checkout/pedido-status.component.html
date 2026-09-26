@@ -1,0 +1,93 @@
+<section class="uz-container pedido">
+  <h1 class="uz-titulo" tabindex="-1">{{ titulo }}</h1>
+  <p class="uz-visualmente-oculto" aria-live="polite">{{ anuncio }}</p>
+
+  <uz-estado *ngIf="erro" tipo="erro" titulo="Não foi possível carregar o pedido" [mensagem]="erro" (tentarNovamente)="acompanhar()">
+    <a mat-stroked-button routerLink="/conta/pedidos">Ver meus pedidos</a>
+  </uz-estado>
+
+  <uz-estado *ngIf="!erro && !pedido" tipo="carregando" mensagem="Carregando seu pedido…"></uz-estado>
+
+  <ng-container *ngIf="!erro && pedido as p">
+    <p class="pedido__meta">
+      <span>Pedido #{{ p.id }} · {{ p.criadoEm | date: 'dd/MM/yyyy' }}</span>
+      <uz-status-pedido [status]="p.status"></uz-status-pedido>
+    </p>
+
+    <ng-container [ngSwitch]="p.status">
+      <div *ngSwitchCase="'CRIADO'" class="aviso uz-cartao">
+        <ng-container *ngIf="!demorou; else demorouTpl">
+          <mat-progress-spinner mode="indeterminate" diameter="40" aria-hidden="true"></mat-progress-spinner>
+          <p *ngIf="recusado; else processando" class="aviso__texto">
+            Pagamento recusado. Aguarde a confirmação do cancelamento…
+          </p>
+          <ng-template #processando>
+            <p class="aviso__texto">Estamos aguardando a confirmação do pagamento. Isso costuma levar poucos segundos.</p>
+          </ng-template>
+        </ng-container>
+        <ng-template #demorouTpl>
+          <p class="aviso__texto">Ainda processando — você receberá um e-mail.</p>
+          <button mat-stroked-button type="button" (click)="acompanhar()">Atualizar</button>
+        </ng-template>
+        <a *ngIf="!recusado" class="aviso__link" routerLink="/checkout" [queryParams]="{ pedido: p.id }">
+          Ainda não pagou? Concluir pagamento
+        </a>
+      </div>
+
+      <div *ngSwitchCase="'CANCELADO'" class="aviso aviso--cancelado uz-cartao">
+        <p *ngIf="p.motivoCancelamento" class="aviso__texto">Motivo: {{ p.motivoCancelamento }}</p>
+        <p *ngIf="p.sacolaRestaurada" class="aviso__texto">
+          Os itens voltaram para a sua sacola; finalize de novo para tentar outro cartão.
+        </p>
+        <div class="aviso__acoes">
+          <a *ngIf="p.sacolaRestaurada" mat-flat-button color="primary" routerLink="/checkout">Tentar novamente</a>
+          <a mat-stroked-button routerLink="/loja">Voltar à loja</a>
+        </div>
+      </div>
+
+      <ng-container *ngSwitchDefault>
+        <p *ngIf="p.status === 'PAGO'" class="uz-texto-suave">
+          Obrigada! Enviamos a confirmação para {{ p.cliente.email }}.
+        </p>
+
+        <div class="detalhes">
+          <section class="bloco uz-cartao" aria-labelledby="andamento-titulo">
+            <h2 id="andamento-titulo" class="bloco__titulo">Andamento</h2>
+            <uz-linha-do-tempo [pedido]="p"></uz-linha-do-tempo>
+          </section>
+
+          <section class="bloco uz-cartao" aria-labelledby="itens-titulo">
+            <h2 id="itens-titulo" class="bloco__titulo">Itens</h2>
+            <uz-itens-pedido [itens]="p.itens"></uz-itens-pedido>
+            <dl class="valores">
+              <div class="valores__linha">
+                <dt>Subtotal</dt>
+                <dd>{{ p.subtotal | currency }}</dd>
+              </div>
+              <div class="valores__linha">
+                <dt>Frete</dt>
+                <dd>{{ p.frete | currency }}</dd>
+              </div>
+              <div class="valores__linha valores__linha--total">
+                <dt>Total</dt>
+                <dd>{{ p.valorTotal | currency }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section *ngIf="p.endereco as e" class="bloco uz-cartao" aria-labelledby="entrega-titulo">
+            <h2 id="entrega-titulo" class="bloco__titulo">Entrega</h2>
+            <address class="endereco">
+              <strong>{{ e.destinatario }}</strong><br />
+              {{ e.rua }}, {{ e.numero }}<ng-container *ngIf="e.complemento"> — {{ e.complemento }}</ng-container><br />
+              {{ e.bairro }} · {{ e.cidade }}/{{ e.uf }}<br />
+              CEP {{ e.cep }}
+            </address>
+          </section>
+        </div>
+
+        <a mat-flat-button color="primary" routerLink="/conta/pedidos">Ver meus pedidos</a>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+</section>

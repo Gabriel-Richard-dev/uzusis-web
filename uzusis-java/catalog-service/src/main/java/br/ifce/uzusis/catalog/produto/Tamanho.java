@@ -10,9 +10,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.util.List;
+import java.util.Locale;
+
 @Entity
 @Table(name = "tamanho")
 public class Tamanho {
+
+    /** Ordem de exibição em toda resposta. */
+    public static final List<String> SIGLAS = List.of("PP", "P", "M", "G", "GG");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,7 +39,7 @@ public class Tamanho {
 
     Tamanho(Produto produto, String sigla, int quantidade) {
         this.produto = produto;
-        this.sigla = sigla.toUpperCase();
+        this.sigla = sigla.toUpperCase(Locale.ROOT);
         this.quantidade = quantidade;
     }
 
@@ -50,8 +56,17 @@ public class Tamanho {
         quantidade += quantidadeDevolvida;
     }
 
+    /** Valor absoluto, vindo do admin (C8). */
+    void definirQuantidade(int quantidade) {
+        this.quantidade = quantidade;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Produto getProduto() {
+        return produto;
     }
 
     public String getSigla() {

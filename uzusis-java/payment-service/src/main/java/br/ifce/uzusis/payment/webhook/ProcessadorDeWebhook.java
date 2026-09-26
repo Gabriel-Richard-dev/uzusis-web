@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Varre a caixa de entrada e aplica os webhooks já recebidos.
@@ -17,10 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
  * para a Stripe. E é o que faz o serviço se recuperar de uma queda: o que não
  * foi processado continua na tabela.
  *
+ * <p>Transação por {@link TransactionTemplate}, e não @Transactional num método
+ * desta classe: a chamada interna não passaria pelo proxy, e nada seria gravado.
+ *
  * <p>ponytail: @Scheduled simples, sem ShedLock. Com mais de uma réplica, duas
- * varreduras podem pegar o mesmo lote — o dano é contido (o estado do pagamento
- * é final e o publicar só acontece na primeira transição), mas se o serviço for
- * escalado, entra ShedLock aqui.
+ * varreduras podem pegar o mesmo lote — o dano é contido (a linha do pagamento
+ * é travada e só a primeira transição publica), mas se o serviço for escalado,
+ * entra ShedLock aqui.
  */
 @Component
 public class ProcessadorDeWebhook {
@@ -31,44 +35,55 @@ public class ProcessadorDeWebhook {
     private final WebhookRecebidoRepository recebidos;
     private final PagamentoService pagamentos;
     private final ObjectMapper mapper;
+    private final TransactionTemplate transacao;
 
-    public ProcessadorDeWebhook(WebhookRecebidoRepository recebidos, PagamentoService pagamentos, ObjectMapper mapper) {
+    public ProcessadorDeWebhook(WebhookRecebidoRepository recebidos, PagamentoService pagamentos, ObjectMapper mapper,
+                                PlatformTransactionManager transacoes) {
         this.recebidos = recebidos;
         this.pagamentos = pagamentos;
         this.mapper = mapper;
+        this.transacao = new TransactionTemplate(transacoes);
     }
 
     @Scheduled(fixedDelayString = "${uzusis.webhook.intervalo-ms:1000}")
     public void processarPendentes() {
-        recebidos.findByProcessadoFalseOrderByRecebidoEmAsc(LOTE).forEach(this::processar);
+        var ids = recebidos.findByProcessadoFalseOrderByRecebidoEmAsc(LOTE).stream()
+                .map(WebhookRecebido::getStripeEventId)
+                .toList();
+        ids.forEach(this::processar);
     }
 
-    @Transactional
-    void processar(WebhookRecebido webhook) {
+    private void processar(String eventId) {
         try {
-            var objeto = objetoDoEvento(webhook);
-            var intentId = texto(objeto, "id");
-
-            switch (webhook.getTipo()) {
-                case "payment_intent.succeeded" -> pagamentos.confirmarPeloWebhook(
-                        intentId, texto(objeto, "latest_charge"));
-
-                case "payment_intent.payment_failed" -> pagamentos.falharPeloWebhook(
-                        intentId, motivoDaFalha(objeto));
-
-                // Os outros tipos são assinados e válidos, só não interessam
-                // ao domínio. Marcar como processado evita varrer para sempre.
-                default -> log.debug("Webhook {} do tipo {} ignorado", webhook.getStripeEventId(), webhook.getTipo());
-            }
-
-            webhook.marcarProcessado();
-
+            // Aplicar e marcar processado na mesma transação: ou os dois, ou nenhum.
+            transacao.executeWithoutResult(status -> {
+                var webhook = recebidos.findById(eventId).orElseThrow();
+                aplicar(webhook);
+                webhook.marcarProcessado();
+            });
         } catch (RuntimeException e) {
             // Não marca processado: a próxima varredura tenta de novo. O erro
             // fica gravado para o suporte ver sem precisar caçar log.
-            log.error("Falha ao processar o webhook {} ({}): {}",
-                    webhook.getStripeEventId(), webhook.getTipo(), e.getMessage(), e);
-            webhook.registrarErro(e.getMessage());
+            log.error("Falha ao processar o webhook {}: {}", eventId, e.getMessage(), e);
+            transacao.executeWithoutResult(status ->
+                    recebidos.findById(eventId).ifPresent(webhook -> webhook.registrarErro(e.getMessage())));
+        }
+    }
+
+    private void aplicar(WebhookRecebido webhook) {
+        switch (webhook.getTipo()) {
+            case "payment_intent.succeeded" -> {
+                var objeto = objetoDoEvento(webhook);
+                pagamentos.confirmarPeloWebhook(texto(objeto, "id"), texto(objeto, "latest_charge"));
+            }
+            case "payment_intent.payment_failed" -> {
+                // A mensagem da Stripe vai só para o log e para motivo_falha.
+                var objeto = objetoDoEvento(webhook);
+                pagamentos.falharPeloWebhook(texto(objeto, "id"), texto(objeto.path("last_payment_error"), "message"));
+            }
+            // Os outros tipos são assinados e válidos, só não interessam
+            // ao domínio. Marcar como processado evita varrer para sempre.
+            default -> log.debug("Webhook {} do tipo {} ignorado", webhook.getStripeEventId(), webhook.getTipo());
         }
     }
 
@@ -76,23 +91,19 @@ public class ProcessadorDeWebhook {
      * O JSON cru é lido com Jackson em vez do desserializador da Stripe de
      * propósito: quando a versão da API do evento é diferente da versão da
      * biblioteca, o desserializador devolve vazio e o webhook se perde em
-     * silêncio. Os dois campos que interessam estão sempre no mesmo lugar.
+     * silêncio. Os campos que interessam estão sempre no mesmo lugar.
      */
     private JsonNode objetoDoEvento(WebhookRecebido webhook) {
+        JsonNode objeto;
         try {
-            var objeto = mapper.readTree(webhook.getPayload()).path("data").path("object");
-            if (objeto.isMissingNode()) {
-                throw new IllegalStateException("Webhook sem data.object");
-            }
-            return objeto;
+            objeto = mapper.readTree(webhook.getPayload()).path("data").path("object");
         } catch (Exception e) {
             throw new IllegalStateException("Payload de webhook ilegível", e);
         }
-    }
-
-    private static String motivoDaFalha(JsonNode objeto) {
-        var mensagem = objeto.path("last_payment_error").path("message").asText(null);
-        return mensagem != null ? mensagem : "Pagamento recusado pela Stripe";
+        if (objeto.isMissingNode()) {
+            throw new IllegalStateException("Webhook sem data.object");
+        }
+        return objeto;
     }
 
     private static String texto(JsonNode objeto, String campo) {

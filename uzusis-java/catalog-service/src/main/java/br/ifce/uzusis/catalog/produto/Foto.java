@@ -22,11 +22,30 @@ public class Foto {
     @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    /** Caminho no MinIO, servido pelo nginx em /storage — igual ao .NET. */
+    /** /storage/{bucket}/{chave}: o nginx serve /storage direto do MinIO. */
     @Column(nullable = false, length = 500)
     private String url;
 
+    /** Objeto no bucket; null em linha antiga, que não tem objeto nosso para apagar. */
+    @Column(length = 300)
+    private String chave;
+
+    /** 0 é a capa. */
+    @Column(nullable = false)
+    private int ordem;
+
     protected Foto() {
+    }
+
+    Foto(Produto produto, String url, String chave, int ordem) {
+        this.produto = produto;
+        this.url = url;
+        this.chave = chave;
+        this.ordem = ordem;
+    }
+
+    void definirOrdem(int ordem) {
+        this.ordem = ordem;
     }
 
     public Long getId() {
@@ -35,5 +54,13 @@ public class Foto {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getChave() {
+        return chave;
+    }
+
+    public int getOrdem() {
+        return ordem;
     }
 }

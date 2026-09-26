@@ -95,7 +95,10 @@ class EstoqueServiceTest {
                 .isEqualTo(2);
         assertThat(outbox.findAll())
                 .singleElement()
-                .satisfies(evento -> assertThat(evento.getTopic()).isEqualTo(Topics.STOCK_REJECTED));
+                .satisfies(evento -> {
+                    assertThat(evento.getTopic()).isEqualTo(Topics.STOCK_REJECTED);
+                    assertThat(evento.getPayload()).contains("Sem estoque: Camiseta (M)");
+                });
         assertThat(reservas.findByOrderIdAndLiberadaFalse(2L)).isEmpty();
     }
 
@@ -139,5 +142,37 @@ class EstoqueServiceTest {
         estoque.devolver(5L);
 
         assertThat(tamanhos.findById(tamanhoId).orElseThrow().getQuantidade()).isEqualTo(10);
+    }
+
+    @Test
+    void tamanho_de_produto_inativo_e_rejeitado() {
+        var produto = camisetaComEstoque(10);
+        var tamanhoId = produto.getTamanhos().get(0).getId();
+        produto.desativar();
+        produtos.saveAndFlush(produto);
+
+        estoque.reservar(6L, List.of(new Events.Item(produto.getId(), tamanhoId, "M", 1, 5000L)));
+
+        assertThat(tamanhos.findById(tamanhoId).orElseThrow().getQuantidade()).isEqualTo(10);
+        assertThat(outbox.findAll())
+                .singleElement()
+                .satisfies(evento -> {
+                    assertThat(evento.getTopic()).isEqualTo(Topics.STOCK_REJECTED);
+                    assertThat(evento.getPayload()).contains("Produto indisponível: Camiseta");
+                });
+    }
+
+    @Test
+    void devolver_antes_de_reservar_faz_a_reserva_nao_baixar_nada() {
+        // Corrida R8: order.cancelled e order.created vêm de tópicos diferentes.
+        var produto = camisetaComEstoque(10);
+        var tamanhoId = produto.getTamanhos().get(0).getId();
+
+        estoque.devolver(7L);
+        estoque.reservar(7L, List.of(new Events.Item(produto.getId(), tamanhoId, "M", 3, 5000L)));
+
+        assertThat(tamanhos.findById(tamanhoId).orElseThrow().getQuantidade()).isEqualTo(10);
+        assertThat(reservas.findByOrderIdAndLiberadaFalse(7L)).isEmpty();
+        assertThat(outbox.findAll()).as("nem reserva nem rejeição").isEmpty();
     }
 }

@@ -9,13 +9,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 @Entity
 @Table(name = "produto")
@@ -39,6 +43,10 @@ public class Produto {
     @Column(nullable = false, length = 40)
     private CategoriaProduto categoria;
 
+    /** Soft delete: reservas, sacolas e pedidos continuam apontando para o produto. */
+    @Column(nullable = false)
+    private boolean ativo = true;
+
     // O LINQ com lazy loading do EF virava N+1 silencioso aqui. @BatchSize
     // carrega as coleções de até 50 produtos em uma consulta cada, sem o
     // problema de paginar em memória que o JOIN FETCH traria.
@@ -48,6 +56,7 @@ public class Produto {
 
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 50)
+    @OrderBy("ordem ASC, id ASC")
     private List<Foto> fotos = new ArrayList<>();
 
     @Column(name = "criado_em", nullable = false)
@@ -79,7 +88,8 @@ public class Produto {
         return tamanhos.stream().anyMatch(tamanho -> tamanho.getQuantidade() > 0);
     }
 
-    public void atualizar(String nome, BigDecimal preco, String descricao, CategoriaProduto categoria) {
+    /** {@code null} = não altera. */
+    public void atualizar(String nome, BigDecimal preco, String descricao, CategoriaProduto categoria, Boolean ativo) {
         if (nome != null) {
             this.nome = nome;
         }
@@ -92,11 +102,49 @@ public class Produto {
         if (categoria != null) {
             this.categoria = categoria;
         }
+        if (ativo != null) {
+            this.ativo = ativo;
+        }
         this.atualizadoEm = OffsetDateTime.now();
+    }
+
+    public void desativar() {
+        atualizar(null, null, null, null, false);
     }
 
     public void adicionarTamanho(String sigla, int quantidade) {
         tamanhos.add(new Tamanho(this, sigla, quantidade));
+    }
+
+    /** Upsert por sigla: a linha existente mantém o id, que sacolas e reservas referenciam. */
+    void definirEstoque(String sigla, int quantidade) {
+        tamanho(sigla).ifPresentOrElse(
+                tamanho -> tamanho.definirQuantidade(quantidade),
+                () -> adicionarTamanho(sigla, quantidade));
+    }
+
+    Optional<Tamanho> tamanho(String sigla) {
+        var procurada = sigla.toUpperCase(Locale.ROOT);
+        return tamanhos.stream().filter(t -> t.getSigla().equals(procurada)).findFirst();
+    }
+
+    List<Foto> fotosEmOrdem() {
+        return fotos.stream().sorted(Comparator.comparingInt(Foto::getOrdem)).toList();
+    }
+
+    Foto adicionarFoto(String url, String chave) {
+        var foto = new Foto(this, url, chave, fotos.stream().mapToInt(Foto::getOrdem).max().orElse(-1) + 1);
+        fotos.add(foto);
+        return foto;
+    }
+
+    /** Recompacta a ordem para 0..n-1: a capa é sempre a 0. */
+    void removerFoto(Foto foto) {
+        fotos.remove(foto);
+        var restantes = fotosEmOrdem();
+        for (int i = 0; i < restantes.size(); i++) {
+            restantes.get(i).definirOrdem(i);
+        }
     }
 
     public Long getId() {
@@ -117,6 +165,14 @@ public class Produto {
 
     public CategoriaProduto getCategoria() {
         return categoria;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public OffsetDateTime getCriadoEm() {
+        return criadoEm;
     }
 
     public List<Tamanho> getTamanhos() {

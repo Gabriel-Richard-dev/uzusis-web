@@ -1,0 +1,58 @@
+<section class="uz-container hero">
+  <div class="hero__texto">
+    <p class="uz-legenda">Moda feminina minimalista</p>
+    <h1 class="hero__titulo" tabindex="-1">Peças pensadas para o seu corpo</h1>
+    <p class="hero__apoio">Linhas simples e tecidos leves, feitos de irmãs para as nossas Sis.</p>
+    <a mat-flat-button color="primary" routerLink="/loja">Ver coleção</a>
+  </div>
+  <div class="hero__imagem">
+    <img *ngIf="fotoHero as foto" [src]="foto" alt="" width="600" height="750" />
+  </div>
+</section>
+
+<section class="uz-container secao" aria-labelledby="home-categorias">
+  <h2 id="home-categorias">Compre por categoria</h2>
+  <ul class="categorias">
+    <li *ngFor="let c of categorias">
+      <a class="categoria" routerLink="/loja" [queryParams]="{ categoria: c.valor }">
+        {{ c.nome }}
+        <uz-icone nome="seta-direita" [tamanho]="18"></uz-icone>
+      </a>
+    </li>
+  </ul>
+</section>
+
+<section class="uz-container secao" aria-labelledby="home-novidades">
+  <div class="secao__topo">
+    <h2 id="home-novidades">Novidades</h2>
+    <a routerLink="/loja" class="secao__link">Ver tudo</a>
+  </div>
+
+  <uz-estado
+    *ngIf="erro"
+    tipo="erro"
+    titulo="Não foi possível carregar as novidades"
+    [mensagem]="mensagemDeErro(erro)"
+    (tentarNovamente)="carregar()"
+  ></uz-estado>
+
+  <div *ngIf="!novidades && !erro" class="grade" aria-busy="true">
+    <uz-esqueleto formato="cartao" [quantidade]="8"></uz-esqueleto>
+  </div>
+
+  <uz-estado *ngIf="novidades && !novidades.length" tipo="vazio" titulo="Novidades chegando em breve">
+    <a mat-stroked-button href="https://www.instagram.com/_uzusis/" rel="noopener">Acompanhe no Instagram</a>
+  </uz-estado>
+
+  <ul *ngIf="novidades?.length" class="grade">
+    <li *ngFor="let p of novidades; trackBy: porId"><uz-produto-card [produto]="p"></uz-produto-card></li>
+  </ul>
+</section>
+
+<section class="instagram" aria-labelledby="home-instagram">
+  <div class="uz-container instagram__conteudo">
+    <h2 id="home-instagram" class="instagram__titulo">Siga a Uzusis no Instagram</h2>
+    <p class="instagram__texto">Lançamentos, bastidores e combinações de looks, primeiro por lá.</p>
+    <a mat-flat-button color="primary" href="https://www.instagram.com/_uzusis/" rel="noopener">Seguir &#64;_uzusis</a>
+  </div>
+</section>

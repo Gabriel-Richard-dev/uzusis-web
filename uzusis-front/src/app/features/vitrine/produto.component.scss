@@ -1,0 +1,159 @@
+@use 'breakpoints' as bp;
+
+.pagina {
+  padding-block: var(--uz-esp-5) var(--uz-esp-6);
+}
+
+.produto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--uz-esp-5);
+
+  @media (min-width: bp.$md) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--uz-esp-7);
+  }
+}
+
+// A página rola na janela (shell), então o sticky funciona.
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+
+  @media (min-width: bp.$lg) {
+    position: sticky;
+    top: var(--uz-esp-5);
+  }
+}
+
+.info__categoria {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--uz-alvo);
+  color: var(--uz-tinta-suave);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--uz-marca);
+    text-decoration: underline;
+  }
+}
+
+.info__nome {
+  margin: 0 0 var(--uz-esp-2);
+  font-size: var(--uz-fs-h2);
+
+  @media (min-width: bp.$md) {
+    font-size: var(--uz-fs-h1);
+  }
+}
+
+.info__preco {
+  margin-bottom: var(--uz-esp-5);
+}
+
+.info__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--uz-esp-3);
+  align-self: stretch;
+  margin-bottom: var(--uz-esp-2);
+}
+
+.info__rotulo {
+  font-weight: 600;
+}
+
+.info__guia {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--uz-esp-2);
+  min-height: var(--uz-alvo);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--uz-marca);
+  font: inherit;
+  font-size: var(--uz-fs-pequeno);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--uz-marca-hover);
+  }
+}
+
+.tamanhos {
+  flex-wrap: wrap;
+  max-width: 100%;
+
+  .mat-button-toggle {
+    min-width: 3.25rem;
+  }
+
+  .mat-button-toggle-checked {
+    background: var(--uz-marca);
+    color: var(--uz-sobre-marca);
+  }
+
+  // Esgotado: desabilitado e riscado (o nome acessível diz "esgotado"). O risco vai no span: o rótulo do
+  // Material é inline-block e não herda text-decoration.
+  .mat-button-toggle-disabled .tamanhos__sigla {
+    text-decoration: line-through;
+  }
+
+  ::ng-deep .mat-button-toggle-button:focus-visible {
+    outline: 2px solid var(--uz-marca);
+    outline-offset: -4px;
+  }
+}
+
+.info__restam {
+  min-height: 1.5em;
+  margin: var(--uz-esp-2) 0 var(--uz-esp-4);
+  color: var(--uz-aviso);
+  font-size: var(--uz-fs-pequeno);
+  font-weight: 600;
+}
+
+.info__adicionar {
+  width: 100%;
+  margin-top: var(--uz-esp-4);
+}
+
+.info__ajuda {
+  margin: var(--uz-esp-2) 0 0;
+  color: var(--uz-tinta-suave);
+  font-size: var(--uz-fs-pequeno);
+}
+
+.info__erro {
+  align-self: stretch;
+  margin: var(--uz-esp-3) 0 0;
+  padding: var(--uz-esp-3);
+  border-radius: var(--uz-raio-s);
+  background: var(--uz-erro-fundo);
+  color: var(--uz-erro);
+}
+
+.detalhes {
+  align-self: stretch;
+  margin-top: var(--uz-esp-6);
+
+  .mat-expansion-panel {
+    border-top: 1px solid var(--uz-borda);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.detalhes__descricao {
+  white-space: pre-line;
+}

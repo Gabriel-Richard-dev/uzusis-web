@@ -1,0 +1,62 @@
+@use 'breakpoints' as bp;
+
+// Única fonte de cor da interface: componentes usam só var(--uz-*).
+:root {
+  --uz-papel: #faf8f5;
+  --uz-superficie: #ffffff;
+  --uz-areia: #efe9e3;
+  --uz-tinta: #292b2e;
+  --uz-tinta-suave: #6b645e;
+  --uz-marca: #7a5a41;
+  --uz-marca-hover: #654a35;
+  --uz-marca-clara: #a3765f; // só decorativo: 3,95:1, proibido em texto
+  --uz-marca-tinta: #f3ece5;
+  --uz-sobre-marca: #ffffff; // texto sobre --uz-marca
+  --uz-borda: #e6e0da;
+  --uz-borda-campo: #8f877f;
+  --uz-sucesso: #2f6b45;
+  --uz-sucesso-fundo: #e8f3ec;
+  --uz-aviso: #8a5a00;
+  --uz-aviso-fundo: #fbf1dc;
+  --uz-erro: #b3261e;
+  --uz-erro-fundo: #fbe9e7;
+
+  --uz-fonte-titulo: 'Scope One', Georgia, serif;
+  --uz-fonte-texto: 'Inter', system-ui, sans-serif;
+
+  --uz-fs-legenda: 0.75rem;
+  --uz-fs-pequeno: 0.875rem;
+  --uz-fs-corpo: 1rem;
+  --uz-fs-lead: 1.125rem;
+  --uz-fs-h3: 1.375rem;
+  --uz-fs-h2: 1.75rem;
+  --uz-fs-h1: 2.25rem;
+  --uz-fs-hero: clamp(2rem, 5vw, 3rem);
+
+  --uz-esp-1: 0.25rem;
+  --uz-esp-2: 0.5rem;
+  --uz-esp-3: 0.75rem;
+  --uz-esp-4: 1rem;
+  --uz-esp-5: 1.5rem;
+  --uz-esp-6: 2rem;
+  --uz-esp-7: 3rem;
+  --uz-esp-8: 4rem;
+
+  --uz-raio-s: 4px;
+  --uz-raio-m: 8px;
+  --uz-raio-pill: 999px;
+
+  --uz-sombra-1: 0 1px 2px rgb(41 43 46 / 0.06), 0 2px 8px rgb(41 43 46 / 0.06);
+  --uz-sombra-2: 0 8px 24px rgb(41 43 46 / 0.12);
+
+  --uz-largura-max: 80rem;
+  --uz-gutter: 1rem;
+  --uz-alvo: 2.75rem; // 44px: alvo de toque mínimo
+  --uz-header: 4rem;
+}
+
+@media (min-width: bp.$md) {
+  :root {
+    --uz-gutter: 2rem;
+  }
+}

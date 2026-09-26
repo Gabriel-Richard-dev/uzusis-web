@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -37,25 +40,25 @@ public class EstoqueService {
      */
     @Transactional
     public void reservar(long orderId, List<Events.Item> itens) {
+        reservas.travarPedido(orderId);
+        if (reservas.pedidoCancelado(orderId)) {
+            // O order.cancelled chegou antes do order.created (tópicos
+            // diferentes): baixar agora prenderia a peça num pedido morto.
+            log.info("Pedido {} já foi cancelado; reserva ignorada", orderId);
+            return;
+        }
+
         // O mesmo tamanho pode aparecer em dois itens do pedido; o que conta
         // para o saldo é a soma.
         Map<Long, Integer> pedidoPorTamanho = itens.stream()
-                .collect(Collectors.groupingBy(Events.Item::tamanhoId,
+                .collect(Collectors.groupingBy(Events.Item::tamanhoId, LinkedHashMap::new,
                         Collectors.summingInt(Events.Item::quantidade)));
 
         Map<Long, Tamanho> travados = tamanhos.travarPorIds(pedidoPorTamanho.keySet()).stream()
                 .collect(Collectors.toMap(Tamanho::getId, Function.identity()));
 
-        var semSaldo = pedidoPorTamanho.entrySet().stream()
-                .filter(pedido -> {
-                    var tamanho = travados.get(pedido.getKey());
-                    return tamanho == null || tamanho.getQuantidade() < pedido.getValue();
-                })
-                .map(pedido -> String.valueOf(pedido.getKey()))
-                .toList();
-
-        if (!semSaldo.isEmpty()) {
-            var motivo = "Sem estoque para o(s) tamanho(s): " + String.join(", ", semSaldo);
+        var motivo = motivoDaRecusa(pedidoPorTamanho, travados);
+        if (motivo != null) {
             log.info("Pedido {} rejeitado pelo estoque: {}", orderId, motivo);
             outbox.publicar(AGREGADO, String.valueOf(orderId), Topics.STOCK_REJECTED,
                     new Events.StockRejected(orderId, motivo));
@@ -71,9 +74,16 @@ public class EstoqueService {
                 new Events.StockReserved(orderId, itens));
     }
 
-    /** Compensação: o pedido caiu, a peça volta para a vitrine. */
+    /**
+     * Compensação: o pedido caiu, a peça volta para a vitrine. Marca o pedido
+     * como cancelado antes de tudo, mesmo sem reserva, para o reservar que
+     * chegar atrasado não baixar nada.
+     */
     @Transactional
     public void devolver(long orderId) {
+        reservas.travarPedido(orderId);
+        reservas.marcarCancelado(orderId);
+
         var aLiberar = reservas.findByOrderIdAndLiberadaFalse(orderId);
         if (aLiberar.isEmpty()) {
             log.debug("Pedido {} não tem reserva ativa, nada a devolver", orderId);
@@ -93,5 +103,30 @@ public class EstoqueService {
         });
 
         log.info("Estoque devolvido para o pedido {}: {} reserva(s)", orderId, aLiberar.size());
+    }
+
+    /**
+     * Texto legível, porque vira o motivo do cancelamento que o cliente vê.
+     * Produto desativado pesa mais que falta de peça.
+     *
+     * @return null se tudo cabe.
+     */
+    private static String motivoDaRecusa(Map<Long, Integer> pedidoPorTamanho, Map<Long, Tamanho> travados) {
+        var indisponiveis = new LinkedHashSet<String>();
+        var semEstoque = new ArrayList<String>();
+        pedidoPorTamanho.forEach((tamanhoId, quantidade) -> {
+            var tamanho = travados.get(tamanhoId);
+            if (tamanho == null) {
+                indisponiveis.add("tamanho " + tamanhoId);
+            } else if (!tamanho.getProduto().isAtivo()) {
+                indisponiveis.add(tamanho.getProduto().getNome());
+            } else if (tamanho.getQuantidade() < quantidade) {
+                semEstoque.add(tamanho.getProduto().getNome() + " (" + tamanho.getSigla() + ")");
+            }
+        });
+        if (!indisponiveis.isEmpty()) {
+            return "Produto indisponível: " + String.join(", ", indisponiveis);
+        }
+        return semEstoque.isEmpty() ? null : "Sem estoque: " + String.join(", ", semEstoque);
     }
 }

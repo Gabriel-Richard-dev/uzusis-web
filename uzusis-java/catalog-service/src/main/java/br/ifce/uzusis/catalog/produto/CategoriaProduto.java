@@ -6,13 +6,23 @@ package br.ifce.uzusis.catalog.produto;
  * o conjunto aqui quebra a vitrine, não é refatoração.
  */
 public enum CategoriaProduto {
-    CALCA,
-    SHORT,
-    SAIA,
-    CROPPED,
-    CONJUNTOS,
-    BLUSAO,
-    BODY,
-    BLUSA,
-    ACESSORIOS
+    CALCA("Calça"),
+    SHORT("Short"),
+    SAIA("Saia"),
+    CROPPED("Cropped"),
+    CONJUNTOS("Conjuntos"),
+    BLUSAO("Blusão"),
+    BODY("Body"),
+    BLUSA("Blusa"),
+    ACESSORIOS("Acessórios");
+
+    private final String nomeExibicao;
+
+    CategoriaProduto(String nomeExibicao) {
+        this.nomeExibicao = nomeExibicao;
+    }
+
+    public String getNomeExibicao() {
+        return nomeExibicao;
+    }
 }

@@ -4,16 +4,18 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
 /**
- * Chamada serviço-a-serviço com token de client credentials. O Polly do .NET
- * vira Resilience4j: retry para a falha passageira e circuit breaker para não
- * ficar batendo num serviço que já caiu.
+ * Chamada ao GET público do catálogo. O Polly do .NET vira Resilience4j: retry
+ * para a falha passageira e circuit breaker para não ficar batendo num serviço
+ * que já caiu.
  */
 @Component
 public class CatalogoClient {
@@ -51,9 +53,10 @@ public class CatalogoClient {
         throw new CatalogoIndisponivelException(causa);
     }
 
-    public static class CatalogoIndisponivelException extends RuntimeException {
+    /** 503 com o texto que o front mostra (o TratadorDeErros usa o reason como detail). */
+    public static class CatalogoIndisponivelException extends ResponseStatusException {
         CatalogoIndisponivelException(Throwable causa) {
-            super("Catálogo indisponível, tente de novo em instantes", causa);
+            super(HttpStatus.SERVICE_UNAVAILABLE, "Catálogo indisponível, tente de novo em instantes", causa);
         }
     }
 }

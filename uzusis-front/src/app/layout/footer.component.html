@@ -1,0 +1,35 @@
+<footer class="rodape">
+  <div class="uz-container rodape__colunas">
+    <section aria-labelledby="rodape-sobre">
+      <h2 id="rodape-sobre" class="uz-legenda rodape__titulo">Sobre a loja</h2>
+      <p class="rodape__texto">
+        Sonhada desde 2022, finalmente ganhamos forma. Com o desejo de vestir mulheres com almas grandes em corpos
+        pequenos, desenvolvemos peças exclusivas e do tamanho da sua liberdade. Com o mesmo sangue e agora com o mesmo
+        sonho. Irmãs, melhores amigas e apaixonadas pelo estilo minimal, com o propósito de te inspirar a amar quem se
+        é, e a ver teu corpo como lar.
+      </p>
+    </section>
+
+    <section aria-labelledby="rodape-atendimento">
+      <h2 id="rodape-atendimento" class="uz-legenda rodape__titulo">Atendimento</h2>
+      <ul class="rodape__lista">
+        <li><a href="mailto:uzusis@gmail.com">uzusis&#64;gmail.com</a></li>
+        <li><a href="https://www.instagram.com/_uzusis/" rel="noopener">Instagram &#64;_uzusis</a></li>
+      </ul>
+    </section>
+
+    <nav aria-labelledby="rodape-categorias">
+      <h2 id="rodape-categorias" class="uz-legenda rodape__titulo">Categorias</h2>
+      <ul class="rodape__lista rodape__lista--categorias">
+        <li *ngFor="let c of categorias">
+          <a routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="uz-container rodape__base">
+    <p>© {{ ano }} Uzusis. Feita de irmãs para as nossas Sis.</p>
+    <p>Desenvolvido por JRL Team</p>
+  </div>
+</footer>

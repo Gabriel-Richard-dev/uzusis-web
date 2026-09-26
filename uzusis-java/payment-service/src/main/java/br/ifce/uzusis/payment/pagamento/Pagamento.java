@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
  *
  * <p>A fonte da verdade é a Stripe; isto aqui é cache. paymentIntentId e
  * chargeId ficam guardados porque sem eles o suporte não consegue achar a
- * cobrança no painel da Stripe — e a reconciliação diária não tem por onde
+ * cobrança no painel da Stripe — e a reconciliação não tem por onde
  * comparar.
  */
 @Entity
@@ -74,41 +74,32 @@ public class Pagamento {
         this.atualizadoEm = OffsetDateTime.now();
     }
 
-    /**
-     * @return false se o pagamento já estava confirmado — webhook repetido não
-     *         gera evento de novo.
-     */
-    public boolean confirmar(String chargeId) {
-        if (status == StatusPagamento.CONFIRMADO) {
-            return false;
-        }
+    // As transições valem por quem chama: o PagamentoService decide pelo
+    // status atual, com a linha travada.
+
+    public void confirmar(String chargeId) {
         this.chargeId = chargeId;
-        this.status = StatusPagamento.CONFIRMADO;
-        this.atualizadoEm = OffsetDateTime.now();
-        return true;
+        mudarPara(StatusPagamento.CONFIRMADO);
     }
 
-    public boolean falhar(String motivo) {
-        // Estado final: um payment_failed que chega depois do succeeded (fora
-        // de ordem, como a Stripe avisa que acontece) não derruba a cobrança
-        // que já foi confirmada.
-        if (status == StatusPagamento.CONFIRMADO || status == StatusPagamento.FALHOU) {
-            return false;
-        }
-        this.motivoFalha = motivo;
-        this.status = StatusPagamento.FALHOU;
-        this.atualizadoEm = OffsetDateTime.now();
-        return true;
+    /** O motivo é só local (suporte); o evento leva sempre o texto fixo em pt-BR. */
+    public void falhar(String motivo) {
+        this.motivoFalha = motivo == null ? null : motivo.substring(0, Math.min(500, motivo.length()));
+        mudarPara(StatusPagamento.FALHOU);
     }
 
-    public boolean estornar(String refundId) {
-        if (status == StatusPagamento.ESTORNADO) {
-            return false;
-        }
+    public void cancelar() {
+        mudarPara(StatusPagamento.CANCELADO);
+    }
+
+    public void estornar(String refundId) {
         this.refundId = refundId;
-        this.status = StatusPagamento.ESTORNADO;
+        mudarPara(StatusPagamento.ESTORNADO);
+    }
+
+    private void mudarPara(StatusPagamento novo) {
+        this.status = novo;
         this.atualizadoEm = OffsetDateTime.now();
-        return true;
     }
 
     public Long getId() {
@@ -137,5 +128,13 @@ public class Pagamento {
 
     public StatusPagamento getStatus() {
         return status;
+    }
+
+    public String getMotivoFalha() {
+        return motivoFalha;
+    }
+
+    public OffsetDateTime getCriadoEm() {
+        return criadoEm;
     }
 }

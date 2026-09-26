@@ -1,0 +1,104 @@
+<header class="header">
+  <div class="header__barra uz-container">
+    <button mat-icon-button type="button" class="header__menu" aria-label="Abrir menu" (click)="abrirMenu.emit()">
+      <uz-icone nome="menu" [tamanho]="24"></uz-icone>
+    </button>
+
+    <a routerLink="/" class="logo" aria-label="Uzusis, página inicial">
+      <img src="assets/logoUzu.png" alt="" width="40" height="32" class="logo__monograma" />
+      <span class="logo__texto">UZUSIS</span>
+    </a>
+
+    <nav class="header__nav" aria-label="Principal">
+      <a mat-button routerLink="/loja">Loja</a>
+      <button mat-button type="button" [matMenuTriggerFor]="menuCategorias">
+        Categorias
+        <uz-icone nome="seta-baixo" [tamanho]="16"></uz-icone>
+      </button>
+    </nav>
+
+    <form class="busca header__busca" role="search" (ngSubmit)="buscar()">
+      <label for="busca-desktop" class="uz-visualmente-oculto">Buscar peças</label>
+      <input
+        id="busca-desktop"
+        name="q"
+        type="search"
+        class="busca__campo"
+        placeholder="Buscar peças"
+        autocomplete="off"
+        [(ngModel)]="termo"
+      />
+      <button mat-icon-button type="submit" aria-label="Buscar">
+        <uz-icone nome="busca"></uz-icone>
+      </button>
+    </form>
+
+    <div class="header__acoes">
+      <button
+        mat-icon-button
+        type="button"
+        class="header__lupa"
+        aria-controls="busca-mobile"
+        [attr.aria-expanded]="buscaAberta"
+        aria-label="Abrir busca"
+        (click)="buscaAberta = !buscaAberta"
+      >
+        <uz-icone nome="busca" [tamanho]="24"></uz-icone>
+      </button>
+      <button mat-icon-button type="button" aria-label="Conta" [matMenuTriggerFor]="menuConta">
+        <uz-icone nome="usuario" [tamanho]="24"></uz-icone>
+      </button>
+      <ng-container *ngIf="{ n: (quantidade$ | async) ?? 0 } as sacolaVm">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="sacolaVm.n === 1 ? 'Sacola, 1 item' : 'Sacola, ' + sacolaVm.n + ' itens'"
+          (click)="sacola.abrir()"
+        >
+          <uz-icone
+            nome="sacola"
+            aria-hidden="true"
+            [tamanho]="24"
+            [matBadge]="sacolaVm.n"
+            [matBadgeHidden]="sacolaVm.n === 0"
+            matBadgeSize="small"
+            matBadgeColor="primary"
+          ></uz-icone>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+
+  <form *ngIf="buscaAberta" id="busca-mobile" class="busca busca--mobile uz-container" role="search" (ngSubmit)="buscar()">
+    <label for="busca-mobile-campo" class="uz-visualmente-oculto">Buscar peças</label>
+    <input
+      id="busca-mobile-campo"
+      name="q"
+      type="search"
+      class="busca__campo"
+      placeholder="Buscar peças"
+      autocomplete="off"
+      [(ngModel)]="termo"
+    />
+    <button mat-icon-button type="submit" aria-label="Buscar">
+      <uz-icone nome="busca"></uz-icone>
+    </button>
+  </form>
+</header>
+
+<mat-menu #menuCategorias="matMenu">
+  <a *ngFor="let c of categorias" mat-menu-item routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+</mat-menu>
+
+<mat-menu #menuConta="matMenu" xPosition="before">
+  <ng-container *ngIf="usuario$ | async as usuario; else anonimo">
+    <a mat-menu-item routerLink="/conta/dados">Minha conta</a>
+    <a mat-menu-item routerLink="/conta/pedidos">Meus pedidos</a>
+    <a *ngIf="usuario.roles.includes('ADMIN')" mat-menu-item routerLink="/admin">Administração</a>
+    <button mat-menu-item type="button" (click)="auth.logout()">Sair</button>
+  </ng-container>
+  <ng-template #anonimo>
+    <button mat-menu-item type="button" (click)="auth.login()">Entrar</button>
+    <button mat-menu-item type="button" (click)="auth.cadastrar()">Criar conta</button>
+  </ng-template>
+</mat-menu>

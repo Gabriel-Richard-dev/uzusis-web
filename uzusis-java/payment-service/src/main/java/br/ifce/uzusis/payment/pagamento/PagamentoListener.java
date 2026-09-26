@@ -26,9 +26,10 @@ public class PagamentoListener {
         consumo.umaVez(recebido.eventId(), id -> pagamentos.criarIntent(recebido.payload()));
     }
 
-    @KafkaListener(topics = Topics.ORDER_REFUND_REQUESTED, groupId = "payment-service")
-    void aoPedirEstorno(String mensagem) {
-        var recebido = leitor.ler(mensagem, Events.RefundRequested.class);
-        consumo.umaVez(recebido.eventId(), id -> pagamentos.estornar(recebido.payload()));
+    /** Cancela o intent ou, se já pagou, estorna. É o único caminho de estorno. */
+    @KafkaListener(topics = Topics.ORDER_CANCELLED, groupId = "payment-service")
+    void aoCancelarPedido(String mensagem) {
+        var recebido = leitor.ler(mensagem, Events.OrderCancelled.class);
+        consumo.umaVez(recebido.eventId(), id -> pagamentos.cancelarPorPedido(recebido.payload()));
     }
 }

@@ -12,8 +12,9 @@ public enum Desfecho {
 
     PAGAR,
 
-    CANCELAR,
-
-    /** Cancelar e mandar a Stripe estornar: o dinheiro já entrou. */
-    CANCELAR_COM_ESTORNO
+    /**
+     * Cancelar. Se o dinheiro já entrou, quem estorna é o payment-service ao
+     * consumir order.cancelled: é o único caminho de estorno.
+     */
+    CANCELAR
 }

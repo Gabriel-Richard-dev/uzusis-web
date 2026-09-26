@@ -1,0 +1,118 @@
+// Como no shell da loja: a página rola na janela (scrollPositionRestoration funciona) e o menu fica fixo.
+.admin {
+  min-height: 100vh;
+  overflow: visible;
+  background: var(--uz-papel);
+  color: var(--uz-tinta);
+}
+
+.admin__conteudo {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.admin__main {
+  flex: 1;
+  padding-bottom: var(--uz-esp-7);
+}
+
+.admin__menu {
+  width: min(16rem, 85vw);
+  background: var(--uz-superficie);
+  border-right: 1px solid var(--uz-borda);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: var(--uz-esp-3) var(--uz-esp-4) var(--uz-esp-5);
+}
+
+.menu__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--uz-header);
+  margin-bottom: var(--uz-esp-4);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--uz-esp-2);
+  color: var(--uz-tinta);
+  text-decoration: none;
+}
+
+.marca__texto {
+  font-family: var(--uz-fonte-titulo);
+  font-size: var(--uz-fs-lead);
+  letter-spacing: 0.2em;
+}
+
+.menu__rodape {
+  margin-top: auto;
+  padding-top: var(--uz-esp-5);
+  border-top: 1px solid var(--uz-borda);
+}
+
+.menu__link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--uz-alvo);
+  padding: 0 var(--uz-esp-3);
+  border: 0;
+  border-radius: var(--uz-raio-s);
+  background: none;
+  color: var(--uz-tinta);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--uz-marca-hover);
+    background: var(--uz-areia);
+  }
+}
+
+.menu__link--ativo {
+  color: var(--uz-marca);
+  background: var(--uz-marca-tinta);
+  font-weight: 600;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: var(--uz-esp-3);
+  min-height: var(--uz-header);
+  padding-inline: var(--uz-gutter);
+  background: var(--uz-papel);
+  border-bottom: 1px solid var(--uz-borda);
+}
+
+.barra__titulo {
+  font-family: var(--uz-fonte-titulo);
+  font-size: var(--uz-fs-lead);
+}
+
+.barra__usuario {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--uz-esp-2);
+  min-width: 0;
+  margin-left: auto;
+  color: var(--uz-tinta-suave);
+  font-size: var(--uz-fs-pequeno);
+}
+
+.barra__nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

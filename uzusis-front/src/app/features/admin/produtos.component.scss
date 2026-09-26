@@ -1,0 +1,165 @@
+@use 'breakpoints' as bp;
+
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--uz-esp-4);
+
+  .uz-titulo {
+    margin-bottom: var(--uz-esp-4);
+  }
+}
+
+.filtros {
+  display: grid;
+  gap: var(--uz-esp-3);
+  margin-bottom: var(--uz-esp-5);
+
+  @media (min-width: bp.$sm) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: bp.$lg) {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.filtros__busca {
+  grid-column: 1 / -1;
+
+  @media (min-width: bp.$lg) {
+    grid-column: auto;
+  }
+}
+
+.tabela {
+  overflow-x: auto; // rede de segurança: a página nunca rola na horizontal
+}
+
+table {
+  width: 100%;
+  background: transparent;
+}
+
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  padding: var(--uz-esp-2) var(--uz-esp-2);
+  vertical-align: middle;
+
+  &:first-child {
+    padding-left: var(--uz-esp-3);
+  }
+
+  &:last-child {
+    padding-right: var(--uz-esp-3);
+  }
+}
+
+.miniatura {
+  display: block;
+  width: 3rem;
+  height: 4rem;
+  object-fit: cover;
+  background: var(--uz-areia);
+}
+
+.celula-nome {
+  min-width: 8rem;
+}
+
+.nome {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.preco {
+  white-space: nowrap;
+}
+
+.estoque {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--uz-esp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 0 var(--uz-esp-2);
+  border-radius: var(--uz-raio-pill);
+  background: var(--uz-areia);
+  font-size: var(--uz-fs-pequeno);
+  white-space: nowrap;
+}
+
+.chip--zero {
+  color: var(--uz-erro);
+  background: var(--uz-erro-fundo);
+}
+
+.situacao {
+  display: inline-block;
+  padding: 0 var(--uz-esp-2);
+  border-radius: var(--uz-raio-pill);
+  font-size: var(--uz-fs-pequeno);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.situacao--ativo {
+  color: var(--uz-sucesso);
+  background: var(--uz-sucesso-fundo);
+}
+
+.situacao--inativo {
+  color: var(--uz-tinta-suave);
+  background: var(--uz-areia);
+}
+
+.situacao--sem-estoque {
+  color: var(--uz-aviso);
+  background: var(--uz-aviso-fundo);
+}
+
+.acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--uz-esp-2);
+
+  @media (min-width: bp.$md) {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+// Abaixo de $md, categoria, preço, estoque e situação vão para a célula do nome.
+.so-estreito {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--uz-esp-1);
+  margin-top: var(--uz-esp-1);
+  font-size: var(--uz-fs-pequeno);
+}
+
+.so-largo {
+  display: none;
+}
+
+@media (min-width: bp.$md) {
+  .so-estreito {
+    display: none;
+  }
+
+  .so-largo {
+    display: table-cell;
+  }
+}
+
+.mat-mdc-paginator {
+  background: transparent;
+}

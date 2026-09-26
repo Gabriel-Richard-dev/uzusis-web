@@ -25,9 +25,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
+                        // /produtos/admin cai aqui também; quem fecha é o @PreAuthorize.
                         .requestMatchers(HttpMethod.GET, "/produtos", "/produtos/**").permitAll()
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 // Validação local pela JWKS do Keycloak: sem chamada de rede
                 // por requisição, as chaves ficam em cache.

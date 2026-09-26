@@ -19,7 +19,6 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Carrinho e pedido são sempre de alguém: nada aberto aqui.
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth

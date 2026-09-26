@@ -27,13 +27,22 @@ spring:
           time_zone: UTC
 
   flyway:
-    locations: classpath:db/migration,classpath:db/migration/common
+    # Uma location só: a varredura é recursiva e já pega o db/migration/common/V0
+    # do jar do common. Com as duas, o V0 aparece duas vezes e o boot falha.
+    locations: classpath:db/migration
+
+  # Sem Accept-Language (curl, testes) o resolver padrão usaria o locale da JVM.
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          # JWKS pela rede interna: o issuer é a URL pública, inalcançável de dentro do contêiner.
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
 
 server:
   port: ${SERVER_PORT:8086}
@@ -44,6 +53,7 @@ management:
       exposure:
         include: health,info,prometheus
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:

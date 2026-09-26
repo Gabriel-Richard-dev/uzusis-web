@@ -12,11 +12,14 @@ public class NotificacaoListener {
 
     private final LeitorDeEvento leitor;
     private final ConsumoIdempotente consumo;
+    private final EmailTemplates templates;
     private final EmailService email;
 
-    public NotificacaoListener(LeitorDeEvento leitor, ConsumoIdempotente consumo, EmailService email) {
+    public NotificacaoListener(LeitorDeEvento leitor, ConsumoIdempotente consumo, EmailTemplates templates,
+                               EmailService email) {
         this.leitor = leitor;
         this.consumo = consumo;
+        this.templates = templates;
         this.email = email;
     }
 
@@ -27,18 +30,21 @@ public class NotificacaoListener {
     @KafkaListener(topics = Topics.ORDER_PAID, groupId = "notification-service")
     void aoPagarPedido(String mensagem) {
         var recebido = leitor.ler(mensagem, Events.OrderPaid.class);
-        consumo.umaVez(recebido.eventId(), id -> email.pedidoPago(
-                recebido.payload().clienteEmail(),
-                recebido.payload().orderId(),
-                recebido.payload().valorTotalCentavos()));
+        var pedido = recebido.payload();
+        consumo.umaVez(recebido.eventId(), id -> email.enviar(pedido.clienteEmail(), templates.pedidoPago(pedido)));
+    }
+
+    @KafkaListener(topics = Topics.ORDER_SHIPPED, groupId = "notification-service")
+    void aoEnviarPedido(String mensagem) {
+        var recebido = leitor.ler(mensagem, Events.OrderShipped.class);
+        var pedido = recebido.payload();
+        consumo.umaVez(recebido.eventId(), id -> email.enviar(pedido.clienteEmail(), templates.pedidoEnviado(pedido)));
     }
 
     @KafkaListener(topics = Topics.ORDER_CANCELLED, groupId = "notification-service")
     void aoCancelarPedido(String mensagem) {
         var recebido = leitor.ler(mensagem, Events.OrderCancelled.class);
-        consumo.umaVez(recebido.eventId(), id -> email.pedidoCancelado(
-                recebido.payload().clienteEmail(),
-                recebido.payload().orderId(),
-                recebido.payload().motivo()));
+        var pedido = recebido.payload();
+        consumo.umaVez(recebido.eventId(), id -> email.enviar(pedido.clienteEmail(), templates.pedidoCancelado(pedido)));
     }
 }

@@ -12,19 +12,21 @@
       width="1366"
       height="768"
       fetchpriority="high"
-    />
+      />
   </div>
 </section>
 
 <section class="uz-container secao" aria-labelledby="home-categorias">
   <h2 id="home-categorias">Compre por categoria</h2>
   <ul class="categorias">
-    <li *ngFor="let c of categorias">
-      <a class="categoria" routerLink="/loja" [queryParams]="{ categoria: c.valor }">
-        {{ c.nome }}
-        <uz-icone nome="seta-direita" [tamanho]="18"></uz-icone>
-      </a>
-    </li>
+    @for (c of categorias; track c) {
+      <li>
+        <a class="categoria" routerLink="/loja" [queryParams]="{ categoria: c.valor }">
+          {{ c.nome }}
+          <uz-icone nome="seta-direita" [tamanho]="18"></uz-icone>
+        </a>
+      </li>
+    }
   </ul>
 </section>
 
@@ -34,25 +36,34 @@
     <a routerLink="/loja" class="secao__link">Ver tudo</a>
   </div>
 
-  <uz-estado
-    *ngIf="erro"
-    tipo="erro"
-    titulo="Não foi possível carregar as novidades"
-    [mensagem]="mensagemDeErro(erro)"
-    (tentarNovamente)="carregar()"
-  ></uz-estado>
+  @if (erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar as novidades"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
 
-  <div *ngIf="!novidades && !erro" class="grade" aria-busy="true">
-    <uz-esqueleto formato="cartao" [quantidade]="8"></uz-esqueleto>
-  </div>
+  @if (!novidades && !erro) {
+    <div class="grade" aria-busy="true">
+      <uz-esqueleto formato="cartao" [quantidade]="8"></uz-esqueleto>
+    </div>
+  }
 
-  <uz-estado *ngIf="novidades && !novidades.length" tipo="vazio" titulo="Novidades chegando em breve">
-    <a mat-stroked-button href="https://www.instagram.com/_uzusis/" rel="noopener">Acompanhe no Instagram</a>
-  </uz-estado>
+  @if (novidades && !novidades.length) {
+    <uz-estado tipo="vazio" titulo="Novidades chegando em breve">
+      <a mat-stroked-button href="https://www.instagram.com/_uzusis/" rel="noopener">Acompanhe no Instagram</a>
+    </uz-estado>
+  }
 
-  <ul *ngIf="novidades?.length" class="grade">
-    <li *ngFor="let p of novidades; trackBy: porId"><uz-produto-card [produto]="p"></uz-produto-card></li>
-  </ul>
+  @if (novidades?.length) {
+    <ul class="grade">
+      @for (p of novidades; track porId($index, p)) {
+        <li><uz-produto-card [produto]="p"></uz-produto-card></li>
+      }
+    </ul>
+  }
 </section>
 
 <section class="instagram" aria-labelledby="home-instagram">

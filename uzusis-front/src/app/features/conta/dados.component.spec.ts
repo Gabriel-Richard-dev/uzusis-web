@@ -30,7 +30,7 @@ describe('dados da conta', () => {
     marcarErrosDoServidor(form, new HttpErrorResponse({ status: 502, error: '<html>' }));
 
     expect(form.controls.cpf.getError('servidor')).toBe('CPF inválido');
-    expect(form.controls.cpf.touched).toBeTrue();
-    expect(form.controls.nome.valid).toBeTrue();
+    expect(form.controls.cpf.touched).toBe(true);
+    expect(form.controls.nome.valid).toBe(true);
   });
 });

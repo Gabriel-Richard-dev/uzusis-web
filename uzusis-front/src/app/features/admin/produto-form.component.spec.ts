@@ -18,15 +18,16 @@ describe('ProdutoFormComponent (edição)', () => {
       tamanhos: [{ sigla: 'P', quantidade: 3 }, { sigla: 'M', quantidade: 3 }],
       fotos: [],
     } as unknown as ProdutoResposta;
-    const catalogo = jasmine.createSpyObj<CatalogoService>('CatalogoService', ['obter', 'atualizar', 'atualizarEstoque']);
-    catalogo.obter.and.returnValue(of(produto));
-    catalogo.atualizar.and.returnValue(of(produto));
-    catalogo.atualizarEstoque.and.returnValue(of(produto));
+    const catalogo = {
+      obter: vi.fn().mockReturnValue(of(produto)),
+      atualizar: vi.fn().mockReturnValue(of(produto)),
+      atualizarEstoque: vi.fn().mockReturnValue(of(produto)),
+    };
     TestBed.configureTestingModule({
-      declarations: [ProdutoFormComponent],
+      imports: [ProdutoFormComponent],
       providers: [
         { provide: CatalogoService, useValue: catalogo },
-        { provide: AvisoService, useValue: jasmine.createSpyObj('AvisoService', ['sucesso', 'erro']) },
+        { provide: AvisoService, useValue: { sucesso: vi.fn(), erro: vi.fn() } },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: '42' }) } } },
       ],
     }).overrideTemplate(ProdutoFormComponent, '');
@@ -42,6 +43,6 @@ describe('ProdutoFormComponent (edição)', () => {
     g.setValue(2);
     g.markAsDirty();
     form.salvar();
-    expect(catalogo.atualizarEstoque).toHaveBeenCalledOnceWith(42, [{ sigla: 'G', quantidade: 2 }]);
+    expect(catalogo.atualizarEstoque).toHaveBeenCalledExactlyOnceWith(42, [{ sigla: 'G', quantidade: 2 }]);
   });
 });

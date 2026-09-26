@@ -34,18 +34,17 @@ $uz-paleta: (
   ),
 );
 
-$uz-primaria: mat.define-palette($uz-paleta, 500);
-$uz-acento: mat.define-palette($uz-paleta, 500);
-$uz-alerta: mat.define-palette(mat.$red-palette, 800);
-$uz-tipografia: mat.define-typography-config($font-family: 'Inter, system-ui, sans-serif');
+$uz-primaria: mat.m2-define-palette($uz-paleta, 500);
+$uz-acento: mat.m2-define-palette($uz-paleta, 500);
+$uz-alerta: mat.m2-define-palette(mat.$m2-red-palette, 800);
+$uz-tipografia: mat.m2-define-typography-config($font-family: 'Inter, system-ui, sans-serif');
 
-$uz-tema: mat.define-light-theme((
+$uz-tema: mat.m2-define-light-theme((
   color: (primary: $uz-primaria, accent: $uz-acento, warn: $uz-alerta),
   typography: $uz-tipografia,
   density: 0,
 ));
 
-@include mat.core();
 // Só os componentes usados no app (§7.2); incluir um novo aqui antes de usá-lo.
 @include mat.core-theme($uz-tema);
 @include mat.button-theme($uz-tema);

@@ -1,28 +1,33 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { ProdutoResposta } from '../../core/api/modelos';
 import { ultimasUnidades } from './vitrine';
+import { RouterLink } from '@angular/router';
+import { CurrencyPipe } from '@angular/common';
 
 @Component({
-  selector: 'uz-produto-card',
-  template: `
+    selector: 'uz-produto-card',
+    template: `
     <a class="card" [routerLink]="['/produto', produto.id]">
       <span class="card__foto">
-        <img
-          *ngIf="produto.fotos[0] as foto"
-          [src]="foto.url"
-          [alt]="produto.nome"
-          width="300"
-          height="400"
-          loading="lazy"
-        />
-        <span *ngIf="ultimas" class="card__selo">Últimas unidades</span>
+        @if (produto.fotos[0]; as foto) {
+          <img
+            [src]="foto.url"
+            [alt]="produto.nome"
+            width="300"
+            height="400"
+            loading="lazy"
+            />
+        }
+        @if (ultimas) {
+          <span class="card__selo">Últimas unidades</span>
+        }
       </span>
       <span class="card__nome">{{ produto.nome }}</span>
       <span class="uz-preco">{{ produto.preco | currency }}</span>
     </a>
-  `,
-  styles: [`
+    `,
+    styles: [`
     :host { display: block; }
     .card {
       display: flex;
@@ -65,6 +70,8 @@ import { ultimasUnidades } from './vitrine';
       font-size: var(--uz-fs-pequeno);
     }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [RouterLink, CurrencyPipe]
 })
 export class ProdutoCardComponent {
   @Input({ required: true }) produto!: ProdutoResposta;

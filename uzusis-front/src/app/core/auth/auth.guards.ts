@@ -20,7 +20,7 @@ export const adminGuard: CanMatchFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);
   const aviso = inject(AvisoService);
-  const url = router.getCurrentNavigation()?.extractedUrl.toString() ?? '/admin';
+  const url = router.currentNavigation()?.extractedUrl.toString() ?? '/admin';
   if (!(await auth.sessaoValida())) {
     auth.login(url);
     return router.parseUrl(router.url);

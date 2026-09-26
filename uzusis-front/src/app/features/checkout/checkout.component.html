@@ -1,73 +1,78 @@
 <section class="uz-container checkout">
   <h1 class="uz-titulo" tabindex="-1">Finalizar compra</h1>
 
-  <uz-estado *ngIf="passo === 'carregando'" tipo="carregando" mensagem="Carregando sua compra…"></uz-estado>
+  @if (passo === 'carregando') {
+    <uz-estado tipo="carregando" mensagem="Carregando sua compra…"></uz-estado>
+  }
 
-  <uz-estado
-    *ngIf="passo === 'erro'"
-    tipo="erro"
-    titulo="Não foi possível abrir o checkout"
-    [mensagem]="erro"
-    (tentarNovamente)="carregar()"
-  ></uz-estado>
-
-  <ng-container *ngIf="(passo === 'entrega' || passo === 'pagamento') && (carrinho$ | async) as carrinho">
+  @if (passo === 'erro') {
     <uz-estado
-      *ngIf="passo === 'entrega' && !carrinho.itens.length; else compra"
-      tipo="vazio"
-      titulo="Sua sacola está vazia"
-      mensagem="Escolha suas peças e volte para finalizar a compra."
-    >
-      <a mat-flat-button color="primary" routerLink="/loja">Explorar a loja</a>
-    </uz-estado>
+      tipo="erro"
+      titulo="Não foi possível abrir o checkout"
+      [mensagem]="erro"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
 
-    <ng-template #compra>
+  @if ((passo === 'entrega' || passo === 'pagamento') && (carrinho$ | async); as carrinho) {
+    @if (passo === 'entrega' && !carrinho.itens.length) {
+      <uz-estado
+        tipo="vazio"
+        titulo="Sua sacola está vazia"
+        mensagem="Escolha suas peças e volte para finalizar a compra."
+        >
+        <a mat-flat-button color="primary" routerLink="/loja">Explorar a loja</a>
+      </uz-estado>
+    } @else {
       <div class="checkout__grade">
-        <aside *ngIf="resumo(carrinho) as r" class="resumo uz-cartao" aria-labelledby="resumo-titulo">
-          <div class="resumo__topo">
-            <h2 id="resumo-titulo" class="resumo__titulo">Resumo do pedido</h2>
-            <button
-              mat-button
-              type="button"
-              class="resumo__alternar"
-              aria-controls="resumo-detalhes"
-              [attr.aria-expanded]="resumoAberto"
-              (click)="resumoAberto = !resumoAberto"
-            >
-              {{ resumoAberto ? 'Ocultar itens' : 'Ver itens (' + r.itens.length + ')' }}
-            </button>
-          </div>
-
-          <div id="resumo-detalhes" class="resumo__detalhes" [class.resumo__detalhes--aberto]="resumoAberto">
-            <uz-itens-pedido [itens]="r.itens"></uz-itens-pedido>
-            <dl class="valores">
+        @if (resumo(carrinho); as r) {
+          <aside class="resumo uz-cartao" aria-labelledby="resumo-titulo">
+            <div class="resumo__topo">
+              <h2 id="resumo-titulo" class="resumo__titulo">Resumo do pedido</h2>
+              <button
+                mat-button
+                type="button"
+                class="resumo__alternar"
+                aria-controls="resumo-detalhes"
+                [attr.aria-expanded]="resumoAberto"
+                (click)="resumoAberto = !resumoAberto"
+                >
+                {{ resumoAberto ? 'Ocultar itens' : 'Ver itens (' + r.itens.length + ')' }}
+              </button>
+            </div>
+            <div id="resumo-detalhes" class="resumo__detalhes" [class.resumo__detalhes--aberto]="resumoAberto">
+              <uz-itens-pedido [itens]="r.itens"></uz-itens-pedido>
+              <dl class="valores">
+                <div class="valores__linha">
+                  <dt>Subtotal</dt>
+                  <dd>{{ r.subtotal | currency }}</dd>
+                </div>
+                <div class="valores__linha">
+                  <dt>Frete</dt>
+                  <dd>
+                    @if (r.frete !== null) {
+                      {{ r.frete | currency }}
+                    } @else {
+                      <span class="uz-texto-suave">{{ calculandoFrete ? 'Calculando…' : 'Informe a UF' }}</span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <dl class="valores valores--total">
               <div class="valores__linha">
-                <dt>Subtotal</dt>
-                <dd>{{ r.subtotal | currency }}</dd>
-              </div>
-              <div class="valores__linha">
-                <dt>Frete</dt>
+                <dt>Total</dt>
                 <dd>
-                  <ng-container *ngIf="r.frete !== null; else semFrete">{{ r.frete | currency }}</ng-container>
-                  <ng-template #semFrete>
-                    <span class="uz-texto-suave">{{ calculandoFrete ? 'Calculando…' : 'Informe a UF' }}</span>
-                  </ng-template>
+                  @if (r.total !== null) {
+                    {{ r.total | currency }}
+                  } @else {
+                    <span class="uz-texto-suave">Falta o frete</span>
+                  }
                 </dd>
               </div>
             </dl>
-          </div>
-
-          <dl class="valores valores--total">
-            <div class="valores__linha">
-              <dt>Total</dt>
-              <dd>
-                <ng-container *ngIf="r.total !== null; else semTotal">{{ r.total | currency }}</ng-container>
-                <ng-template #semTotal><span class="uz-texto-suave">Falta o frete</span></ng-template>
-              </dd>
-            </div>
-          </dl>
-        </aside>
-
+          </aside>
+        }
         <div class="checkout__principal">
           <ol class="passos" aria-label="Etapas da compra">
             <li class="passos__item" [class.passos__item--atual]="passo === 'entrega'" [attr.aria-current]="passo === 'entrega' ? 'step' : null">
@@ -77,96 +82,108 @@
               <span class="passos__numero" aria-hidden="true">2</span> Pagamento
             </li>
           </ol>
-
-          <p *ngIf="config && !config.habilitado" class="alerta" role="status">
-            <uz-icone nome="alerta"></uz-icone>
-            <span>Pagamento ainda não configurado. Não é possível finalizar compras no momento.</span>
-          </p>
-
-          <form
-            *ngIf="passo === 'entrega' && form"
-            class="etapa"
-            [formGroup]="form"
-            (ngSubmit)="criarPedido()"
-            novalidate
-            aria-labelledby="entrega-titulo"
-          >
-            <h2 id="entrega-titulo" class="etapa__titulo">Entrega</h2>
-            <uz-endereco-form [form]="form"></uz-endereco-form>
-
-            <mat-checkbox [formControl]="salvarNoPerfil">Salvar este endereço no meu perfil</mat-checkbox>
-
-            <p class="frete" aria-live="polite">
-              <ng-container *ngIf="frete">Frete para {{ frete.uf }}: <strong>{{ frete.valor | currency }}</strong></ng-container>
-              <span *ngIf="erroFrete" class="frete__erro">Não foi possível calcular o frete: {{ erroFrete }}</span>
-            </p>
-
-            <p *ngIf="erroPedido" class="alerta alerta--erro" role="alert">
+          @if (config && !config.habilitado) {
+            <p class="alerta" role="status">
               <uz-icone nome="alerta"></uz-icone>
-              <span>
-                {{ erroPedido }}
-                <a *ngIf="pedidoPendente" routerLink="/conta/pedidos">Ver meus pedidos</a>
-              </span>
+              <span>Pagamento ainda não configurado. Não é possível finalizar compras no momento.</span>
             </p>
-
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              class="etapa__acao"
-              [disabled]="!config?.habilitado || enviando"
-            >
-              <span class="etapa__rotulo">
-                <mat-progress-spinner *ngIf="enviando" mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
-                {{ enviando ? 'Criando pedido…' : 'Ir para o pagamento' }}
-              </span>
-            </button>
-          </form>
-
-          <section *ngIf="passo === 'pagamento' && pedido" class="etapa" aria-labelledby="pagamento-titulo">
-            <h2 id="pagamento-titulo" class="etapa__titulo">Pagamento</h2>
-            <p class="uz-texto-suave">
-              Pedido #{{ pedido.id }}<ng-container *ngIf="pedido.expiraEm">
-                · Conclua o pagamento até {{ pedido.expiraEm | date: 'HH:mm' }}</ng-container>
-            </p>
-
-            <ng-container *ngIf="config?.habilitado">
-              <uz-estado
-                *ngIf="erroPreparo; else preparando"
-                tipo="erro"
-                titulo="Pagamento indisponível"
-                [mensagem]="erroPreparo"
-                (tentarNovamente)="prepararPagamento()"
-              ></uz-estado>
-              <ng-template #preparando>
-                <uz-estado *ngIf="!pronto" tipo="carregando" mensagem="Preparando o pagamento…"></uz-estado>
-              </ng-template>
-
-              <div #elementoPagamento class="pagamento"></div>
-
-              <p *ngIf="erroPagamento" class="alerta alerta--erro" role="alert">
-                <uz-icone nome="alerta"></uz-icone>
-                <span>{{ erroPagamento }}</span>
+          }
+          @if (passo === 'entrega' && form) {
+            <form
+              class="etapa"
+              [formGroup]="form"
+              (ngSubmit)="criarPedido()"
+              novalidate
+              aria-labelledby="entrega-titulo"
+              >
+              <h2 id="entrega-titulo" class="etapa__titulo">Entrega</h2>
+              <uz-endereco-form [form]="form"></uz-endereco-form>
+              <mat-checkbox [formControl]="salvarNoPerfil">Salvar este endereço no meu perfil</mat-checkbox>
+              <p class="frete" aria-live="polite">
+                @if (frete) {
+                  Frete para {{ frete.uf }}: <strong>{{ frete.valor | currency }}</strong>
+                }
+                @if (erroFrete) {
+                  <span class="frete__erro">Não foi possível calcular o frete: {{ erroFrete }}</span>
+                }
               </p>
-
+              @if (erroPedido) {
+                <p class="alerta alerta--erro" role="alert">
+                  <uz-icone nome="alerta"></uz-icone>
+                  <span>
+                    {{ erroPedido }}
+                    @if (pedidoPendente) {
+                      <a routerLink="/conta/pedidos">Ver meus pedidos</a>
+                    }
+                  </span>
+                </p>
+              }
               <button
-                *ngIf="!erroPreparo"
                 mat-flat-button
                 color="primary"
-                type="button"
+                type="submit"
                 class="etapa__acao"
-                [disabled]="!pronto || pagando || bloqueado"
-                (click)="pagar()"
-              >
+                [disabled]="!config?.habilitado || enviando"
+                >
                 <span class="etapa__rotulo">
-                  <mat-progress-spinner *ngIf="pagando" mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
-                  Pagar {{ pedido.valorTotal | currency }}
+                  @if (enviando) {
+                    <mat-progress-spinner mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
+                  }
+                  {{ enviando ? 'Criando pedido…' : 'Ir para o pagamento' }}
                 </span>
               </button>
-            </ng-container>
+            </form>
+          }
+          @if (passo === 'pagamento' && pedido) {
+            <section class="etapa" aria-labelledby="pagamento-titulo">
+              <h2 id="pagamento-titulo" class="etapa__titulo">Pagamento</h2>
+              <p class="uz-texto-suave">
+                Pedido #{{ pedido.id }}@if (pedido.expiraEm) {
+                · Conclua o pagamento até {{ pedido.expiraEm | date: 'HH:mm' }}
+              }
+            </p>
+            @if (config?.habilitado) {
+              @if (erroPreparo) {
+                <uz-estado
+                  tipo="erro"
+                  titulo="Pagamento indisponível"
+                  [mensagem]="erroPreparo"
+                  (tentarNovamente)="prepararPagamento()"
+                ></uz-estado>
+              } @else {
+                @if (!pronto) {
+                  <uz-estado tipo="carregando" mensagem="Preparando o pagamento…"></uz-estado>
+                }
+              }
+              <div #elementoPagamento class="pagamento"></div>
+              @if (erroPagamento) {
+                <p class="alerta alerta--erro" role="alert">
+                  <uz-icone nome="alerta"></uz-icone>
+                  <span>{{ erroPagamento }}</span>
+                </p>
+              }
+              @if (!erroPreparo) {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="etapa__acao"
+                  [disabled]="!pronto || pagando || bloqueado"
+                  (click)="pagar()"
+                  >
+                  <span class="etapa__rotulo">
+                    @if (pagando) {
+                      <mat-progress-spinner mode="indeterminate" diameter="18" aria-hidden="true"></mat-progress-spinner>
+                    }
+                    Pagar {{ pedido.valorTotal | currency }}
+                  </span>
+                </button>
+              }
+            }
           </section>
-        </div>
+        }
       </div>
-    </ng-template>
-  </ng-container>
+    </div>
+  }
+}
 </section>

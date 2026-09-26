@@ -1,8 +1,8 @@
 import { Location } from '@angular/common';
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
-import { FormControl, FormGroup, NonNullableFormBuilder, ValidatorFn, Validators } from '@angular/forms';
+import { Component, ElementRef, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
+import { FormControl, FormGroup, NonNullableFormBuilder, ValidatorFn, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, finalize, map, of, switchMap, tap } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
@@ -11,6 +11,12 @@ import { CATEGORIAS, CategoriaProduto, ProdutoResposta, SIGLAS, Sigla } from '..
 import { AvisoService } from '../../core/util/aviso.service';
 import { formatarPreco, lerPreco, tamanhosParaEnviar } from './admin-util';
 import { GerenciadorFotosComponent } from './gerenciador-fotos.component';
+import { IconeComponent } from '../../shared/icone.component';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { MatFormField, MatLabel, MatError, MatPrefix, MatHint } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
 
 const precoValido: ValidatorFn = c => {
   if (!c.value) return null; // o required cuida do vazio
@@ -26,9 +32,11 @@ const quantidade = () => new FormControl<number | null>(null, Validators.pattern
 
 /** /admin/produtos/novo e /admin/produtos/:id: um componente, pré-preenchido na edição. */
 @Component({
-  selector: 'uz-produto-form',
-  templateUrl: './produto-form.component.html',
-  styleUrls: ['./produto-form.component.scss'],
+    selector: 'uz-produto-form',
+    templateUrl: './produto-form.component.html',
+    styleUrls: ['./produto-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [RouterLink, IconeComponent, EstadoComponent, MatButton, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MatSelect, MatOption, MatPrefix, MatHint, GerenciadorFotosComponent]
 })
 export class ProdutoFormComponent {
   private readonly catalogo = inject(CatalogoService);

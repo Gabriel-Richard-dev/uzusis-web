@@ -1,86 +1,90 @@
 <section class="uz-container pagina">
-  <uz-estado *ngIf="!produto && !naoEncontrado && !erro" tipo="carregando" mensagem="Carregando produto…"></uz-estado>
+  @if (!produto && !naoEncontrado && !erro) {
+    <uz-estado tipo="carregando" mensagem="Carregando produto…"></uz-estado>
+  }
 
-  <ng-container *ngIf="naoEncontrado">
+  @if (naoEncontrado) {
     <h1 class="uz-titulo" tabindex="-1">Produto não encontrado</h1>
     <uz-estado tipo="vazio" mensagem="A peça pode ter saído da loja, ou o endereço está errado.">
       <a mat-flat-button color="primary" routerLink="/loja">Ver a loja</a>
     </uz-estado>
-  </ng-container>
+  }
 
-  <ng-container *ngIf="erro">
+  @if (erro) {
     <h1 class="uz-titulo" tabindex="-1">Não foi possível carregar o produto</h1>
     <uz-estado tipo="erro" [mensagem]="mensagemDeErro(erro)" (tentarNovamente)="carregar()"></uz-estado>
-  </ng-container>
+  }
 
-  <div *ngIf="produto as p" class="produto">
-    <uz-galeria [fotos]="p.fotos" [nome]="p.nome"></uz-galeria>
-
-    <div class="info">
-      <a class="uz-legenda info__categoria" routerLink="/loja" [queryParams]="{ categoria: p.categoria }">
-        {{ p.categoriaNome }}
-      </a>
-      <h1 class="info__nome" tabindex="-1">{{ p.nome }}</h1>
-      <p class="uz-preco info__preco">{{ p.preco | currency }}</p>
-
-      <div class="info__linha">
-        <span id="rotulo-tamanho" class="info__rotulo">Tamanho</span>
-        <button type="button" class="info__guia" (click)="abrirGuia()">
-          <uz-icone nome="regua" [tamanho]="18"></uz-icone>
-          Guia de medidas
+  @if (produto; as p) {
+    <div class="produto">
+      <uz-galeria [fotos]="p.fotos" [nome]="p.nome"></uz-galeria>
+      <div class="info">
+        <a class="uz-legenda info__categoria" routerLink="/loja" [queryParams]="{ categoria: p.categoria }">
+          {{ p.categoriaNome }}
+        </a>
+        <h1 class="info__nome" tabindex="-1">{{ p.nome }}</h1>
+        <p class="uz-preco info__preco">{{ p.preco | currency }}</p>
+        <div class="info__linha">
+          <span id="rotulo-tamanho" class="info__rotulo">Tamanho</span>
+          <button type="button" class="info__guia" (click)="abrirGuia()">
+            <uz-icone nome="regua" [tamanho]="18"></uz-icone>
+            Guia de medidas
+          </button>
+        </div>
+        <mat-button-toggle-group
+          class="tamanhos"
+          aria-labelledby="rotulo-tamanho"
+          [value]="tamanho"
+          (change)="escolherTamanho($event.value)"
+          >
+          @for (t of p.tamanhos; track t) {
+            <mat-button-toggle
+              [value]="t.sigla"
+              [disabled]="t.quantidade === 0"
+              [aria-label]="t.quantidade === 0 ? t.sigla + ', esgotado' : t.sigla"
+              >
+              <span class="tamanhos__sigla">{{ t.sigla }}</span>
+            </mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+        <p class="info__restam" aria-live="polite">
+          {{ estoque === 1 ? 'Resta 1 neste tamanho' : estoque > 1 && estoque <= 3 ? 'Restam ' + estoque + ' neste tamanho' : '' }}
+        </p>
+        <div class="info__linha">
+          <span class="info__rotulo" aria-hidden="true">Quantidade</span>
+          <uz-qtd [(valor)]="quantidade" [max]="maxQtd" rotulo="Quantidade" [desabilitado]="!tamanho"></uz-qtd>
+        </div>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="info__adicionar"
+          [disabled]="!tamanho || adicionando"
+          [attr.aria-describedby]="tamanho ? null : 'ajuda-adicionar'"
+          (click)="adicionar()"
+          >
+          {{ adicionando ? 'Adicionando…' : 'Adicionar à sacola' }}
         </button>
+        @if (!tamanho) {
+          <p id="ajuda-adicionar" class="info__ajuda">
+            {{ p.disponivel ? 'Escolha um tamanho' : 'Produto esgotado' }}
+          </p>
+        }
+        @if (erroAdicionar) {
+          <p class="info__erro" role="alert">{{ erroAdicionar }}</p>
+        }
+        <mat-accordion class="detalhes" multi>
+          <mat-expansion-panel [expanded]="true">
+            <mat-expansion-panel-header><mat-panel-title>Descrição</mat-panel-title></mat-expansion-panel-header>
+            <p class="detalhes__descricao">{{ p.descricao }}</p>
+          </mat-expansion-panel>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header><mat-panel-title>Trocas e envio</mat-panel-title></mat-expansion-panel-header>
+            <p>Frete calculado no checkout conforme o estado.</p>
+            <p>Para trocas, fale com a gente pelo e-mail uzusis&#64;gmail.com ou pelo Instagram &#64;_uzusis.</p>
+          </mat-expansion-panel>
+        </mat-accordion>
       </div>
-      <mat-button-toggle-group
-        class="tamanhos"
-        aria-labelledby="rotulo-tamanho"
-        [value]="tamanho"
-        (change)="escolherTamanho($event.value)"
-      >
-        <mat-button-toggle
-          *ngFor="let t of p.tamanhos"
-          [value]="t.sigla"
-          [disabled]="t.quantidade === 0"
-          [aria-label]="t.quantidade === 0 ? t.sigla + ', esgotado' : t.sigla"
-        >
-          <span class="tamanhos__sigla">{{ t.sigla }}</span>
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-      <p class="info__restam" aria-live="polite">
-        {{ estoque === 1 ? 'Resta 1 neste tamanho' : estoque > 1 && estoque <= 3 ? 'Restam ' + estoque + ' neste tamanho' : '' }}
-      </p>
-
-      <div class="info__linha">
-        <span class="info__rotulo" aria-hidden="true">Quantidade</span>
-        <uz-qtd [(valor)]="quantidade" [max]="maxQtd" rotulo="Quantidade" [desabilitado]="!tamanho"></uz-qtd>
-      </div>
-
-      <button
-        mat-flat-button
-        color="primary"
-        type="button"
-        class="info__adicionar"
-        [disabled]="!tamanho || adicionando"
-        [attr.aria-describedby]="tamanho ? null : 'ajuda-adicionar'"
-        (click)="adicionar()"
-      >
-        {{ adicionando ? 'Adicionando…' : 'Adicionar à sacola' }}
-      </button>
-      <p *ngIf="!tamanho" id="ajuda-adicionar" class="info__ajuda">
-        {{ p.disponivel ? 'Escolha um tamanho' : 'Produto esgotado' }}
-      </p>
-      <p *ngIf="erroAdicionar" class="info__erro" role="alert">{{ erroAdicionar }}</p>
-
-      <mat-accordion class="detalhes" multi>
-        <mat-expansion-panel [expanded]="true">
-          <mat-expansion-panel-header><mat-panel-title>Descrição</mat-panel-title></mat-expansion-panel-header>
-          <p class="detalhes__descricao">{{ p.descricao }}</p>
-        </mat-expansion-panel>
-        <mat-expansion-panel>
-          <mat-expansion-panel-header><mat-panel-title>Trocas e envio</mat-panel-title></mat-expansion-panel-header>
-          <p>Frete calculado no checkout conforme o estado.</p>
-          <p>Para trocas, fale com a gente pelo e-mail uzusis&#64;gmail.com ou pelo Instagram &#64;_uzusis.</p>
-        </mat-expansion-panel>
-      </mat-accordion>
     </div>
-  </div>
+  }
 </section>

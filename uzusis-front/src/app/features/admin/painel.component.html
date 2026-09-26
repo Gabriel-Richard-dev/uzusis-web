@@ -1,17 +1,20 @@
 <section class="uz-container">
   <h1 class="uz-titulo" tabindex="-1">Painel</h1>
 
-  <uz-estado *ngIf="carregando" tipo="carregando" mensagem="Carregando o painel…"></uz-estado>
+  @if (carregando) {
+    <uz-estado tipo="carregando" mensagem="Carregando o painel…"></uz-estado>
+  }
 
-  <uz-estado
-    *ngIf="!carregando && erro"
-    tipo="erro"
-    titulo="Não foi possível carregar o painel"
-    [mensagem]="mensagemDeErro(erro)"
-    (tentarNovamente)="carregar()"
-  ></uz-estado>
+  @if (!carregando && erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar o painel"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
 
-  <ng-container *ngIf="!carregando && painel as p">
+  @if (!carregando && painel; as p) {
     <ul class="kpis">
       <li class="kpi uz-cartao">
         <span class="kpi__rotulo">Receita do mês</span>
@@ -36,32 +39,35 @@
         </a>
       </li>
     </ul>
-
     <section class="proximos" aria-labelledby="proximos-titulo">
       <div class="proximos__topo">
         <h2 id="proximos-titulo" class="proximos__titulo">Próximos a enviar</h2>
-        <a *ngIf="p.proximos.length" routerLink="/admin/pedidos">Ver todos</a>
+        @if (p.proximos.length) {
+          <a routerLink="/admin/pedidos">Ver todos</a>
+        }
       </div>
-
-      <ul *ngIf="p.proximos.length; else nenhum" class="lista uz-cartao">
-        <li *ngFor="let pedido of p.proximos" class="lista__item">
-          <div class="lista__principal">
-            <strong>Pedido #{{ pedido.id }}</strong>
-            <span>{{ pedido.cliente.nome }}</span>
-          </div>
-          <div class="lista__detalhe uz-texto-suave">
-            <span>Pago em {{ pedido.pagoEm | date: 'dd/MM/yyyy HH:mm' }}</span>
-            <span>{{ pedido.endereco.cidade }}/{{ pedido.endereco.uf }}</span>
-            <span>{{ pecas(pedido) }} {{ pecas(pedido) === 1 ? 'peça' : 'peças' }}</span>
-          </div>
-          <span class="lista__valor">{{ pedido.valorTotal | currency }}</span>
-        </li>
-      </ul>
-      <ng-template #nenhum>
+      @if (p.proximos.length) {
+        <ul class="lista uz-cartao">
+          @for (pedido of p.proximos; track pedido) {
+            <li class="lista__item">
+              <div class="lista__principal">
+                <strong>Pedido #{{ pedido.id }}</strong>
+                <span>{{ pedido.cliente.nome }}</span>
+              </div>
+              <div class="lista__detalhe uz-texto-suave">
+                <span>Pago em {{ pedido.pagoEm | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ pedido.endereco.cidade }}/{{ pedido.endereco.uf }}</span>
+                <span>{{ pecas(pedido) }} {{ pecas(pedido) === 1 ? 'peça' : 'peças' }}</span>
+              </div>
+              <span class="lista__valor">{{ pedido.valorTotal | currency }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
         <uz-estado tipo="vazio" titulo="Nenhum pedido aguardando envio">
           <a mat-stroked-button routerLink="/admin/pedidos/historico">Ver histórico</a>
         </uz-estado>
-      </ng-template>
+      }
     </section>
-  </ng-container>
+  }
 </section>

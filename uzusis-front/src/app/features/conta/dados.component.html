@@ -1,74 +1,73 @@
-<uz-estado *ngIf="!perfil && !erro" tipo="carregando" mensagem="Carregando seus dados…"></uz-estado>
+@if (!perfil && !erro) {
+  <uz-estado tipo="carregando" mensagem="Carregando seus dados…"></uz-estado>
+}
 
-<uz-estado
-  *ngIf="erro"
-  tipo="erro"
-  titulo="Não foi possível carregar seus dados"
-  [mensagem]="erro"
-  (tentarNovamente)="carregar()"
-></uz-estado>
+@if (erro) {
+  <uz-estado
+    tipo="erro"
+    titulo="Não foi possível carregar seus dados"
+    [mensagem]="erro"
+    (tentarNovamente)="carregar()"
+  ></uz-estado>
+}
 
-<div *ngIf="perfil && formEndereco" class="dados">
-  <section class="uz-cartao secao" aria-labelledby="titulo-pessoais">
-    <h2 id="titulo-pessoais" class="secao__titulo">Dados pessoais</h2>
-    <form [formGroup]="formPessoal" (ngSubmit)="salvarPessoal()" novalidate>
-      <div class="campos">
-        <mat-form-field class="campos__largo" subscriptSizing="dynamic">
-          <mat-label>Nome para entrega</mat-label>
-          <input matInput formControlName="nome" autocomplete="name" maxlength="200" />
-          <mat-hint>Usado como destinatário padrão. O nome da conta é o do cadastro.</mat-hint>
-          <mat-error>{{ erroPessoal('nome') }}</mat-error>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>CPF</mat-label>
-          <input matInput formControlName="cpf" uzMascara="cpf" inputmode="numeric" />
-          <mat-error>{{ erroPessoal('cpf') }}</mat-error>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>Celular</mat-label>
-          <input matInput formControlName="celular" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
-          <mat-error>{{ erroPessoal('celular') }}</mat-error>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>Data de nascimento</mat-label>
-          <input matInput type="date" formControlName="dataNascimento" autocomplete="bday" min="1900-01-01" [max]="hoje" />
-          <mat-error>{{ erroPessoal('dataNascimento') }}</mat-error>
-        </mat-form-field>
-      </div>
-
+@if (perfil && formEndereco) {
+  <div class="dados">
+    <section class="uz-cartao secao" aria-labelledby="titulo-pessoais">
+      <h2 id="titulo-pessoais" class="secao__titulo">Dados pessoais</h2>
+      <form [formGroup]="formPessoal" (ngSubmit)="salvarPessoal()" novalidate>
+        <div class="campos">
+          <mat-form-field class="campos__largo" subscriptSizing="dynamic">
+            <mat-label>Nome para entrega</mat-label>
+            <input matInput formControlName="nome" autocomplete="name" maxlength="200" />
+            <mat-hint>Usado como destinatário padrão. O nome da conta é o do cadastro.</mat-hint>
+            <mat-error>{{ erroPessoal('nome') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>CPF</mat-label>
+            <input matInput formControlName="cpf" uzMascara="cpf" inputmode="numeric" />
+            <mat-error>{{ erroPessoal('cpf') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Celular</mat-label>
+            <input matInput formControlName="celular" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
+            <mat-error>{{ erroPessoal('celular') }}</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Data de nascimento</mat-label>
+            <input matInput type="date" formControlName="dataNascimento" autocomplete="bday" min="1900-01-01" [max]="hoje" />
+            <mat-error>{{ erroPessoal('dataNascimento') }}</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="acoes">
+          <button mat-flat-button color="primary" type="submit" [disabled]="salvandoPessoal">
+            {{ salvandoPessoal ? 'Salvando…' : 'Salvar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+    <section class="uz-cartao secao" aria-labelledby="titulo-endereco">
+      <h2 id="titulo-endereco" class="secao__titulo">Endereço</h2>
+      <p class="uz-texto-suave">Vem preenchido na entrega do checkout.</p>
+      <form [formGroup]="formEndereco" (ngSubmit)="salvarEndereco()" novalidate>
+        <uz-endereco-form [form]="formEndereco"></uz-endereco-form>
+        <div class="acoes">
+          <button mat-flat-button color="primary" type="submit" [disabled]="salvandoEndereco">
+            {{ salvandoEndereco ? 'Salvando…' : 'Salvar' }}
+          </button>
+        </div>
+      </form>
+    </section>
+    <section class="uz-cartao secao" aria-labelledby="titulo-acesso">
+      <h2 id="titulo-acesso" class="secao__titulo">E-mail e senha</h2>
+      <mat-form-field subscriptSizing="dynamic">
+        <mat-label>E-mail</mat-label>
+        <input matInput [value]="perfil.email ?? ''" readonly />
+        <mat-hint>E-mail e senha são gerenciados no login.</mat-hint>
+      </mat-form-field>
       <div class="acoes">
-        <button mat-flat-button color="primary" type="submit" [disabled]="salvandoPessoal">
-          {{ salvandoPessoal ? 'Salvando…' : 'Salvar' }}
-        </button>
+        <button mat-stroked-button type="button" (click)="auth.alterarSenha()">Alterar senha</button>
       </div>
-    </form>
-  </section>
-
-  <section class="uz-cartao secao" aria-labelledby="titulo-endereco">
-    <h2 id="titulo-endereco" class="secao__titulo">Endereço</h2>
-    <p class="uz-texto-suave">Vem preenchido na entrega do checkout.</p>
-    <form [formGroup]="formEndereco" (ngSubmit)="salvarEndereco()" novalidate>
-      <uz-endereco-form [form]="formEndereco"></uz-endereco-form>
-      <div class="acoes">
-        <button mat-flat-button color="primary" type="submit" [disabled]="salvandoEndereco">
-          {{ salvandoEndereco ? 'Salvando…' : 'Salvar' }}
-        </button>
-      </div>
-    </form>
-  </section>
-
-  <section class="uz-cartao secao" aria-labelledby="titulo-acesso">
-    <h2 id="titulo-acesso" class="secao__titulo">E-mail e senha</h2>
-    <mat-form-field subscriptSizing="dynamic">
-      <mat-label>E-mail</mat-label>
-      <input matInput [value]="perfil.email ?? ''" readonly />
-      <mat-hint>E-mail e senha são gerenciados no login.</mat-hint>
-    </mat-form-field>
-    <div class="acoes">
-      <button mat-stroked-button type="button" (click)="auth.alterarSenha()">Alterar senha</button>
-    </div>
-  </section>
-</div>
+    </section>
+  </div>
+}

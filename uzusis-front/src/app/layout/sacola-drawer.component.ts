@@ -1,15 +1,23 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { combineLatest, finalize } from 'rxjs';
 
 import { ItemResposta } from '../core/api/modelos';
 import { SacolaService } from '../core/api/sacola.service';
 import { AuthService } from '../core/auth/auth.service';
 import { AvisoService } from '../core/util/aviso.service';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { IconeComponent } from '../shared/icone.component';
+import { EstadoComponent } from '../shared/estado.component';
+import { RouterLink } from '@angular/router';
+import { QtdComponent } from '../shared/qtd.component';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
 
 @Component({
-  selector: 'uz-sacola-drawer',
-  templateUrl: './sacola-drawer.component.html',
-  styleUrls: ['./sacola-drawer.component.scss'],
+    selector: 'uz-sacola-drawer',
+    templateUrl: './sacola-drawer.component.html',
+    styleUrls: ['./sacola-drawer.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatIconButton, IconeComponent, EstadoComponent, MatButton, RouterLink, QtdComponent, AsyncPipe, CurrencyPipe]
 })
 export class SacolaDrawerComponent {
   readonly auth = inject(AuthService);

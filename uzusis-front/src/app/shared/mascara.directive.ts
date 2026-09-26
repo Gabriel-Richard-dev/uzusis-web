@@ -33,9 +33,9 @@ export function aplicarMascara(tipo: TipoMascara, valor: string): string {
  * ("123.456.789-09"); o backend normaliza para só dígitos.
  */
 @Directive({
-  selector: 'input[uzMascara]',
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => MascaraDirective), multi: true }],
-  host: { '(input)': 'aoDigitar()', '(blur)': 'aoSair()' },
+    selector: 'input[uzMascara]',
+    providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => MascaraDirective), multi: true }],
+    host: { '(input)': 'aoDigitar()', '(blur)': 'aoSair()' }
 })
 export class MascaraDirective implements ControlValueAccessor {
   @Input({ required: true }) uzMascara!: TipoMascara;

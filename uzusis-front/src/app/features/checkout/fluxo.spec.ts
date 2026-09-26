@@ -53,7 +53,7 @@ describe('acompanharPedido', () => {
     acompanharPedido(() => obs).subscribe({ next: p => vistos.push(p.status), complete: () => (completou = true) });
     tick(10_000);
     expect(vistos).toEqual(['CRIADO', 'CRIADO', 'PAGO']);
-    expect(completou).toBeTrue();
+    expect(completou).toBe(true);
     expect(chamadas()).toBe(3);
   }));
 
@@ -62,9 +62,9 @@ describe('acompanharPedido', () => {
     let completou = false;
     acompanharPedido(() => obs).subscribe({ complete: () => (completou = true) });
     tick(119_999);
-    expect(completou).toBeFalse();
+    expect(completou).toBe(false);
     tick(1);
-    expect(completou).toBeTrue();
+    expect(completou).toBe(true);
     expect(chamadas()).toBe(60);
   }));
 
@@ -79,7 +79,7 @@ describe('acompanharPedido', () => {
     let falhou = false;
     acompanharPedido(() => obs).subscribe({ next: p => vistos.push(p.status), error: () => (falhou = true) });
     tick(4000);
-    expect(falhou).toBeFalse();
+    expect(falhou).toBe(false);
     expect(vistos).toEqual(['CRIADO', 'CANCELADO']);
   }));
 });
@@ -88,9 +88,9 @@ describe('pedidos recusados', () => {
   afterEach(() => localStorage.removeItem('uz-pedidos-recusados'));
 
   it('lembra o pedido recusado', () => {
-    expect(foiRecusado(7)).toBeFalse();
+    expect(foiRecusado(7)).toBe(false);
     marcarRecusado(7);
-    expect(foiRecusado(7)).toBeTrue();
-    expect(foiRecusado(8)).toBeFalse();
+    expect(foiRecusado(7)).toBe(true);
+    expect(foiRecusado(8)).toBe(false);
   });
 });

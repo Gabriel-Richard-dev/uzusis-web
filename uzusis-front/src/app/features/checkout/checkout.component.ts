@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, ElementRef, NgZone, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, NgZone, OnDestroy, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { Stripe, StripeElements, StripePaymentElement } from '@stripe/stripe-js';
 import { loadStripe } from '@stripe/stripe-js/pure';
 import {
@@ -39,6 +39,14 @@ import { AvisoService } from '../../core/util/aviso.service';
 import { criarFormEndereco } from '../../core/util/endereco-form';
 import { UFS } from '../../core/util/ufs';
 import { foiRecusado, marcarRecusado, repetirEnquanto404 } from './fluxo';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { ItensPedidoComponent } from './itens-pedido.component';
+import { IconeComponent } from '../../shared/icone.component';
+import { EnderecoFormComponent } from '../../shared/endereco-form.component';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
 
 const ERRO_STRIPE = 'Não foi possível carregar o pagamento. Verifique sua conexão.';
 
@@ -62,9 +70,11 @@ interface Resumo {
 }
 
 @Component({
-  selector: 'uz-checkout',
-  templateUrl: './checkout.component.html',
-  styleUrls: ['./checkout.component.scss'],
+    selector: 'uz-checkout',
+    templateUrl: './checkout.component.html',
+    styleUrls: ['./checkout.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, MatButton, RouterLink, ItensPedidoComponent, IconeComponent, FormsModule, ReactiveFormsModule, EnderecoFormComponent, MatCheckbox, MatProgressSpinner, AsyncPipe, CurrencyPipe, DatePipe]
 })
 export class CheckoutComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);

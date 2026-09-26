@@ -1,7 +1,7 @@
-import { Component, ElementRef, inject } from '@angular/core';
+import { Component, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PageEvent } from '@angular/material/paginator';
-import { ActivatedRoute } from '@angular/router';
+import { PageEvent, MatPaginator } from '@angular/material/paginator';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subject, catchError, filter, finalize, of, switchMap, tap } from 'rxjs';
 
 import { mensagemDeErro } from '../../core/api/erros';
@@ -9,6 +9,11 @@ import { FiltroPedidosAdmin, Pagina, PedidoResposta } from '../../core/api/model
 import { PedidosService } from '../../core/api/pedidos.service';
 import { AvisoService } from '../../core/util/aviso.service';
 import { aplicarMascara } from '../../shared/mascara.directive';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { StatusPedidoComponent } from '../../shared/status-pedido.component';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 
 const POR_PAGINA = 20;
 
@@ -19,9 +24,11 @@ const FILTROS: Record<'enviar' | 'historico', FiltroPedidosAdmin> = {
 
 /** O10 paginado no servidor. /admin/pedidos (a enviar, com O11) e /admin/pedidos/historico. */
 @Component({
-  selector: 'uz-pedidos-admin',
-  templateUrl: './pedidos-admin.component.html',
-  styleUrls: ['./pedidos-admin.component.scss'],
+    selector: 'uz-pedidos-admin',
+    templateUrl: './pedidos-admin.component.html',
+    styleUrls: ['./pedidos-admin.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, MatButton, RouterLink, MatProgressBar, StatusPedidoComponent, MatPaginator, CurrencyPipe, DatePipe]
 })
 export class PedidosAdminComponent {
   private readonly pedidos = inject(PedidosService);

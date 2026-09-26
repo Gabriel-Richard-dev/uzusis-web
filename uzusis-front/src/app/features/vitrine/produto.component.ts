@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
@@ -14,13 +14,23 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AvisoService } from '../../core/util/aviso.service';
 import { GuiaMedidasComponent } from './guia-medidas.component';
 import { tamanhoInicial } from './vitrine';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { GaleriaComponent } from './galeria.component';
+import { IconeComponent } from '../../shared/icone.component';
+import { MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
+import { QtdComponent } from '../../shared/qtd.component';
+import { MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { CurrencyPipe } from '@angular/common';
 
 const MAX_QTD = 10;
 
 @Component({
-  selector: 'uz-produto',
-  templateUrl: './produto.component.html',
-  styleUrls: ['./produto.component.scss'],
+    selector: 'uz-produto',
+    templateUrl: './produto.component.html',
+    styleUrls: ['./produto.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, MatButton, RouterLink, GaleriaComponent, IconeComponent, MatButtonToggleGroup, MatButtonToggle, QtdComponent, MatAccordion, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, CurrencyPipe]
 })
 export class ProdutoComponent {
   private readonly route = inject(ActivatedRoute);

@@ -7,12 +7,13 @@ import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
   it('com um login a caminho, encerrarSessaoLocal não apaga o nonce/PKCE dele', fakeAsync(() => {
-    const oauth = jasmine.createSpyObj<OAuthService>(
-      'OAuthService',
-      ['loadDiscoveryDocument', 'initCodeFlow', 'logOut', 'hasValidAccessToken'],
-      { events: new Subject() },
-    );
-    oauth.loadDiscoveryDocument.and.resolveTo({} as never);
+    const oauth = {
+      loadDiscoveryDocument: vi.fn().mockResolvedValue({}),
+      initCodeFlow: vi.fn(),
+      logOut: vi.fn(),
+      hasValidAccessToken: vi.fn(),
+      events: new Subject(),
+    };
     TestBed.configureTestingModule({
       providers: [
         { provide: OAuthService, useValue: oauth },
@@ -27,7 +28,7 @@ describe('AuthService', () => {
     // Dois 401 juntos: o 1º inicia o login, o 2º (marca recente) pede o encerramento local.
     auth.login('/conta/pedidos');
     flushMicrotasks();
-    expect(oauth.initCodeFlow).toHaveBeenCalledOnceWith('/conta/pedidos', {});
+    expect(oauth.initCodeFlow).toHaveBeenCalledExactlyOnceWith('/conta/pedidos', {});
     auth.encerrarSessaoLocal();
     expect(oauth.logOut).toHaveBeenCalledTimes(1);
   }));

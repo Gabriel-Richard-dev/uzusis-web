@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 // Traços 24×24 (stroke), um único path por ícone.
 const ICONES = {
@@ -22,8 +22,8 @@ export type NomeIcone = keyof typeof ICONES;
 
 /** Ícone SVG inline. Sem rótulo é decorativo (aria-hidden); com rótulo vira role="img". */
 @Component({
-  selector: 'uz-icone',
-  template: `
+    selector: 'uz-icone',
+    template: `
     <svg
       viewBox="0 0 24 24"
       fill="none"
@@ -41,7 +41,8 @@ export type NomeIcone = keyof typeof ICONES;
       <path [attr.d]="caminho"></path>
     </svg>
   `,
-  styles: [':host { display: inline-flex; line-height: 0; flex: none; }'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styles: [':host { display: inline-flex; line-height: 0; flex: none; }']
 })
 export class IconeComponent {
   @Input({ required: true }) nome!: NomeIcone;

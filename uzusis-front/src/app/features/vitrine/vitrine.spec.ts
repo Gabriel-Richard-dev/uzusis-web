@@ -44,9 +44,9 @@ describe('vitrine', () => {
   });
 
   it('ultimasUnidades só com algum tamanho entre 1 e 3', () => {
-    expect(ultimasUnidades(produto(1, [{ quantidade: 0 }, { quantidade: 4 }]))).toBeFalse();
-    expect(ultimasUnidades(produto(1, [{ quantidade: 0 }, { quantidade: 3 }]))).toBeTrue();
-    expect(ultimasUnidades(produto(1, [{ quantidade: 1 }]))).toBeTrue();
+    expect(ultimasUnidades(produto(1, [{ quantidade: 0 }, { quantidade: 4 }]))).toBe(false);
+    expect(ultimasUnidades(produto(1, [{ quantidade: 0 }, { quantidade: 3 }]))).toBe(true);
+    expect(ultimasUnidades(produto(1, [{ quantidade: 1 }]))).toBe(true);
   });
 
   it('tamanhoInicial só aceita tamanho existente e com estoque', () => {

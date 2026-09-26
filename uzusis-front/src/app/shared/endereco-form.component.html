@@ -1,27 +1,32 @@
 <div class="endereco" [formGroup]="form">
-  <mat-form-field *ngIf="form.contains('destinatario')" class="c4">
-    <mat-label>Destinatário</mat-label>
-    <input matInput formControlName="destinatario" autocomplete="name" maxlength="200" />
-    <mat-error>Informe quem vai receber o pedido</mat-error>
-  </mat-form-field>
+  @if (form.contains('destinatario')) {
+    <mat-form-field class="c4">
+      <mat-label>Destinatário</mat-label>
+      <input matInput formControlName="destinatario" autocomplete="name" maxlength="200" />
+      <mat-error>Informe quem vai receber o pedido</mat-error>
+    </mat-form-field>
+  }
 
-  <mat-form-field *ngIf="form.contains('telefone')" class="c2">
-    <mat-label>Telefone</mat-label>
-    <input matInput formControlName="telefone" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
-    <mat-hint>Opcional</mat-hint>
-    <mat-error>Informe DDD + número (10 ou 11 dígitos)</mat-error>
-  </mat-form-field>
+  @if (form.contains('telefone')) {
+    <mat-form-field class="c2">
+      <mat-label>Telefone</mat-label>
+      <input matInput formControlName="telefone" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
+      <mat-hint>Opcional</mat-hint>
+      <mat-error>Informe DDD + número (10 ou 11 dígitos)</mat-error>
+    </mat-form-field>
+  }
 
   <mat-form-field class="c2">
     <mat-label>CEP</mat-label>
     <input matInput formControlName="cep" uzMascara="cep" autocomplete="postal-code" inputmode="numeric" />
-    <mat-progress-spinner
-      *ngIf="buscandoCep"
-      matSuffix
-      mode="indeterminate"
-      diameter="18"
-      aria-label="Buscando CEP"
-    ></mat-progress-spinner>
+    @if (buscandoCep) {
+      <mat-progress-spinner
+        matSuffix
+        mode="indeterminate"
+        diameter="18"
+        aria-label="Buscando CEP"
+      ></mat-progress-spinner>
+    }
     <mat-hint aria-live="polite">{{ cepNaoEncontrado ? 'CEP não encontrado; preencha o endereço' : '' }}</mat-hint>
     <mat-error>CEP inválido (00000-000)</mat-error>
   </mat-form-field>
@@ -59,7 +64,9 @@
   <mat-form-field class="c2">
     <mat-label>UF</mat-label>
     <mat-select formControlName="uf">
-      <mat-option *ngFor="let uf of ufs" [value]="uf">{{ uf }}</mat-option>
+      @for (uf of ufs; track uf) {
+        <mat-option [value]="uf">{{ uf }}</mat-option>
+      }
     </mat-select>
     <mat-error>UF inválida</mat-error>
   </mat-form-field>

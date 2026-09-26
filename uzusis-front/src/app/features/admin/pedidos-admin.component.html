@@ -1,0 +1,138 @@
+<section class="uz-container">
+  <h1 class="uz-titulo" tabindex="-1">{{ modo === 'enviar' ? 'Pedidos a enviar' : 'Histórico de pedidos' }}</h1>
+  <p class="uz-texto-suave introducao">
+    {{
+      modo === 'enviar'
+        ? 'Pedidos pagos, dos mais antigos para os mais novos.'
+        : 'Pedidos enviados e recebidos, dos envios mais recentes para os mais antigos.'
+    }}
+  </p>
+
+  <uz-estado *ngIf="carregando && !pagina" tipo="carregando" mensagem="Carregando pedidos…"></uz-estado>
+
+  <uz-estado
+    *ngIf="!carregando && erro"
+    tipo="erro"
+    titulo="Não foi possível carregar os pedidos"
+    [mensagem]="mensagemDeErro(erro)"
+    (tentarNovamente)="carregar()"
+  ></uz-estado>
+
+  <ng-container *ngIf="pagina && !pagina.content.length && !carregando">
+    <uz-estado *ngIf="modo === 'enviar'; else semHistorico" tipo="vazio" titulo="Nenhum pedido a enviar" mensagem="Os pedidos pagos aparecem aqui.">
+      <a mat-stroked-button routerLink="/admin/pedidos/historico">Ver histórico</a>
+    </uz-estado>
+    <ng-template #semHistorico>
+      <uz-estado tipo="vazio" titulo="Nenhum pedido enviado ainda" mensagem="Os pedidos marcados como enviados aparecem aqui.">
+        <a mat-stroked-button routerLink="/admin/pedidos">Ver pedidos a enviar</a>
+      </uz-estado>
+    </ng-template>
+  </ng-container>
+
+  <div *ngIf="pagina && pagina.content.length" [attr.aria-busy]="carregando ? 'true' : null">
+    <mat-progress-bar *ngIf="carregando" mode="indeterminate" aria-label="Atualizando a lista"></mat-progress-bar>
+
+    <ul class="pedidos">
+      <li *ngFor="let p of pagina.content; trackBy: porId">
+        <article class="pedido uz-cartao" [attr.aria-labelledby]="'pedido-' + p.id">
+          <header class="pedido__topo">
+            <h2 class="pedido__titulo" [id]="'pedido-' + p.id">Pedido #{{ p.id }}</h2>
+            <uz-status-pedido [status]="p.status"></uz-status-pedido>
+          </header>
+
+          <dl class="datas">
+            <div>
+              <dt>Pago em</dt>
+              <dd>{{ p.pagoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            <div *ngIf="p.enviadoEm">
+              <dt>Enviado em</dt>
+              <dd>{{ p.enviadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+            <div *ngIf="p.recebidoEm">
+              <dt>Recebido em</dt>
+              <dd>{{ p.recebidoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            </div>
+          </dl>
+
+          <div class="pedido__corpo">
+            <section class="secao">
+              <h3 class="uz-legenda secao__titulo">Cliente</h3>
+              <p class="secao__texto">
+                {{ p.cliente.nome }}<br />
+                <a [href]="'mailto:' + p.cliente.email">{{ p.cliente.email }}</a>
+                <ng-container *ngIf="p.endereco.telefone">
+                  <br />
+                  Telefone: <a [href]="'tel:+55' + p.endereco.telefone">{{ telefone(p) }}</a>
+                </ng-container>
+              </p>
+            </section>
+
+            <section class="secao">
+              <h3 class="uz-legenda secao__titulo">Entrega</h3>
+              <address class="secao__texto">
+                {{ p.endereco.destinatario }}<br />
+                {{ p.endereco.rua }}, {{ p.endereco.numero
+                }}<ng-container *ngIf="p.endereco.complemento"> — {{ p.endereco.complemento }}</ng-container
+                ><br />
+                {{ p.endereco.bairro }}<br />
+                {{ p.endereco.cidade }}/{{ p.endereco.uf }}<br />
+                CEP {{ p.endereco.cep }}
+              </address>
+            </section>
+
+            <section class="secao secao--itens">
+              <h3 class="uz-legenda secao__titulo">Itens ({{ pecas(p) }} {{ pecas(p) === 1 ? 'peça' : 'peças' }})</h3>
+              <ul class="itens">
+                <li *ngFor="let item of p.itens" class="item">
+                  <img *ngIf="item.fotoUrl; else semFoto" class="item__foto" [src]="item.fotoUrl" alt="" width="48" height="64" loading="lazy" />
+                  <ng-template #semFoto><span class="item__foto"></span></ng-template>
+                  <span class="item__info">
+                    <span class="item__nome">{{ item.nomeProduto }}</span>
+                    <span class="uz-texto-suave">Tamanho {{ item.sigla }} · {{ item.quantidade }} un.</span>
+                  </span>
+                </li>
+              </ul>
+            </section>
+          </div>
+
+          <footer class="pedido__rodape">
+            <dl class="totais">
+              <div>
+                <dt>Subtotal</dt>
+                <dd>{{ p.subtotal | currency }}</dd>
+              </div>
+              <div>
+                <dt>Frete</dt>
+                <dd>{{ p.frete | currency }}</dd>
+              </div>
+              <div class="totais__total">
+                <dt>Total</dt>
+                <dd>{{ p.valorTotal | currency }}</dd>
+              </div>
+            </dl>
+            <button
+              *ngIf="modo === 'enviar'"
+              mat-flat-button
+              color="primary"
+              type="button"
+              [disabled]="enviando.has(p.id)"
+              [attr.aria-describedby]="'pedido-' + p.id"
+              (click)="marcarEnviado(p)"
+            >
+              {{ enviando.has(p.id) ? 'Marcando…' : 'Marcar como enviado' }}
+            </button>
+          </footer>
+        </article>
+      </li>
+    </ul>
+
+    <mat-paginator
+      [length]="pagina.totalElements"
+      [pageIndex]="pagina.number"
+      [pageSize]="porPagina"
+      [hidePageSize]="true"
+      (page)="mudarPagina($event)"
+    ></mat-paginator>
+  </div>
+</section>

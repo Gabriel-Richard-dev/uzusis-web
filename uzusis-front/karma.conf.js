@@ -10,7 +10,6 @@ module.exports = function (config) {
         require('karma-chrome-launcher'),
         require('karma-jasmine-html-reporter'),
         require('karma-coverage'),
-        require('karma-junit-reporter'),
         require('@angular-devkit/build-angular/plugins/karma')
       ],
       client: {
@@ -35,12 +34,7 @@ module.exports = function (config) {
           { type: 'cobertura' }
         ]
       },
-      junitReporter: {
-        outputDir: './coverage',
-        outputFile: 'junit-test-results.xml',
-        useBrowserName: false,
-      },
-      reporters: ['progress', 'kjhtml', 'junit'],
+      reporters: ['progress', 'kjhtml'],
       browsers: ['Chrome'],
   
       colors: true,

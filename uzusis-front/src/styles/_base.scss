@@ -1,0 +1,177 @@
+@use 'breakpoints' as bp;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--uz-papel);
+  color: var(--uz-tinta);
+  font-family: var(--uz-fonte-texto);
+  font-size: var(--uz-fs-corpo);
+  line-height: 1.5;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
+img {
+  display: block;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--uz-esp-4);
+  font-family: var(--uz-fonte-titulo);
+  font-weight: 400;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+h1 {
+  font-size: var(--uz-fs-h1);
+}
+
+h2 {
+  font-size: var(--uz-fs-h2);
+}
+
+h3 {
+  font-size: var(--uz-fs-h3);
+}
+
+p {
+  margin: 0 0 var(--uz-esp-4);
+}
+
+a {
+  color: var(--uz-marca);
+  text-underline-offset: 0.15em;
+
+  &:hover {
+    color: var(--uz-marca-hover);
+  }
+}
+
+// Foco sempre visível; nunca `outline: none` sem substituto.
+:focus-visible {
+  outline: 2px solid var(--uz-marca);
+  outline-offset: 2px;
+}
+
+[tabindex='-1']:focus {
+  outline: none;
+}
+
+// ---- Utilitários globais (convenções §7.2) ----
+
+.uz-container {
+  width: 100%;
+  max-width: var(--uz-largura-max);
+  margin-inline: auto;
+  padding-inline: var(--uz-gutter);
+}
+
+.uz-titulo {
+  margin-block: var(--uz-esp-6) var(--uz-esp-5);
+  font-size: var(--uz-fs-h2);
+
+  @media (min-width: bp.$md) {
+    font-size: var(--uz-fs-h1);
+  }
+}
+
+.uz-legenda {
+  font-size: var(--uz-fs-legenda);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--uz-tinta-suave);
+}
+
+.uz-texto-suave {
+  color: var(--uz-tinta-suave);
+}
+
+.uz-preco {
+  font-size: var(--uz-fs-lead);
+  font-weight: 600;
+  color: var(--uz-marca);
+}
+
+.uz-cartao {
+  background: var(--uz-superficie);
+  border: 1px solid var(--uz-borda);
+  border-radius: var(--uz-raio-m);
+}
+
+.uz-visualmente-oculto {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ---- Ajustes do Material aos tokens ----
+
+.mat-mdc-button-base.mdc-button {
+  height: var(--uz-alvo);
+  border-radius: var(--uz-raio-s);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+// Borda do campo com 3:1 (WCAG 1.4.11); o padrão do tema fica claro demais no papel.
+.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--focused):not(.mdc-text-field--invalid) {
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: var(--uz-borda-campo);
+  }
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-dialog-surface.mdc-dialog__surface {
+  border-radius: var(--uz-raio-m);
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  border-radius: var(--uz-raio-m);
+}
+
+.uz-aviso-erro .mdc-snackbar__surface {
+  background: var(--uz-erro) !important;
+}
+
+// ---- Movimento ----
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}

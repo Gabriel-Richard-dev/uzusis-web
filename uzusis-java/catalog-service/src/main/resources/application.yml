@@ -27,7 +27,10 @@ spring:
           time_zone: UTC
 
   flyway:
-    locations: classpath:db/migration,classpath:db/migration/common
+    # Uma location só: a varredura é recursiva e já acha o V0 em
+    # db/migration/common, no jar do common. Com as duas, o Flyway vê o V0
+    # duas vezes e recusa o boot.
+    locations: classpath:db/migration
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
@@ -54,10 +57,34 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
+          # O iss é a URL pública; as chaves vêm pela rede interna, sem
+          # discovery na URL pública (inalcançável de dentro do contêiner).
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
+
+  web:
+    # Sem Accept-Language (curl, testes) o resolver padrão usaria o locale da
+    # JVM, em inglês.
+    locale: pt_BR
+    locale-resolver: fixed
+
+  data:
+    web:
+      pageable:
+        serialization-mode: direct
+        max-page-size: 100
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 
 server:
   port: ${SERVER_PORT:8082}
+  tomcat:
+    # O padrão (2 MB) fecha a conexão com o corpo não lido: um upload de 6 a
+    # 8 MB viraria reset ou 502 em vez do 413 em pt-BR.
+    max-swallow-size: 16MB
 
 management:
   endpoints:
@@ -65,8 +92,21 @@ management:
       exposure:
         include: health,info,prometheus
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:
     tracing:
       endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+uzusis:
+  kafka:
+    # Compensação da saga: retentada sem limite, nunca para a DLQ (KafkaErrorHandlerConfig).
+    compensacoes: order.order.cancelled.v1
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:uzusis}
+    secret-key: ${MINIO_SECRET_KEY:uzusis-minio-dev}
+    bucket: ${MINIO_BUCKET:produtos}
+    # URL gravada: {public-prefix}/{bucket}/{chave}; o nginx serve /storage.
+    public-prefix: ${MINIO_PUBLIC_PREFIX:/storage}

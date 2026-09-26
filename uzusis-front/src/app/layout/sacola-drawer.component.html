@@ -1,0 +1,87 @@
+<section class="sacola" aria-labelledby="sacola-titulo">
+  <div class="sacola__topo">
+    <h2 id="sacola-titulo" class="sacola__titulo">Sacola</h2>
+    <button mat-icon-button type="button" aria-label="Fechar sacola" (click)="sacola.fechar()">
+      <uz-icone nome="fechar" [tamanho]="24"></uz-icone>
+    </button>
+  </div>
+
+  <p class="uz-visualmente-oculto" aria-live="polite">{{ anuncio }}</p>
+
+  <ng-container *ngIf="vm$ | async as vm">
+    <uz-estado *ngIf="!vm.logado" tipo="vazio" titulo="Entre para ver sua sacola">
+      <button mat-flat-button color="primary" type="button" (click)="auth.login()">Entrar</button>
+    </uz-estado>
+
+    <ng-container *ngIf="vm.logado">
+      <uz-estado
+        *ngIf="vm.erro && !vm.carrinho.itens.length"
+        tipo="erro"
+        titulo="Não foi possível carregar a sacola"
+        [mensagem]="vm.erro"
+        (tentarNovamente)="sacola.carregar()"
+      ></uz-estado>
+
+      <uz-estado *ngIf="vm.carregando && !vm.carrinho.itens.length" tipo="carregando"></uz-estado>
+
+      <uz-estado
+        *ngIf="!vm.carregando && !vm.erro && !vm.carrinho.itens.length"
+        tipo="vazio"
+        titulo="Sua sacola está vazia"
+      >
+        <a mat-stroked-button routerLink="/loja">Explorar a loja</a>
+      </uz-estado>
+
+      <ng-container *ngIf="vm.carrinho.itens.length">
+        <ul class="sacola__itens" [attr.aria-busy]="vm.carregando ? 'true' : null">
+          <li *ngFor="let item of vm.carrinho.itens; trackBy: porId" class="item">
+            <img
+              *ngIf="item.fotoUrl; else semFoto"
+              class="item__foto"
+              [src]="item.fotoUrl"
+              alt=""
+              width="72"
+              height="96"
+              loading="lazy"
+            />
+            <ng-template #semFoto><span class="item__foto item__foto--vazia"></span></ng-template>
+
+            <div class="item__info">
+              <a class="item__nome" [routerLink]="['/produto', item.produtoId]">{{ item.nomeProduto }}</a>
+              <span class="item__detalhe">Tamanho {{ item.sigla }}</span>
+              <uz-qtd
+                [valor]="item.quantidade"
+                [max]="99"
+                [rotulo]="'Quantidade de ' + item.nomeProduto"
+                [desabilitado]="ocupados.has(item.id)"
+                (valorChange)="alterar(item, $event)"
+              ></uz-qtd>
+            </div>
+
+            <div class="item__lado">
+              <span class="item__valor">{{ item.valorTotal | currency }}</span>
+              <button
+                mat-icon-button
+                type="button"
+                [disabled]="ocupados.has(item.id)"
+                [attr.aria-label]="'Remover ' + item.nomeProduto + ', tamanho ' + item.sigla"
+                (click)="remover(item)"
+              >
+                <uz-icone nome="lixeira"></uz-icone>
+              </button>
+            </div>
+          </li>
+        </ul>
+
+        <div class="sacola__rodape">
+          <p class="sacola__subtotal">
+            <span>Subtotal</span>
+            <strong>{{ vm.carrinho.valorTotal | currency }}</strong>
+          </p>
+          <p class="sacola__frete">Frete calculado no checkout</p>
+          <a mat-flat-button color="primary" routerLink="/checkout" class="sacola__finalizar">Finalizar compra</a>
+        </div>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+</section>

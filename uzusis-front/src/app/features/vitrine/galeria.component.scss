@@ -1,0 +1,102 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+img {
+  width: 100%;
+  object-fit: cover;
+}
+
+.galeria__vazia {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  background: var(--uz-areia);
+  color: var(--uz-tinta-suave);
+}
+
+.galeria__desktop {
+  display: none;
+
+  @media (min-width: bp.$md) {
+    display: block;
+  }
+}
+
+.galeria__mobile {
+  @media (min-width: bp.$md) {
+    display: none;
+  }
+}
+
+.galeria__principal {
+  aspect-ratio: 3 / 4;
+  background: var(--uz-areia);
+}
+
+.galeria__miniaturas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--uz-esp-2);
+  margin-top: var(--uz-esp-3);
+}
+
+.galeria__miniatura {
+  width: 64px;
+  height: 85px;
+  padding: 0;
+  border: 2px solid transparent;
+  background: var(--uz-areia);
+  cursor: pointer;
+
+  img {
+    height: 100%;
+  }
+
+  &:hover {
+    border-color: var(--uz-borda-campo);
+  }
+
+  &[aria-current='true'] {
+    border-color: var(--uz-marca);
+  }
+}
+
+.galeria__faixa {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  img {
+    flex: 0 0 100%;
+    aspect-ratio: 3 / 4;
+    scroll-snap-align: start;
+    background: var(--uz-areia);
+  }
+}
+
+.galeria__pontos {
+  display: flex;
+  justify-content: center;
+  gap: var(--uz-esp-2);
+  margin-top: var(--uz-esp-3);
+}
+
+.galeria__ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--uz-raio-pill);
+  background: var(--uz-borda-campo);
+}
+
+.galeria__ponto--ativo {
+  background: var(--uz-marca);
+}

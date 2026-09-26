@@ -6,7 +6,9 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
+          # iss = URL pública; as chaves vêm pela rede interna, sem discovery na URL pública.
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
 
   cloud:
     gateway:
@@ -34,14 +36,6 @@ spring:
           predicates:
             - Path=/api/perfil/**
 
-        # Strangler fig: o que ainda não foi extraído continua indo para o
-        # .NET. Some uma rota daqui a cada serviço migrado; quando esta rota
-        # ficar vazia, o monolito pode ser desligado.
-        - id: legado-dotnet
-          uri: ${LEGACY_API_URL:http://api:8080}
-          predicates:
-            - Path=/api/**
-
 server:
   port: ${SERVER_PORT:8080}
 
@@ -51,6 +45,7 @@ management:
       exposure:
         include: health,info,prometheus
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:

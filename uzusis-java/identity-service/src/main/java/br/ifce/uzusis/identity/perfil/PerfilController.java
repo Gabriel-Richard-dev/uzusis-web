@@ -3,6 +3,7 @@ package br.ifce.uzusis.identity.perfil;
 import br.ifce.uzusis.identity.perfil.PerfilDtos.AtualizarEndereco;
 import br.ifce.uzusis.identity.perfil.PerfilDtos.AtualizarPerfil;
 import br.ifce.uzusis.identity.perfil.PerfilDtos.PerfilResposta;
+import br.ifce.uzusis.identity.perfil.PerfilService.Conta;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/** O dono é sempre o {@code sub} do token; nenhum endpoint recebe id de usuário para agir sobre "si". */
 @RestController
 @RequestMapping("/perfil")
 public class PerfilController {
@@ -26,18 +28,18 @@ public class PerfilController {
 
     @GetMapping
     public PerfilResposta meuPerfil(@AuthenticationPrincipal Jwt jwt) {
-        return service.obterOuCriar(jwt.getSubject(), email(jwt), nome(jwt));
+        return service.obter(conta(jwt));
     }
 
     @PutMapping
     public PerfilResposta atualizar(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid AtualizarPerfil requisicao) {
-        return service.atualizar(jwt.getSubject(), requisicao);
+        return service.atualizar(conta(jwt), requisicao);
     }
 
     @PutMapping("/endereco")
     public PerfilResposta atualizarEndereco(@AuthenticationPrincipal Jwt jwt,
                                             @RequestBody @Valid AtualizarEndereco requisicao) {
-        return service.atualizarEndereco(jwt.getSubject(), requisicao);
+        return service.atualizarEndereco(conta(jwt), requisicao);
     }
 
     @GetMapping("/{sub}")
@@ -46,16 +48,11 @@ public class PerfilController {
         return service.obterPorSub(sub);
     }
 
-    private static String email(Jwt jwt) {
-        var email = jwt.getClaimAsString("email");
-        return email != null ? email : jwt.getSubject() + "@sem-email.local";
-    }
-
-    private static String nome(Jwt jwt) {
+    private static Conta conta(Jwt jwt) {
         var nome = jwt.getClaimAsString("name");
         if (nome == null) {
             nome = jwt.getClaimAsString("preferred_username");
         }
-        return nome != null ? nome : "Cliente";
+        return new Conta(jwt.getSubject(), jwt.getClaimAsString("email"), nome != null ? nome : "Cliente");
     }
 }

@@ -20,8 +20,20 @@ spring:
         jdbc:
           time_zone: UTC
 
+  # A varredura recursiva já pega o db/migration/common/V0 do jar do common.
   flyway:
-    locations: classpath:db/migration,classpath:db/migration/common
+    locations: classpath:db/migration
+
+  # Sem Accept-Language (curl, testes) o locale seria o da JVM, em inglês.
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
+
+  data:
+    web:
+      pageable:
+        serialization-mode: direct
+        max-page-size: 100
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
@@ -40,25 +52,25 @@ spring:
     template:
       observation-enabled: true
 
+  # issuer-uri + jwk-set-uri: valida o iss sem discovery na URL pública, que
+  # não é alcançável de dentro do contêiner. O serviço sobe sem o Keycloak.
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
-      client:
-        registration:
-          order-service:
-            # Client confidencial: só para chamada serviço-a-serviço.
-            client-id: order-service
-            client-secret: ${ORDER_CLIENT_SECRET:}
-            authorization-grant-type: client_credentials
-        provider:
-          keycloak:
-            issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
 
 uzusis:
   catalogo:
     base-url: ${CATALOG_URL:http://localhost:8082}
+  pedido:
+    expiracao-minutos: ${PEDIDO_EXPIRACAO_MINUTOS:30}
+    varredura-ms: 60000
+  frete:
+    padrao: ${FRETE_PADRAO:40.00}
+    por-uf: ${FRETE_POR_UF:CE=10.00}
+  fuso: America/Fortaleza
 
 resilience4j:
   retry:
@@ -84,6 +96,7 @@ management:
       exposure:
         include: health,info,prometheus
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:

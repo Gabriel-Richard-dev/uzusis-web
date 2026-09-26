@@ -1,0 +1,152 @@
+{
+  "realm": "uzusis",
+  "enabled": true,
+  "displayName": "Uzusis",
+  "displayNameHtml": "<span class=\"uz-logo\">UZUSIS</span>",
+  "sslRequired": "none",
+
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "verifyEmail": true,
+  "resetPasswordAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "rememberMe": true,
+  "bruteForceProtected": true,
+  "failureFactor": 10,
+  "passwordPolicy": "length(8) and notUsername and notEmail",
+
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 7200,
+  "ssoSessionIdleTimeoutRememberMe": 2592000,
+  "ssoSessionMaxLifespanRememberMe": 2592000,
+
+  "internationalizationEnabled": true,
+  "supportedLocales": ["pt-BR"],
+  "defaultLocale": "pt-BR",
+
+  "loginTheme": "uzusis",
+  "emailTheme": "uzusis",
+
+  "smtpServer": {
+    "host": "${SMTP_HOST:mailpit}",
+    "port": "${SMTP_PORT:1025}",
+    "from": "${SMTP_FROM:nao-responda@uzusis.local}",
+    "fromDisplayName": "Uzusis",
+    "auth": "${SMTP_AUTH:false}",
+    "user": "${SMTP_USER:}",
+    "password": "${SMTP_PASSWORD:}",
+    "ssl": "false",
+    "starttls": "${SMTP_STARTTLS:false}"
+  },
+
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administra catálogo e envio de pedidos"
+      },
+      {
+        "name": "CUSTOMER",
+        "description": "Cliente da loja"
+      },
+      {
+        "name": "offline_access",
+        "description": "Acesso offline (papel padrão do Keycloak, declarado para o composite abaixo)"
+      },
+      {
+        "name": "uma_authorization",
+        "description": "Autorização UMA (papel padrão do Keycloak, declarado para o composite abaixo)"
+      },
+      {
+        "name": "default-roles-uzusis",
+        "description": "Papéis de todo usuário novo (inclusive o autocadastro)",
+        "composite": true,
+        "composites": {
+          "realm": ["offline_access", "uma_authorization", "CUSTOMER"]
+        }
+      }
+    ]
+  },
+
+  "defaultRole": {
+    "name": "default-roles-uzusis",
+    "composite": true,
+    "clientRole": false,
+    "containerId": "uzusis"
+  },
+
+  "clients": [
+    {
+      "clientId": "web-app",
+      "name": "Loja (Angular)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["${PUBLIC_URL}/*", "http://localhost:4200/*"],
+      "webOrigins": ["${PUBLIC_URL}", "http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      }
+    },
+    {
+      "clientId": "admin-cli",
+      "name": "admin-cli (password grant dos scripts de dev e do e2e)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true
+    },
+    {
+      "clientId": "mobile-app",
+      "name": "App mobile",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": ["uzusis://callback"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+
+  "users": [
+    {
+      "username": "admin@uzusis.local",
+      "email": "admin@uzusis.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Admin",
+      "lastName": "Uzusis",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN", "CUSTOMER", "default-roles-uzusis"]
+    },
+    {
+      "username": "cliente@uzusis.local",
+      "email": "cliente@uzusis.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Cliente",
+      "lastName": "de Teste",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "cliente123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER", "default-roles-uzusis"]
+    }
+  ]
+}

@@ -12,12 +12,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * O endpoint de webhook é a única coisa que diz que um pedido foi pago, e é
- * público. Sem estes três casos verificados, qualquer um marca pedido como
- * pago com um curl.
+ * público. Sem estes casos verificados, qualquer um marca pedido como pago
+ * com um curl.
  */
 class StripeWebhookControllerTest {
 
@@ -69,6 +70,34 @@ class StripeWebhookControllerTest {
         var resposta = controller.receber(PAYLOAD, assinatura(PAYLOAD, SEGREDO));
 
         assertThat(resposta.getStatusCode().value()).isEqualTo(200);
+        verify(recebidos, never()).save(any());
+    }
+
+    @Test
+    void sem_segredo_configurado_responde_503_sem_aceitar_nada() {
+        var semSegredo = new StripeWebhookController(recebidos, "");
+
+        var resposta = semSegredo.receber(PAYLOAD, assinatura(PAYLOAD, "qualquer"));
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(503);
+        verifyNoInteractions(recebidos);
+    }
+
+    @Test
+    void corpo_que_nao_e_json_e_400_e_nao_500() {
+        // O constructEvent desserializa antes de conferir a assinatura e
+        // lança JsonSyntaxException, que não é SignatureVerificationException.
+        var resposta = controller.receber("nao-json", assinatura("nao-json", SEGREDO));
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(400);
+        verify(recebidos, never()).save(any());
+    }
+
+    @Test
+    void sem_cabecalho_de_assinatura_e_400() {
+        var resposta = controller.receber(PAYLOAD, null);
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(400);
         verify(recebidos, never()).save(any());
     }
 

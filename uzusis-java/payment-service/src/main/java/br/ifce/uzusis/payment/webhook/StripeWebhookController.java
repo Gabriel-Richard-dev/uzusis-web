@@ -1,6 +1,6 @@
 package br.ifce.uzusis.payment.webhook;
 
-import com.stripe.exception.SignatureVerificationException;
+import com.stripe.model.Event;
 import com.stripe.net.Webhook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class StripeWebhookController {
     private final String signingSecret;
 
     public StripeWebhookController(WebhookRecebidoRepository recebidos,
-                                   @Value("${uzusis.stripe.webhook-secret}") String signingSecret) {
+                                   @Value("${uzusis.stripe.webhook-secret:}") String signingSecret) {
         this.recebidos = recebidos;
         this.signingSecret = signingSecret;
     }
@@ -47,22 +47,30 @@ public class StripeWebhookController {
      */
     @PostMapping
     @Transactional
-    public ResponseEntity<Void> receber(@RequestBody String payload,
-                                        @RequestHeader("Stripe-Signature") String assinatura) {
+    public ResponseEntity<Void> receber(@RequestBody(required = false) String payload,
+                                        @RequestHeader(value = "Stripe-Signature", required = false) String assinatura) {
+        // Sem segredo, qualquer um calcularia uma assinatura "válida".
+        if (signingSecret.isBlank()) {
+            log.warn("Webhook recusado: STRIPE_WEBHOOK_SECRET vazio");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+
+        Event evento;
         try {
-            var evento = Webhook.constructEvent(payload, assinatura, signingSecret);
-
-            if (recebidos.existsById(evento.getId())) {
-                log.debug("Webhook {} já recebido, ignorando reentrega", evento.getId());
-                return ResponseEntity.ok().build();
-            }
-
-            recebidos.save(new WebhookRecebido(evento.getId(), evento.getType(), payload));
-            return ResponseEntity.ok().build();
-
-        } catch (SignatureVerificationException e) {
-            log.warn("Webhook com assinatura inválida recusado: {}", e.getMessage());
+            evento = Webhook.constructEvent(payload, assinatura, signingSecret);
+        } catch (Exception e) {
+            // Assinatura inválida ou expirada, cabeçalho ausente, e também corpo
+            // que não é JSON: o constructEvent desserializa antes de conferir.
+            log.warn("Webhook recusado: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+
+        if (recebidos.existsById(evento.getId())) {
+            log.debug("Webhook {} já recebido, ignorando reentrega", evento.getId());
+            return ResponseEntity.ok().build();
+        }
+
+        recebidos.save(new WebhookRecebido(evento.getId(), evento.getType(), payload));
+        return ResponseEntity.ok().build();
     }
 }

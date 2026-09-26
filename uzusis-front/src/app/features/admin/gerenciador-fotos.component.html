@@ -1,0 +1,83 @@
+<div class="fotos">
+  <p class="uz-texto-suave fotos__ajuda">
+    Até {{ max }} fotos JPEG, PNG ou WEBP de até 5 MB. A primeira é a capa.
+    <ng-container *ngIf="!edicao">As fotos são enviadas quando você salvar.</ng-container>
+  </p>
+
+  <ol *ngIf="grade.length" class="fotos__grade">
+    <li *ngFor="let f of grade; let i = index; let primeira = first; let ultima = last; trackBy: porChave" class="foto">
+      <img class="foto__img" [src]="f.src" [alt]="'Foto ' + (i + 1) + ' de ' + grade.length + (primeira ? ' (capa)' : '')" />
+      <span *ngIf="primeira" class="foto__capa" aria-hidden="true">Capa</span>
+      <div class="foto__acoes">
+        <button
+          mat-icon-button
+          type="button"
+          [id]="'mover-' + f.chave + '-esq'"
+          [disabled]="primeira"
+          [attr.aria-label]="'Mover foto ' + (i + 1) + ' para a esquerda'"
+          (click)="mover(i, -1)"
+        >
+          <uz-icone nome="seta-esquerda"></uz-icone>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          [id]="'mover-' + f.chave + '-dir'"
+          [disabled]="ultima"
+          [attr.aria-label]="'Mover foto ' + (i + 1) + ' para a direita'"
+          (click)="mover(i, 1)"
+        >
+          <uz-icone nome="seta-direita"></uz-icone>
+        </button>
+        <button
+          mat-icon-button
+          type="button"
+          color="warn"
+          [attr.aria-label]="(edicao ? 'Remover foto ' : 'Retirar foto ') + (i + 1)"
+          (click)="remover(i)"
+        >
+          <uz-icone nome="lixeira"></uz-icone>
+        </button>
+      </div>
+    </li>
+  </ol>
+
+  <ul *ngIf="falhasOuEnvios.length" class="envios">
+    <li *ngFor="let l of falhasOuEnvios" class="envio" [class.envio--erro]="l.erro">
+      <img class="envio__img" [src]="l.previa" alt="" />
+      <div class="envio__info">
+        <span class="envio__nome">{{ l.arquivo.name }}</span>
+        <span *ngIf="l.enviando" class="uz-texto-suave">Enviando…</span>
+        <span *ngIf="l.erro" class="envio__erro">{{ l.erro }}</span>
+      </div>
+      <mat-progress-spinner *ngIf="l.enviando" mode="indeterminate" diameter="24" aria-hidden="true"></mat-progress-spinner>
+      <div *ngIf="l.erro" class="envio__acoes">
+        <button mat-stroked-button type="button" (click)="tentarDeNovo(l)">Tentar de novo</button>
+        <button mat-button type="button" [attr.aria-label]="'Dispensar ' + l.arquivo.name" (click)="dispensar(l)">Dispensar</button>
+      </div>
+    </li>
+  </ul>
+
+  <ul *ngIf="recusados.length" class="recusados" role="alert">
+    <li *ngFor="let r of recusados">{{ r }}</li>
+  </ul>
+
+  <div class="fotos__rodape">
+    <button mat-stroked-button type="button" class="fotos__adicionar" [disabled]="total >= max" (click)="arquivo.click()">
+      <uz-icone nome="mais"></uz-icone>
+      Adicionar fotos
+    </button>
+    <span class="uz-texto-suave">{{ total }} de {{ max }} fotos</span>
+    <input
+      #arquivo
+      type="file"
+      hidden
+      multiple
+      accept="image/jpeg,image/png,image/webp"
+      aria-label="Escolher fotos"
+      (change)="selecionar(arquivo)"
+    />
+  </div>
+
+  <p class="fotos__anuncio" aria-live="polite">{{ anuncio }}</p>
+</div>

@@ -21,7 +21,8 @@ spring:
           time_zone: UTC
 
   flyway:
-    locations: classpath:db/migration,classpath:db/migration/common
+    # A varredura é recursiva: pega também db/migration/common/V0 do jar common.
+    locations: classpath:db/migration
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
@@ -44,15 +45,28 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/uzusis}
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
+
+  web:
+    # Sem Accept-Language (curl, stripe-cli), o padrão seria o locale da JVM.
+    locale: pt_BR
+    locale-resolver: fixed
 
 uzusis:
+  kafka:
+    # Compensação da saga: retentada sem limite, nunca para a DLQ (KafkaErrorHandlerConfig).
+    compensacoes: order.order.cancelled.v1
   stripe:
     # Nunca no repositório: variável de ambiente, secret do Kubernetes ou vault.
-    # Em dev, chave de teste (sk_test_...).
+    # As três vazias = pagamento desabilitado (o stack sobe mesmo assim).
     secret-key: ${STRIPE_SECRET_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    # Só no e2e (stripe-mock); vazio = api.stripe.com.
+    api-base: ${STRIPE_API_BASE:}
     moeda: ${STRIPE_MOEDA:brl}
+    reconciliar-ms: 120000
   webhook:
     intervalo-ms: 1000
   reconciliacao:
@@ -67,6 +81,7 @@ management:
       exposure:
         include: health,info,prometheus
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:

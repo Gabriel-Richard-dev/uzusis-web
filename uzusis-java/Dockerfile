@@ -1,29 +1,20 @@
-# Uma imagem para todos os serviços: o módulo entra por ARG. Seis Dockerfiles
-# quase idênticos é seis lugares para esquecer de atualizar a versão do JDK.
-#
-#   docker build --build-arg MODULO=catalog-service -t uzusis/catalog .
+# syntax=docker/dockerfile:1
+# Uma imagem com os 6 serviços; o compose escolhe o jar por MODULO.
+# Um único `mvn package` (em vez de um por serviço) e um lib/ compartilhado:
+# as bibliotecas não se repetem 6 vezes nem no build nem na imagem.
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /src
-
-# Os poms primeiro: enquanto as dependências não mudarem, o cache do Maven
-# sobrevive à alteração de código.
-COPY pom.xml .
-COPY common/pom.xml common/
-COPY catalog-service/pom.xml catalog-service/
-COPY order-service/pom.xml order-service/
-COPY payment-service/pom.xml payment-service/
-COPY notification-service/pom.xml notification-service/
-COPY identity-service/pom.xml identity-service/
-COPY gateway/pom.xml gateway/
-RUN mvn -B -q dependency:go-offline -DskipTests || true
-
 COPY . .
-ARG MODULO
-RUN mvn -B -q -pl ${MODULO} -am package -DskipTests \
-    && cp ${MODULO}/target/*.jar /app.jar
+RUN --mount=type=cache,target=/root/.m2 \
+    MAVEN_OPTS=-Xmx1g mvn -B -q -Dmaven.test.skip=true package \
+ && for m in gateway catalog-service order-service payment-service notification-service identity-service; do \
+      java -Djarmode=tools -jar $m/target/$m-*.jar extract --force \
+        --destination /out --libraries lib --application-filename $m.jar || exit 1; \
+    done
 
-FROM eclipse-temurin:21-jre
-WORKDIR /app
-COPY --from=build /app.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+FROM eclipse-temurin:21-jre-alpine
+RUN addgroup -S app && adduser -S -G app app
+COPY --from=build /out/ /app/
+USER app
+ENV MODULO=gateway
+ENTRYPOINT ["sh", "-c", "exec java -jar /app/${MODULO}.jar"]

@@ -1,0 +1,77 @@
+// O container não rola sozinho: a página rola na janela, então scrollPositionRestoration
+// e position: sticky das features funcionam. Os sidenavs ficam fixos na viewport.
+.shell {
+  min-height: 100vh;
+  overflow: visible;
+  background: var(--uz-papel);
+  color: var(--uz-tinta);
+}
+
+.shell__conteudo {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.shell__main {
+  flex: 1;
+}
+
+.shell__sacola {
+  width: min(400px, 100vw);
+  background: var(--uz-superficie);
+}
+
+.shell__menu {
+  width: min(20rem, 85vw);
+  background: var(--uz-superficie);
+}
+
+.menu {
+  padding: var(--uz-esp-3) var(--uz-esp-4) var(--uz-esp-6);
+}
+
+.menu__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--uz-esp-3);
+}
+
+.menu__marca {
+  font-family: var(--uz-fonte-titulo);
+  font-size: var(--uz-fs-lead);
+  letter-spacing: 0.2em;
+}
+
+.menu__secao {
+  margin: var(--uz-esp-5) 0 var(--uz-esp-1);
+  font-family: var(--uz-fonte-texto);
+  font-weight: 600;
+}
+
+.menu__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu__link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--uz-alvo);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--uz-tinta);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--uz-marca);
+  }
+}

@@ -1,105 +1,47 @@
-import { NgModule } from "@angular/core";
-import { RouterModule, Routes } from "@angular/router";
-import { InitialPageComponent } from './features/initial-page/initial-page.component';
-import { LoginComponent } from "./features/auth/login/login/login.component";
-import { ResetarSenhaComponent } from "./features/auth/resetar-senha/resetar-senha/resetar-senha.component";
-import { CadastroComponent } from "./features/auth/cadastro/cadastro/cadastro.component";
-import { EnviarEmailResetarSenhaComponent } from "./features/auth/enviar-email-resetar-senha/enviarEmailResetarSenha/enviarEmailResetarSenha.component";
-import { CriarProdutoComponent } from "./features/admin/criar-produto/criarProduto/criarProduto.component";
-import { LoginAdmComponent } from "./features/auth/tela-adm-logar/login-adm/login-adm.component";
-import { PedidosPendentesComponent } from "./features/admin/pedidos-pendentes/pedidos-pendentes/pedidos-pendentes.component";
-import { HistoricoPedidosComponent } from "./features/admin/historicos-de-pedidos/historico-pedidos/historico-pedidos.component";
-import { PegarProdutosComponent } from "./features/admin/pegarProdutos/pegarProdutos/pegarProdutos.component";
-import { PedidosComponent } from './features/user/pedidos/pedidos.component';
-import { DashboardComponent } from "./features/admin/dashboard/dashboard.component";
-import { adminGuard, clienteGuard } from "./core/guards/auth.guard";
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 
+import { adminGuard, autenticadoGuard } from './core/auth/auth.guards';
+import { NaoEncontradoComponent } from './layout/nao-encontrado.component';
+import { ShellComponent } from './layout/shell.component';
 
-
-
-
-
+// Todo title segue '<Página> — Uzusis' (WCAG 2.4.2); os das features ficam nos routing modules delas.
 const routes: Routes = [
-
-{
-  path: "admin/dashboard",
-  component: DashboardComponent,
-  canActivate: [adminGuard]
-},
-
-{
-  path: "admin/pegar-produtos",
-  component: PegarProdutosComponent,
-  canActivate: [adminGuard]
-},
-
-{
-
-path: "admin/criar-produto",
-component: CriarProdutoComponent,
-  canActivate: [adminGuard]
-},
-{
-  path: "admin/pedidos-pendentes",
-  component: PedidosPendentesComponent,
-  canActivate: [adminGuard],
-},
-{
-  path: "admin/historico-pedidos",
-  component: HistoricoPedidosComponent,
-  canActivate: [adminGuard]
-},
-
-
   {
-    path:"",
-    component:InitialPageComponent,
+    path: 'admin',
+    canMatch: [adminGuard],
+    loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule),
   },
   {
-    path: "login",
-    component: LoginComponent
+    path: '',
+    component: ShellComponent,
+    children: [
+      {
+        path: 'checkout',
+        canActivate: [autenticadoGuard],
+        loadChildren: () => import('./features/checkout/checkout.module').then(m => m.CheckoutModule),
+      },
+      {
+        path: 'pedido',
+        canActivate: [autenticadoGuard],
+        loadChildren: () => import('./features/checkout/pedido.module').then(m => m.PedidoModule),
+      },
+      {
+        path: 'conta',
+        canActivate: [autenticadoGuard],
+        loadChildren: () => import('./features/conta/conta.module').then(m => m.ContaModule),
+      },
+      {
+        path: '',
+        loadChildren: () => import('./features/vitrine/vitrine.module').then(m => m.VitrineModule),
+      },
+      { path: '**', component: NaoEncontradoComponent, title: 'Página não encontrada — Uzusis' },
+    ],
   },
-  {
-    path: "resetar-senha",
-    component: ResetarSenhaComponent
-  },
-
-  {
-    path: "cadastro",
-    component:CadastroComponent
-  },
-
-  {
-    path: "admin",
-    component: LoginAdmComponent
-  },
-  {
-    path: "enviarEmail",
-    component: EnviarEmailResetarSenhaComponent
-  },
-  {
-    path: "pedidos",
-    component: PedidosComponent,
-    canActivate: [clienteGuard]
-  }
-
-  // {
-  //   path: "",
-  //   children: [
-  //     {
-  //       path: "",
-  //       loadChildren: () =>
-  //         import("./features/1-proj/portfolio.module").then(
-  //           (m) => m.estruturaModule
-  //         ),
-  //     },
-  //   ],
-  // },
- 
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, { scrollPositionRestoration: 'enabled' })],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}

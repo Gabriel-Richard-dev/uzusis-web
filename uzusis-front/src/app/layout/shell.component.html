@@ -1,0 +1,54 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav #menu class="shell__menu" mode="over" position="start" [fixedInViewport]="true">
+    <div class="menu">
+      <div class="menu__topo">
+        <span class="menu__marca" aria-hidden="true">UZUSIS</span>
+        <button mat-icon-button type="button" aria-label="Fechar menu" (click)="menu.close()">
+          <uz-icone nome="fechar" [tamanho]="24"></uz-icone>
+        </button>
+      </div>
+      <nav aria-label="Menu">
+        <a class="menu__link" routerLink="/">Início</a>
+        <a class="menu__link" routerLink="/loja">Loja</a>
+
+        <h2 class="uz-legenda menu__secao" id="menu-categorias">Categorias</h2>
+        <ul class="menu__lista" aria-labelledby="menu-categorias">
+          <li *ngFor="let c of categorias">
+            <a class="menu__link" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+          </li>
+        </ul>
+
+        <h2 class="uz-legenda menu__secao">Conta</h2>
+        <ng-container *ngIf="usuario$ | async as usuario; else anonimo">
+          <a class="menu__link" routerLink="/conta/dados">Minha conta</a>
+          <a class="menu__link" routerLink="/conta/pedidos">Meus pedidos</a>
+          <a *ngIf="usuario.roles.includes('ADMIN')" class="menu__link" routerLink="/admin">Administração</a>
+          <button class="menu__link" type="button" (click)="auth.logout()">Sair</button>
+        </ng-container>
+        <ng-template #anonimo>
+          <button class="menu__link" type="button" (click)="auth.login()">Entrar</button>
+          <button class="menu__link" type="button" (click)="auth.cadastrar()">Criar conta</button>
+        </ng-template>
+      </nav>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav
+    class="shell__sacola"
+    mode="over"
+    position="end"
+    [fixedInViewport]="true"
+    [opened]="(sacola.aberta$ | async) === true"
+    (openedChange)="sacolaMudou($event)"
+  >
+    <uz-sacola-drawer></uz-sacola-drawer>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="shell__conteudo">
+    <uz-header (abrirMenu)="menu.open()"></uz-header>
+    <main id="conteudo" class="shell__main" tabindex="-1">
+      <router-outlet></router-outlet>
+    </main>
+    <uz-footer></uz-footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

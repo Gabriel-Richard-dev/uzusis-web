@@ -1,0 +1,11 @@
+spring:
+  kafka:
+    listener:
+      auto-startup: false
+
+# Os agendados rodariam no meio dos testes; os testes chamam na mão.
+uzusis:
+  webhook:
+    intervalo-ms: 3600000
+  stripe:
+    reconciliar-ms: 3600000

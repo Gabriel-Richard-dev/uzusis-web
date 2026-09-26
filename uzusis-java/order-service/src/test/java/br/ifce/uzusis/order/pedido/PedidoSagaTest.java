@@ -17,8 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PedidoSagaTest {
 
     private Pedido pedidoNovo() {
-        var pedido = new Pedido("sub-123", "cliente@uzusis.local");
-        pedido.adicionarItem(1L, 10L, "M", 2, new BigDecimal("50.00"));
+        var pedido = new Pedido("sub-123", "cliente@uzusis.local", "Cliente", null, new BigDecimal("10.00"));
+        pedido.adicionarItem(1L, 10L, "M", 2, new BigDecimal("50.00"), "Blusa", null);
         return pedido;
     }
 
@@ -55,14 +55,16 @@ class PedidoSagaTest {
     }
 
     @Test
-    void estoque_negado_depois_do_pagamento_pede_estorno() {
-        // O caso que a spec avisa que vai acontecer: pago e sem estoque.
+    void estoque_negado_depois_do_pagamento_so_cancela() {
+        // Pago e sem estoque: o pedido só cancela. Quem estorna é o payment,
+        // ao consumir o order.cancelled (único caminho de estorno).
         var pedido = pedidoNovo();
 
         pedido.registrarPagamento(true, "pi_1", null);
-        pedido.registrarEstoque(false, "Sem estoque para o tamanho M");
+        pedido.registrarEstoque(false, "Sem estoque: Blusa (M)");
 
-        assertThat(pedido.avaliar()).isEqualTo(Desfecho.CANCELAR_COM_ESTORNO);
+        assertThat(pedido.avaliar()).isEqualTo(Desfecho.CANCELAR);
+        assertThat(pedido.devolveASacolaAoCancelar()).as("rejeição de estoque não devolve a sacola").isFalse();
     }
 
     @Test
@@ -70,10 +72,24 @@ class PedidoSagaTest {
         var pedido = pedidoNovo();
 
         pedido.registrarEstoque(true, null);
-        pedido.registrarPagamento(false, "pi_1", "Cartão recusado");
+        pedido.registrarPagamento(false, "pi_1", "Pagamento recusado");
 
         assertThat(pedido.avaliar()).isEqualTo(Desfecho.CANCELAR);
-        assertThat(pedido.getMotivoCancelamento()).isEqualTo("Cartão recusado");
+        assertThat(pedido.getMotivoCancelamento()).isEqualTo("Pagamento recusado");
+        assertThat(pedido.devolveASacolaAoCancelar()).isTrue();
+    }
+
+    @Test
+    void pagar_e_cancelar_carimbam_a_hora() {
+        var pago = pedidoNovo();
+        pago.pagar();
+        assertThat(pago.getPagoEm()).isNotNull();
+
+        var cancelado = pedidoNovo();
+        cancelado.cancelar("Pagamento não concluído em 30 minutos", true);
+        assertThat(cancelado.getCanceladoEm()).isNotNull();
+        assertThat(cancelado.getStatus()).isEqualTo(StatusPedido.CANCELADO);
+        assertThat(cancelado.isSacolaRestaurada()).isTrue();
     }
 
     @Test
@@ -95,10 +111,23 @@ class PedidoSagaTest {
     }
 
     @Test
-    void valor_total_e_a_soma_dos_itens() {
+    void valor_total_e_a_soma_dos_itens_mais_o_frete() {
         var pedido = pedidoNovo();
-        pedido.adicionarItem(2L, 20L, "G", 1, new BigDecimal("39.90"));
+        pedido.adicionarItem(2L, 20L, "G", 1, new BigDecimal("39.90"), "Saia", null);
 
-        assertThat(pedido.getValorTotal()).isEqualByComparingTo(new BigDecimal("139.90"));
+        assertThat(pedido.getSubtotal()).isEqualByComparingTo(new BigDecimal("139.90"));
+        assertThat(pedido.getValorTotal()).isEqualByComparingTo(new BigDecimal("149.90"));
+    }
+
+    @Test
+    void motivo_longo_do_catalogo_cabe_na_coluna() {
+        // "Sem estoque: " + cada item sem estoque, sem limite no catálogo;
+        // motivo_cancelamento é VARCHAR(500).
+        var pedido = pedidoNovo();
+
+        pedido.registrarEstoque(false, "Sem estoque: " + "Vestido Longo Estampado Floral (M), ".repeat(20));
+        pedido.cancelar(null, false);
+
+        assertThat(pedido.getMotivoCancelamento()).hasSize(500).startsWith("Sem estoque: Vestido");
     }
 }

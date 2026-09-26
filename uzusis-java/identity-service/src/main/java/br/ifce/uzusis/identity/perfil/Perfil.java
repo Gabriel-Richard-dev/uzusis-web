@@ -1,5 +1,7 @@
 package br.ifce.uzusis.identity.perfil;
 
+import br.ifce.uzusis.identity.perfil.PerfilDtos.AtualizarEndereco;
+import br.ifce.uzusis.identity.perfil.PerfilDtos.AtualizarPerfil;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -10,6 +12,7 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Locale;
 
 @Entity
 @Table(name = "perfil")
@@ -34,6 +37,7 @@ public class Perfil {
     @Column(nullable = false, length = 200)
     private String email;
 
+    /** Destinatário padrão da entrega, não o nome da conta (esse é do Keycloak). */
     @Column(nullable = false, length = 200)
     private String nome;
 
@@ -58,30 +62,30 @@ public class Perfil {
     protected Perfil() {
     }
 
-    public Perfil(String sub, String email, String nome) {
-        this.sub = sub;
-        this.email = email.toLowerCase();
-        this.nome = nome;
+    /** Só o e-mail vem do token a cada acesso; o resto é do cliente. */
+    public void atualizarEmail(String email) {
+        this.email = email.toLowerCase(Locale.ROOT);
     }
 
-    public void atualizar(String nome, String cpf, String celular, LocalDate dataNascimento) {
-        if (nome != null) {
-            this.nome = nome;
+    /** Campos {@code null} ficam como estão. Entrada já validada; CPF e celular gravados só com dígitos. */
+    public void atualizar(AtualizarPerfil novo) {
+        if (novo.nome() != null) {
+            this.nome = novo.nome();
         }
-        if (cpf != null) {
-            this.cpf = cpf;
+        if (novo.cpf() != null) {
+            this.cpf = novo.cpf().replaceAll("\\D", "");
         }
-        if (celular != null) {
-            this.celular = celular;
+        if (novo.celular() != null) {
+            this.celular = novo.celular().replaceAll("\\D", "");
         }
-        if (dataNascimento != null) {
-            this.dataNascimento = dataNascimento;
+        if (novo.dataNascimento() != null) {
+            this.dataNascimento = novo.dataNascimento();
         }
         this.atualizadoEm = OffsetDateTime.now();
     }
 
-    public void atualizarEndereco(String cep, String rua, String numero, String bairro, String cidade, String estado) {
-        endereco.atualizar(cep, rua, numero, bairro, cidade, estado);
+    public void atualizarEndereco(AtualizarEndereco novo) {
+        getEndereco().atualizar(novo);
         this.atualizadoEm = OffsetDateTime.now();
     }
 
@@ -114,6 +118,10 @@ public class Perfil {
     }
 
     public Endereco getEndereco() {
+        // O Hibernate carrega como null o embeddable com todas as colunas nulas.
+        if (endereco == null) {
+            endereco = new Endereco();
+        }
         return endereco;
     }
 }

@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Scope+One&display=swap');
+
+/* Tema Uzusis sobre o tema "keycloak": só cores, fontes e o logo. */
+:root {
+  --pf-global--primary-color--100: #7a5a41;
+  --pf-global--primary-color--200: #654a35;
+  --pf-global--link--Color: #7a5a41;
+  --pf-global--link--Color--hover: #654a35;
+  --pf-global--FontFamily--sans-serif: 'Inter', system-ui, sans-serif;
+  --pf-global--FontFamily--heading--sans-serif: 'Scope One', Georgia, serif;
+}
+
+.login-pf body {
+  background: #faf8f5;
+  color: #292b2e;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+#kc-header {
+  color: #292b2e;
+}
+
+#kc-header-wrapper,
+.uz-logo {
+  font-family: 'Scope One', Georgia, serif;
+  color: #292b2e;
+  letter-spacing: .2em;
+  text-align: center;
+}
+
+#kc-header-wrapper::before {
+  content: "";
+  display: block;
+  width: 101px;
+  height: 80px;
+  margin: 0 auto 8px;
+  background: url("../img/logo.png") no-repeat center / contain;
+}
+
+.login-pf-page .card-pf {
+  background: #ffffff;
+  border: 1px solid #e6e0da;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+/* rodapé do cartão ("Novo usuário?", instruções): papel em vez do cinza do PatternFly */
+.login-pf-page .login-pf-signup {
+  background-color: #faf8f5;
+  border-top: 1px solid #e6e0da;
+  border-radius: 0 0 8px 8px;
+  color: #6b645e;
+}
+
+/* no desktop o cinza vem do wrapper interno (#kc-info-wrapper do login.css), por cima do papel */
+.login-pf-page #kc-info-wrapper {
+  background-color: transparent;
+}
+
+/* cadastro: título centralizado em cima, "* Campos obrigatórios" embaixo, alinhado aos campos
+   (o PatternFly põe o aviso antes e o título numa coluna de 10/12, descentralizado) */
+.login-pf-page .login-pf-header > div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.login-pf-page .login-pf-header > div > [class*="col-"] {
+  float: none;
+  width: 100%;
+  padding: 0;
+}
+
+.login-pf-page .login-pf-header .subtitle {
+  text-align: left;
+  padding-top: 8px;
+  color: #6b645e;
+}
+
+h1#kc-page-title {
+  font-family: 'Scope One', Georgia, serif;
+  color: #292b2e;
+  font-weight: 400;
+}
+
+.login-pf a,
+.login-pf a:visited {
+  color: #7a5a41;
+}
+
+.login-pf a:hover,
+.login-pf a:focus {
+  color: #654a35;
+}
+
+.pf-c-button.pf-m-primary,
+.btn-primary {
+  background-color: #7a5a41;
+  border-color: #7a5a41;
+  color: #ffffff;
+  border-radius: 4px;
+}
+
+.pf-c-button.pf-m-primary:hover,
+.pf-c-button.pf-m-primary:focus,
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #654a35;
+  border-color: #654a35;
+  color: #ffffff;
+}
+
+.pf-c-form-control,
+.form-control {
+  border: 1px solid #8f877f;
+  border-radius: 4px;
+}
+
+.pf-c-form-control:focus,
+.form-control:focus {
+  border-color: #7a5a41;
+  outline: 2px solid #7a5a41;
+  outline-offset: 1px;
+}
+
+.pf-c-button:focus-visible,
+.login-pf a:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid #7a5a41;
+  outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+  .login-pf body {
+    background: #faf8f5;
+  }
+
+  #kc-header-wrapper {
+    font-size: 22px;
+    padding: 24px 0 8px;
+    color: #292b2e;
+    letter-spacing: .2em;
+  }
+
+  .login-pf-page .card-pf {
+    margin: 0 16px;
+    padding: 20px 16px 16px;
+    border: 1px solid #e6e0da;
+  }
+
+  /* as margens negativas do PatternFly (-40px/-30px) passam do cartão em 390px: rodapé encostado nas bordas dele */
+  .login-pf-page #kc-info {
+    margin: 20px -16px -16px;
+    padding: 16px;
+    border-radius: 0 0 8px 8px;
+  }
+}

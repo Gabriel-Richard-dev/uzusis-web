@@ -49,10 +49,21 @@ spring:
           auth: ${EMAIL_AUTH:false}
           starttls:
             enable: ${EMAIL_TLS:false}
+          # Sem timeout o JavaMail espera para sempre e prende o consumidor do Kafka.
+          connectiontimeout: 5000
+          timeout: 10000
+          writetimeout: 10000
+
+  # Sem Accept-Language o resolver padrão usaria o locale da JVM.
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
 
 uzusis:
   email:
-    remetente: ${EMAIL_FROM:nao-responda@uzusis.local}
+    remetente: "${EMAIL_FROM:Uzusis <nao-responda@uzusis.local>}"
+  # Base dos links dos e-mails.
+  loja-url: ${PUBLIC_URL:http://localhost:8080}
 
 server:
   port: ${SERVER_PORT:8085}
@@ -62,7 +73,13 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+  # O healthcheck do compose bate no health a cada 10 s; com o indicador de e-mail,
+  # cada batida seria um connect + AUTH no SMTP (provedores reais bloqueiam a conta).
+  health:
+    mail:
+      enabled: false
   tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
     sampling:
       probability: ${TRACE_SAMPLING:1.0}
   otlp:

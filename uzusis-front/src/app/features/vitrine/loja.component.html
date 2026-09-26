@@ -1,0 +1,92 @@
+<section class="uz-container loja">
+  <div class="loja__topo">
+    <h1 class="uz-titulo loja__titulo" tabindex="-1">{{ titulo }}</h1>
+    <p class="uz-texto-suave loja__total" aria-live="polite">
+      <ng-container *ngIf="pagina">
+        {{ pagina.totalElements === 1 ? '1 peça' : pagina.totalElements + ' peças' }}
+        <ng-container *ngIf="filtro.q"> para “{{ filtro.q }}”</ng-container>
+      </ng-container>
+    </p>
+  </div>
+
+  <div class="filtros">
+    <div class="filtros__categorias" role="group" aria-label="Filtrar por categoria">
+      <button type="button" class="chip" [attr.aria-pressed]="!filtro.categoria" (click)="filtrar({ categoria: null })">
+        Todas
+      </button>
+      <button
+        *ngFor="let c of categorias"
+        type="button"
+        class="chip"
+        [attr.aria-pressed]="filtro.categoria === c.valor"
+        (click)="filtrar({ categoria: c.valor })"
+      >
+        {{ c.nome }}
+      </button>
+    </div>
+
+    <div class="filtros__campos">
+      <mat-form-field class="filtros__busca" subscriptSizing="dynamic">
+        <mat-label>Buscar na loja</mat-label>
+        <input matInput type="search" autocomplete="off" [formControl]="busca" />
+        <button
+          *ngIf="busca.value"
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Limpar busca"
+          (click)="busca.setValue('')"
+        >
+          <uz-icone nome="fechar"></uz-icone>
+        </button>
+      </mat-form-field>
+
+      <mat-form-field class="filtros__ordem" subscriptSizing="dynamic">
+        <mat-label>Ordenar por</mat-label>
+        <mat-select [value]="filtro.ordem" (selectionChange)="filtrar({ ordem: $event.value })">
+          <mat-option *ngFor="let o of ordens" [value]="o.valor">{{ o.nome }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <uz-estado
+    *ngIf="erro"
+    tipo="erro"
+    titulo="Não foi possível carregar as peças"
+    [mensagem]="mensagemDeErro(erro)"
+    (tentarNovamente)="carregar()"
+  ></uz-estado>
+
+  <div *ngIf="!pagina && carregando" class="grade" aria-busy="true">
+    <uz-esqueleto formato="cartao" [quantidade]="12"></uz-esqueleto>
+  </div>
+
+  <uz-estado
+    *ngIf="pagina && !produtos.length"
+    tipo="vazio"
+    titulo="Nenhuma peça encontrada"
+    mensagem="Tente outra categoria ou outra busca."
+  >
+    <button mat-stroked-button type="button" (click)="limparFiltros()">Limpar filtros</button>
+  </uz-estado>
+
+  <ng-container *ngIf="pagina && produtos.length">
+    <ul class="grade">
+      <li *ngFor="let p of produtos; trackBy: porId"><uz-produto-card [produto]="p"></uz-produto-card></li>
+    </ul>
+
+    <div class="mais">
+      <p class="uz-texto-suave" aria-live="polite">Mostrando {{ produtos.length }} de {{ pagina.totalElements }}</p>
+      <button
+        *ngIf="!pagina.last"
+        mat-stroked-button
+        type="button"
+        [disabled]="carregando"
+        (click)="carregar(pagina.number + 1)"
+      >
+        {{ carregando ? 'Carregando…' : 'Carregar mais' }}
+      </button>
+    </div>
+  </ng-container>
+</section>

@@ -2,6 +2,7 @@ package br.ifce.uzusis.order.pedido;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -9,6 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.BatchSize;
 
@@ -46,8 +48,21 @@ public class Pedido {
     @Column(name = "cliente_email", nullable = false, length = 200)
     private String clienteEmail;
 
+    @Column(name = "cliente_nome", length = 200)
+    private String clienteNome;
+
+    @Embedded
+    private EnderecoEntrega endereco;
+
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal subtotal = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 19, scale = 4)
+    private BigDecimal frete = BigDecimal.ZERO;
+
+    /** Subtotal + frete: é o valor cobrado. */
     @Column(name = "valor_total", nullable = false, precision = 19, scale = 4)
-    private BigDecimal valorTotal;
+    private BigDecimal valorTotal = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -67,12 +82,28 @@ public class Pedido {
     @Column(name = "motivo_cancelamento", length = 500)
     private String motivoCancelamento;
 
+    @Column(name = "sacola_restaurada", nullable = false)
+    private boolean sacolaRestaurada;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
     @BatchSize(size = 50)
     private List<ItemPedido> itens = new ArrayList<>();
 
     @Column(name = "criado_em", nullable = false)
     private OffsetDateTime criadoEm = OffsetDateTime.now();
+
+    @Column(name = "pago_em")
+    private OffsetDateTime pagoEm;
+
+    @Column(name = "enviado_em")
+    private OffsetDateTime enviadoEm;
+
+    @Column(name = "recebido_em")
+    private OffsetDateTime recebidoEm;
+
+    @Column(name = "cancelado_em")
+    private OffsetDateTime canceladoEm;
 
     @Column(name = "atualizado_em")
     private OffsetDateTime atualizadoEm;
@@ -80,23 +111,28 @@ public class Pedido {
     protected Pedido() {
     }
 
-    public Pedido(String clienteSub, String clienteEmail) {
+    public Pedido(String clienteSub, String clienteEmail, String clienteNome, EnderecoEntrega endereco, BigDecimal frete) {
         this.clienteSub = clienteSub;
         this.clienteEmail = clienteEmail;
-        this.valorTotal = BigDecimal.ZERO;
+        this.clienteNome = clienteNome;
+        this.endereco = endereco;
+        this.frete = frete;
+        this.valorTotal = frete;
     }
 
-    public void adicionarItem(long produtoId, long tamanhoId, String sigla, int quantidade, BigDecimal valorUnitario) {
-        itens.add(new ItemPedido(this, produtoId, tamanhoId, sigla, quantidade, valorUnitario));
-        this.valorTotal = itens.stream()
+    public void adicionarItem(long produtoId, long tamanhoId, String sigla, int quantidade,
+                              BigDecimal valorUnitario, String nomeProduto, String fotoUrl) {
+        itens.add(new ItemPedido(this, produtoId, tamanhoId, sigla, quantidade, valorUnitario, nomeProduto, fotoUrl));
+        this.subtotal = itens.stream()
                 .map(ItemPedido::getValorTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.valorTotal = subtotal.add(frete);
     }
 
     public void registrarEstoque(boolean reservado, String motivo) {
         this.estoqueReservado = reservado;
         if (!reservado) {
-            this.motivoCancelamento = motivo;
+            this.motivoCancelamento = ate500(motivo);
         }
         this.atualizadoEm = OffsetDateTime.now();
     }
@@ -107,7 +143,7 @@ public class Pedido {
             this.paymentIntentId = paymentIntentId;
         }
         if (!confirmado) {
-            this.motivoCancelamento = motivo;
+            this.motivoCancelamento = ate500(motivo);
         }
         this.atualizadoEm = OffsetDateTime.now();
     }
@@ -120,15 +156,9 @@ public class Pedido {
         if (status != StatusPedido.CRIADO) {
             return Desfecho.PENDENTE;
         }
-        boolean estoqueNegado = Boolean.FALSE.equals(estoqueReservado);
-        boolean pagamentoNegado = Boolean.FALSE.equals(pagamentoConfirmado);
-
-        if (estoqueNegado || pagamentoNegado) {
-            // Estoque negado com pagamento já confirmado é exatamente o caso
-            // que a spec avisa que vai acontecer: cancela e estorna.
-            return Boolean.TRUE.equals(pagamentoConfirmado)
-                    ? Desfecho.CANCELAR_COM_ESTORNO
-                    : Desfecho.CANCELAR;
+        if (Boolean.FALSE.equals(estoqueReservado) || Boolean.FALSE.equals(pagamentoConfirmado)) {
+            // Mesmo com pagamento confirmado: o payment estorna ao ver o order.cancelled.
+            return Desfecho.CANCELAR;
         }
         if (Boolean.TRUE.equals(estoqueReservado) && Boolean.TRUE.equals(pagamentoConfirmado)) {
             return Desfecho.PAGAR;
@@ -136,17 +166,41 @@ public class Pedido {
         return Desfecho.PENDENTE;
     }
 
-    public void pagar() {
-        this.status = StatusPedido.PAGO;
-        this.atualizadoEm = OffsetDateTime.now();
+    /**
+     * Os itens voltam para a sacola quando o estoque não foi negado (pagamento
+     * recusado ou expirado): o cliente finaliza de novo sem remontar a sacola.
+     * Na rejeição de estoque não há o que devolver.
+     */
+    public boolean devolveASacolaAoCancelar() {
+        return !Boolean.FALSE.equals(estoqueReservado);
     }
 
-    public void cancelar(String motivo) {
+    public void pagar() {
+        this.status = StatusPedido.PAGO;
+        this.pagoEm = OffsetDateTime.now();
+        this.atualizadoEm = pagoEm;
+    }
+
+    public void cancelar(String motivo, boolean sacolaRestaurada) {
         this.status = StatusPedido.CANCELADO;
         if (motivo != null) {
-            this.motivoCancelamento = motivo;
+            this.motivoCancelamento = ate500(motivo);
         }
-        this.atualizadoEm = OffsetDateTime.now();
+        this.sacolaRestaurada = sacolaRestaurada;
+        this.canceladoEm = OffsetDateTime.now();
+        this.atualizadoEm = canceladoEm;
+    }
+
+    public void enviar() {
+        this.status = StatusPedido.ENVIADO;
+        this.enviadoEm = OffsetDateTime.now();
+        this.atualizadoEm = enviadoEm;
+    }
+
+    public void receber() {
+        this.status = StatusPedido.RECEBIDO;
+        this.recebidoEm = OffsetDateTime.now();
+        this.atualizadoEm = recebidoEm;
     }
 
     public Long getId() {
@@ -159,6 +213,22 @@ public class Pedido {
 
     public String getClienteEmail() {
         return clienteEmail;
+    }
+
+    public String getClienteNome() {
+        return clienteNome;
+    }
+
+    public EnderecoEntrega getEndereco() {
+        return endereco;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public BigDecimal getFrete() {
+        return frete;
     }
 
     public BigDecimal getValorTotal() {
@@ -177,11 +247,40 @@ public class Pedido {
         return motivoCancelamento;
     }
 
+    public boolean isSacolaRestaurada() {
+        return sacolaRestaurada;
+    }
+
     public List<ItemPedido> getItens() {
         return itens;
     }
 
     public OffsetDateTime getCriadoEm() {
         return criadoEm;
+    }
+
+    public OffsetDateTime getPagoEm() {
+        return pagoEm;
+    }
+
+    public OffsetDateTime getEnviadoEm() {
+        return enviadoEm;
+    }
+
+    public OffsetDateTime getRecebidoEm() {
+        return recebidoEm;
+    }
+
+    public OffsetDateTime getCanceladoEm() {
+        return canceladoEm;
+    }
+
+    /**
+     * A coluna é VARCHAR(500) e o motivo vem de outro serviço (o do catálogo
+     * lista cada item sem estoque): texto maior faria o flush falhar sempre, e
+     * o evento acabaria na DLQ com o pedido parado em CRIADO.
+     */
+    private static String ate500(String motivo) {
+        return motivo == null ? null : motivo.substring(0, Math.min(500, motivo.length()));
     }
 }

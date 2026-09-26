@@ -1,0 +1,70 @@
+@use '@angular/material' as mat;
+
+// Paleta M2 derivada da cor da marca (#7a5a41 no 500). Texto branco do 400 para cima.
+$uz-paleta: (
+  50: #f3ece5,
+  100: #e1d2c5,
+  200: #cdb5a2,
+  300: #b3937a,
+  400: #9a785e,
+  500: #7a5a41,
+  600: #6f513a,
+  700: #654a35,
+  800: #563e2c,
+  900: #45311f,
+  A100: #e1d2c5,
+  A200: #cdb5a2,
+  A400: #9a785e,
+  A700: #654a35,
+  contrast: (
+    50: #292b2e,
+    100: #292b2e,
+    200: #292b2e,
+    300: #292b2e,
+    400: #ffffff,
+    500: #ffffff,
+    600: #ffffff,
+    700: #ffffff,
+    800: #ffffff,
+    900: #ffffff,
+    A100: #292b2e,
+    A200: #292b2e,
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
+);
+
+$uz-primaria: mat.define-palette($uz-paleta, 500);
+$uz-acento: mat.define-palette($uz-paleta, 500);
+$uz-alerta: mat.define-palette(mat.$red-palette, 800);
+$uz-tipografia: mat.define-typography-config($font-family: 'Inter, system-ui, sans-serif');
+
+$uz-tema: mat.define-light-theme((
+  color: (primary: $uz-primaria, accent: $uz-acento, warn: $uz-alerta),
+  typography: $uz-tipografia,
+  density: 0,
+));
+
+@include mat.core();
+// Só os componentes usados no app (§7.2); incluir um novo aqui antes de usá-lo.
+@include mat.core-theme($uz-tema);
+@include mat.button-theme($uz-tema);
+@include mat.icon-button-theme($uz-tema);
+@include mat.form-field-theme($uz-tema);
+@include mat.input-theme($uz-tema);
+@include mat.select-theme($uz-tema);
+@include mat.sidenav-theme($uz-tema);
+@include mat.badge-theme($uz-tema);
+@include mat.button-toggle-theme($uz-tema);
+@include mat.expansion-theme($uz-tema);
+@include mat.dialog-theme($uz-tema);
+@include mat.snack-bar-theme($uz-tema);
+@include mat.menu-theme($uz-tema);
+@include mat.progress-spinner-theme($uz-tema);
+@include mat.progress-bar-theme($uz-tema);
+@include mat.table-theme($uz-tema);
+@include mat.paginator-theme($uz-tema);
+@include mat.tabs-theme($uz-tema);
+@include mat.chips-theme($uz-tema);
+@include mat.checkbox-theme($uz-tema);
+@include mat.tooltip-theme($uz-tema);

@@ -36,38 +36,33 @@ public class ItemPedido {
     @Column(nullable = false)
     private int quantidade;
 
-    /** Preço no momento da compra, não o preço de hoje do catálogo. */
+    /** Preço, nome e foto do catálogo no momento da compra, não os de hoje. */
     @Column(name = "valor_unitario", nullable = false, precision = 19, scale = 4)
     private BigDecimal valorUnitario;
 
-    @Column(nullable = false)
-    private boolean enviado;
+    @Column(name = "nome_produto", length = 120)
+    private String nomeProduto;
 
-    @Column(nullable = false)
-    private boolean recebido;
+    @Column(name = "foto_url", length = 500)
+    private String fotoUrl;
 
     protected ItemPedido() {
     }
 
-    ItemPedido(Pedido pedido, long produtoId, long tamanhoId, String sigla, int quantidade, BigDecimal valorUnitario) {
+    ItemPedido(Pedido pedido, long produtoId, long tamanhoId, String sigla, int quantidade,
+               BigDecimal valorUnitario, String nomeProduto, String fotoUrl) {
         this.pedido = pedido;
         this.produtoId = produtoId;
         this.tamanhoId = tamanhoId;
         this.sigla = sigla;
         this.quantidade = quantidade;
         this.valorUnitario = valorUnitario;
+        this.nomeProduto = nomeProduto;
+        this.fotoUrl = fotoUrl;
     }
 
     public BigDecimal getValorTotal() {
         return valorUnitario.multiply(BigDecimal.valueOf(quantidade));
-    }
-
-    public void marcarEnviado() {
-        this.enviado = true;
-    }
-
-    public void marcarRecebido() {
-        this.recebido = true;
     }
 
     public Pedido getPedido() {
@@ -98,11 +93,11 @@ public class ItemPedido {
         return valorUnitario;
     }
 
-    public boolean isEnviado() {
-        return enviado;
+    public String getNomeProduto() {
+        return nomeProduto;
     }
 
-    public boolean isRecebido() {
-        return recebido;
+    public String getFotoUrl() {
+        return fotoUrl;
     }
 }

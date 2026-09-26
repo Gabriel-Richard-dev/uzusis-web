@@ -21,9 +21,11 @@
     <nav aria-labelledby="rodape-categorias">
       <h2 id="rodape-categorias" class="uz-legenda rodape__titulo">Categorias</h2>
       <ul class="rodape__lista rodape__lista--categorias">
-        <li *ngFor="let c of categorias">
-          <a routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
-        </li>
+        @for (c of categorias; track c) {
+          <li>
+            <a routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+          </li>
+        }
       </ul>
     </nav>
   </div>

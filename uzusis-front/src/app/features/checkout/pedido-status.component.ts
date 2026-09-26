@@ -1,6 +1,6 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { mensagemDeErro } from '../../core/api/erros';
@@ -8,6 +8,13 @@ import { PedidoResposta, StatusPedido } from '../../core/api/modelos';
 import { PedidosService } from '../../core/api/pedidos.service';
 import { SacolaService } from '../../core/api/sacola.service';
 import { acompanharPedido, foiRecusado, marcarRecusado } from './fluxo';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { StatusPedidoComponent } from '../../shared/status-pedido.component';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { LinhaDoTempoComponent } from '../../shared/linha-do-tempo.component';
+import { ItensPedidoComponent } from './itens-pedido.component';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 
 const TITULO: Record<StatusPedido, string> = {
   CRIADO: 'Processando pagamento…',
@@ -19,9 +26,11 @@ const TITULO: Record<StatusPedido, string> = {
 
 /** /pedido/:id: confirmação com polling do O8 enquanto CRIADO (§7.3). */
 @Component({
-  selector: 'uz-pedido-status',
-  templateUrl: './pedido-status.component.html',
-  styleUrls: ['./pedido-status.component.scss'],
+    selector: 'uz-pedido-status',
+    templateUrl: './pedido-status.component.html',
+    styleUrls: ['./pedido-status.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, MatButton, RouterLink, StatusPedidoComponent, MatProgressSpinner, LinhaDoTempoComponent, ItensPedidoComponent, CurrencyPipe, DatePipe]
 })
 export class PedidoStatusComponent {
   private readonly route = inject(ActivatedRoute);

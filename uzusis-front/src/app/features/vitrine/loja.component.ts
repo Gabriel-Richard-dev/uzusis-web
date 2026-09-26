@@ -1,6 +1,6 @@
-import { Component, ElementRef, inject } from '@angular/core';
+import { Component, ElementRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Subject, catchError, debounceTime, filter, map, of, switchMap } from 'rxjs';
 
@@ -9,13 +9,23 @@ import { mensagemDeErro } from '../../core/api/erros';
 import { CATEGORIAS, Pagina, ProdutoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
 import { FiltroLoja, ORDENS, acrescentar, lerFiltro, sortDe } from './vitrine';
+import { MatFormField, MatLabel, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { IconeComponent } from '../../shared/icone.component';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { EstadoComponent } from '../../shared/estado.component';
+import { EsqueletoComponent } from '../../shared/esqueleto.component';
+import { ProdutoCardComponent } from './produto-card.component';
 
 const TAMANHO_PAGINA = 12;
 
 @Component({
-  selector: 'uz-loja',
-  templateUrl: './loja.component.html',
-  styleUrls: ['./loja.component.scss'],
+    selector: 'uz-loja',
+    templateUrl: './loja.component.html',
+    styleUrls: ['./loja.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatFormField, MatLabel, MatInput, FormsModule, ReactiveFormsModule, MatIconButton, MatSuffix, IconeComponent, MatSelect, MatOption, EstadoComponent, EsqueletoComponent, MatButton, ProdutoCardComponent]
 })
 export class LojaComponent {
   private readonly route = inject(ActivatedRoute);

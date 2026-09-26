@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, inject } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, catchError, concatMap, filter, finalize, from, map, of, switchMap, tap, toArray } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
@@ -6,6 +6,9 @@ import { mensagemDeErro } from '../../core/api/erros';
 import { FotoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
 import { MAX_FOTOS, erroDoArquivo, trocar } from './admin-util';
+import { MatIconButton, MatButton } from '@angular/material/button';
+import { IconeComponent } from '../../shared/icone.component';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 /** Arquivo escolhido e ainda não gravado: pendente (criação), enviando ou com erro. */
 interface FotoLocal {
@@ -21,9 +24,11 @@ interface FotoLocal {
  * Edição: envia ao escolher (C10), remove (C11) e reordena pelos botões (C12). A primeira é a capa.
  */
 @Component({
-  selector: 'uz-gerenciador-fotos',
-  templateUrl: './gerenciador-fotos.component.html',
-  styleUrls: ['./gerenciador-fotos.component.scss'],
+    selector: 'uz-gerenciador-fotos',
+    templateUrl: './gerenciador-fotos.component.html',
+    styleUrls: ['./gerenciador-fotos.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatIconButton, IconeComponent, MatProgressSpinner, MatButton]
 })
 export class GerenciadorFotosComponent implements OnDestroy {
   @Input() produtoId: number | null = null;

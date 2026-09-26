@@ -13,132 +13,139 @@
       <mat-label>Categoria</mat-label>
       <mat-select [formControl]="categoria">
         <mat-option value="">Todas</mat-option>
-        <mat-option *ngFor="let c of categorias" [value]="c.valor">{{ c.nome }}</mat-option>
+        @for (c of categorias; track c) {
+          <mat-option [value]="c.valor">{{ c.nome }}</mat-option>
+        }
       </mat-select>
     </mat-form-field>
     <mat-form-field subscriptSizing="dynamic">
       <mat-label>Situação</mat-label>
       <mat-select [formControl]="situacao">
         <mat-option value="">Todas</mat-option>
-        <mat-option *ngFor="let s of situacoes" [value]="s.valor">{{ s.nome }}</mat-option>
+        @for (s of situacoes; track s) {
+          <mat-option [value]="s.valor">{{ s.nome }}</mat-option>
+        }
       </mat-select>
     </mat-form-field>
   </div>
 
-  <div *ngIf="carregando && !pagina" class="esqueleto" aria-busy="true">
-    <span class="uz-visualmente-oculto">Carregando produtos…</span>
-    <uz-esqueleto formato="linha" [quantidade]="8"></uz-esqueleto>
-  </div>
+  @if (carregando && !pagina) {
+    <div class="esqueleto" aria-busy="true">
+      <span class="uz-visualmente-oculto">Carregando produtos…</span>
+      <uz-esqueleto formato="linha" [quantidade]="8"></uz-esqueleto>
+    </div>
+  }
 
-  <uz-estado
-    *ngIf="!carregando && erro"
-    tipo="erro"
-    titulo="Não foi possível carregar os produtos"
-    [mensagem]="mensagemDeErro(erro)"
-    (tentarNovamente)="carregar()"
-  ></uz-estado>
+  @if (!carregando && erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar os produtos"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
 
-  <ng-container *ngIf="pagina && !pagina.content.length && !carregando">
-    <uz-estado *ngIf="filtrando; else semProdutos" tipo="vazio" titulo="Nenhum produto encontrado">
-      <button mat-stroked-button type="button" (click)="limparFiltros()">Limpar filtros</button>
-    </uz-estado>
-    <ng-template #semProdutos>
+  @if (pagina && !pagina.content.length && !carregando) {
+    @if (filtrando) {
+      <uz-estado tipo="vazio" titulo="Nenhum produto encontrado">
+        <button mat-stroked-button type="button" (click)="limparFiltros()">Limpar filtros</button>
+      </uz-estado>
+    } @else {
       <uz-estado tipo="vazio" titulo="Nenhum produto cadastrado">
         <a mat-flat-button color="primary" routerLink="/admin/produtos/novo">Novo produto</a>
       </uz-estado>
-    </ng-template>
-  </ng-container>
+    }
+  }
 
-  <div *ngIf="pagina && pagina.content.length" class="lista" [attr.aria-busy]="carregando ? 'true' : null">
-    <mat-progress-bar *ngIf="carregando" mode="indeterminate" aria-label="Atualizando a lista"></mat-progress-bar>
-
-    <div class="tabela uz-cartao">
-      <table mat-table [dataSource]="pagina.content" [trackBy]="porId">
-        <caption class="uz-visualmente-oculto">
-          Produtos, página {{ pagina.number + 1 }} de {{ pagina.totalPages }}
-        </caption>
-
-        <ng-container matColumnDef="foto">
-          <th mat-header-cell *matHeaderCellDef><span class="uz-visualmente-oculto">Foto</span></th>
-          <td mat-cell *matCellDef="let p">
-            <img *ngIf="p.fotos.length; else semFoto" class="miniatura" [src]="p.fotos[0].url" alt="" width="48" height="64" loading="lazy" />
-            <ng-template #semFoto><span class="miniatura miniatura--vazia"></span></ng-template>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="nome">
-          <th mat-header-cell *matHeaderCellDef>Nome</th>
-          <td mat-cell *matCellDef="let p" class="celula-nome">
-            <a class="nome" [routerLink]="['/admin/produtos', p.id]">{{ p.nome }}</a>
-            <div class="so-estreito">
-              <span class="uz-texto-suave">{{ p.categoriaNome }} · {{ p.preco | currency }}</span>
-              <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }"></ng-container>
+  @if (pagina && pagina.content.length) {
+    <div class="lista" [attr.aria-busy]="carregando ? 'true' : null">
+      @if (carregando) {
+        <mat-progress-bar mode="indeterminate" aria-label="Atualizando a lista"></mat-progress-bar>
+      }
+      <div class="tabela uz-cartao">
+        <table mat-table [dataSource]="pagina.content" [trackBy]="porId">
+          <caption class="uz-visualmente-oculto">
+            Produtos, página {{ pagina.number + 1 }} de {{ pagina.totalPages }}
+          </caption>
+          <ng-container matColumnDef="foto">
+            <th mat-header-cell *matHeaderCellDef><span class="uz-visualmente-oculto">Foto</span></th>
+            <td mat-cell *matCellDef="let p">
+              @if (p.fotos.length) {
+                <img class="miniatura" [src]="p.fotos[0].url" alt="" width="48" height="64" loading="lazy" />
+              } @else {
+                <span class="miniatura miniatura--vazia"></span>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="nome">
+            <th mat-header-cell *matHeaderCellDef>Nome</th>
+            <td mat-cell *matCellDef="let p" class="celula-nome">
+              <a class="nome" [routerLink]="['/admin/produtos', p.id]">{{ p.nome }}</a>
+              <div class="so-estreito">
+                <span class="uz-texto-suave">{{ p.categoriaNome }} · {{ p.preco | currency }}</span>
+                <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }"></ng-container>
+                <ng-container *ngTemplateOutlet="estoqueTpl; context: { $implicit: p }"></ng-container>
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="categoria">
+            <th mat-header-cell *matHeaderCellDef class="so-largo">Categoria</th>
+            <td mat-cell *matCellDef="let p" class="so-largo">{{ p.categoriaNome }}</td>
+          </ng-container>
+          <ng-container matColumnDef="preco">
+            <th mat-header-cell *matHeaderCellDef class="so-largo">Preço</th>
+            <td mat-cell *matCellDef="let p" class="so-largo preco">{{ p.preco | currency }}</td>
+          </ng-container>
+          <ng-container matColumnDef="estoque">
+            <th mat-header-cell *matHeaderCellDef class="so-largo">Estoque</th>
+            <td mat-cell *matCellDef="let p" class="so-largo">
               <ng-container *ngTemplateOutlet="estoqueTpl; context: { $implicit: p }"></ng-container>
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="categoria">
-          <th mat-header-cell *matHeaderCellDef class="so-largo">Categoria</th>
-          <td mat-cell *matCellDef="let p" class="so-largo">{{ p.categoriaNome }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="preco">
-          <th mat-header-cell *matHeaderCellDef class="so-largo">Preço</th>
-          <td mat-cell *matCellDef="let p" class="so-largo preco">{{ p.preco | currency }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="estoque">
-          <th mat-header-cell *matHeaderCellDef class="so-largo">Estoque</th>
-          <td mat-cell *matCellDef="let p" class="so-largo">
-            <ng-container *ngTemplateOutlet="estoqueTpl; context: { $implicit: p }"></ng-container>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="situacao">
-          <th mat-header-cell *matHeaderCellDef class="so-largo">Situação</th>
-          <td mat-cell *matCellDef="let p" class="so-largo">
-            <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }"></ng-container>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="acoes">
-          <th mat-header-cell *matHeaderCellDef><span class="uz-visualmente-oculto">Ações</span></th>
-          <td mat-cell *matCellDef="let p">
-            <div class="acoes">
-              <a mat-stroked-button [routerLink]="['/admin/produtos', p.id]" [attr.aria-label]="'Editar ' + p.nome">Editar</a>
-              <button
-                mat-stroked-button
-                type="button"
-                [color]="p.ativo ? 'warn' : undefined"
-                [disabled]="ocupados.has(p.id)"
-                [attr.aria-label]="(p.ativo ? 'Desativar ' : 'Reativar ') + p.nome"
-                (click)="alternarAtivo(p)"
-              >
-                {{ p.ativo ? 'Desativar' : 'Reativar' }}
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="colunas"></tr>
-        <tr mat-row *matRowDef="let p; columns: colunas"></tr>
-      </table>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="situacao">
+            <th mat-header-cell *matHeaderCellDef class="so-largo">Situação</th>
+            <td mat-cell *matCellDef="let p" class="so-largo">
+              <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }"></ng-container>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="acoes">
+            <th mat-header-cell *matHeaderCellDef><span class="uz-visualmente-oculto">Ações</span></th>
+            <td mat-cell *matCellDef="let p">
+              <div class="acoes">
+                <a mat-stroked-button [routerLink]="['/admin/produtos', p.id]" [attr.aria-label]="'Editar ' + p.nome">Editar</a>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [color]="p.ativo ? 'warn' : undefined"
+                  [disabled]="ocupados.has(p.id)"
+                  [attr.aria-label]="(p.ativo ? 'Desativar ' : 'Reativar ') + p.nome"
+                  (click)="alternarAtivo(p)"
+                  >
+                  {{ p.ativo ? 'Desativar' : 'Reativar' }}
+                </button>
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="colunas"></tr>
+          <tr mat-row *matRowDef="let p; columns: colunas"></tr>
+        </table>
+      </div>
+      <mat-paginator
+        [length]="pagina.totalElements"
+        [pageIndex]="pagina.number"
+        [pageSize]="porPagina"
+        [hidePageSize]="true"
+        (page)="mudarPagina($event)"
+      ></mat-paginator>
     </div>
-
-    <mat-paginator
-      [length]="pagina.totalElements"
-      [pageIndex]="pagina.number"
-      [pageSize]="porPagina"
-      [hidePageSize]="true"
-      (page)="mudarPagina($event)"
-    ></mat-paginator>
-  </div>
+  }
 </section>
 
 <ng-template #estoqueTpl let-p>
   <ul class="estoque" aria-label="Estoque por tamanho">
-    <li *ngFor="let t of p.tamanhos" class="chip" [class.chip--zero]="t.quantidade === 0">{{ t.sigla }} {{ t.quantidade }}</li>
+    @for (t of p.tamanhos; track t) {
+      <li class="chip" [class.chip--zero]="t.quantidade === 0">{{ t.sigla }} {{ t.quantidade }}</li>
+    }
   </ul>
 </ng-template>
 

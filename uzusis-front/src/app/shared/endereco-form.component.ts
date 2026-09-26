@@ -1,18 +1,25 @@
-import { Component, Input, OnChanges, OnDestroy, inject } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, Input, OnChanges, OnDestroy, inject, ChangeDetectionStrategy } from '@angular/core';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subscription, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs';
 
 import { CepService } from '../core/api/cep.service';
 import { UFS } from '../core/util/ufs';
+import { MatFormField, MatLabel, MatError, MatHint, MatSuffix } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MascaraDirective } from './mascara.directive';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatSelect, MatOption } from '@angular/material/select';
 
 /**
  * Campos de endereço para um form de criarFormEndereco(fb, inicial?, entrega?).
  * Com 8 dígitos no CEP, o ViaCEP preenche rua, bairro, cidade e UF (só o que ele souber).
  */
 @Component({
-  selector: 'uz-endereco-form',
-  templateUrl: './endereco-form.component.html',
-  styleUrls: ['./endereco-form.component.scss'],
+    selector: 'uz-endereco-form',
+    templateUrl: './endereco-form.component.html',
+    styleUrls: ['./endereco-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatError, MascaraDirective, MatHint, MatProgressSpinner, MatSuffix, MatSelect, MatOption]
 })
 export class EnderecoFormComponent implements OnChanges, OnDestroy {
   @Input({ required: true }) form!: FormGroup;

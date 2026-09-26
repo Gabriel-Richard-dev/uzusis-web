@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose } from '@angular/material/dialog';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { MatButton } from '@angular/material/button';
 
 // Medidas do corpo em cm (§7.3), iguais para todas as categorias.
 const MEDIDAS = [
@@ -10,8 +13,8 @@ const MEDIDAS = [
 ];
 
 @Component({
-  selector: 'uz-guia-medidas',
-  template: `
+    selector: 'uz-guia-medidas',
+    template: `
     <h2 mat-dialog-title>Guia de medidas</h2>
     <mat-dialog-content>
       <table class="guia">
@@ -25,20 +28,22 @@ const MEDIDAS = [
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let m of medidas">
-            <th scope="row">{{ m.sigla }}</th>
-            <td>{{ m.busto }}</td>
-            <td>{{ m.cintura }}</td>
-            <td>{{ m.quadril }}</td>
-          </tr>
+          @for (m of medidas; track m) {
+            <tr>
+              <th scope="row">{{ m.sigla }}</th>
+              <td>{{ m.busto }}</td>
+              <td>{{ m.cintura }}</td>
+              <td>{{ m.quadril }}</td>
+            </tr>
+          }
         </tbody>
       </table>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-flat-button color="primary" type="button" mat-dialog-close>Fechar</button>
     </mat-dialog-actions>
-  `,
-  styles: [`
+    `,
+    styles: [`
     .guia {
       width: 100%;
       border-collapse: collapse;
@@ -59,6 +64,8 @@ const MEDIDAS = [
     thead th { font-weight: 600; }
     tbody th { font-weight: 600; }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatDialogTitle, CdkScrollable, MatDialogContent, MatDialogActions, MatButton, MatDialogClose]
 })
 export class GuiaMedidasComponent {
   readonly medidas = MEDIDAS;

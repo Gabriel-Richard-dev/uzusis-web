@@ -1,4 +1,5 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import type { Mock } from 'vitest';
 import { ActivatedRoute, ParamMap, Router, convertToParamMap } from '@angular/router';
 import { BehaviorSubject, of } from 'rxjs';
 
@@ -9,20 +10,18 @@ import { ProdutosComponent } from './produtos.component';
 
 describe('ProdutosComponent', () => {
   let url: BehaviorSubject<ParamMap>;
-  let router: jasmine.SpyObj<Router>;
-  let catalogo: jasmine.SpyObj<CatalogoService>;
+  let router: { navigate: Mock<Router['navigate']> };
+  let catalogo: { listarAdmin: Mock<CatalogoService['listarAdmin']> };
 
   const pagina = (p: Partial<Pagina<ProdutoResposta>>) =>
     ({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, ...p });
 
   function criar(query: Record<string, string>): ProdutosComponent {
     url = new BehaviorSubject(convertToParamMap(query));
-    router = jasmine.createSpyObj<Router>('Router', ['navigate']);
-    router.navigate.and.resolveTo(true);
-    catalogo = jasmine.createSpyObj<CatalogoService>('CatalogoService', ['listarAdmin']);
-    catalogo.listarAdmin.and.returnValue(of(pagina({})));
+    router = { navigate: vi.fn<Router['navigate']>().mockResolvedValue(true) };
+    catalogo = { listarAdmin: vi.fn<CatalogoService['listarAdmin']>().mockReturnValue(of(pagina({}))) };
     TestBed.configureTestingModule({
-      declarations: [ProdutosComponent],
+      imports: [ProdutosComponent],
       providers: [
         { provide: CatalogoService, useValue: catalogo },
         { provide: AvisoService, useValue: {} },
@@ -42,15 +41,15 @@ describe('ProdutosComponent', () => {
     c.busca.setValue('saia');
     tick(300);
     expect(router.navigate).toHaveBeenCalledTimes(2);
-    expect(router.navigate.calls.mostRecent().args[1]?.queryParams).toEqual({ q: 'saia', pagina: null });
+    expect(router.navigate.mock.lastCall?.[1]?.queryParams).toEqual({ q: 'saia', pagina: null });
   }));
 
   it('página que ficou vazia depois de desativar vai para a última que existe', () => {
     const c = criar({ situacao: 'ativo', pagina: '3' });
     expect(router.navigate).not.toHaveBeenCalled();
-    catalogo.listarAdmin.and.returnValue(of(pagina({ number: 2, totalPages: 2, totalElements: 40 })));
+    catalogo.listarAdmin.mockReturnValue(of(pagina({ number: 2, totalPages: 2, totalElements: 40 })));
     c.carregar();
-    expect(router.navigate).toHaveBeenCalledOnceWith([], jasmine.objectContaining({
+    expect(router.navigate).toHaveBeenCalledExactlyOnceWith([], expect.objectContaining({
       queryParams: { pagina: 2 },
       replaceUrl: true,
     }));

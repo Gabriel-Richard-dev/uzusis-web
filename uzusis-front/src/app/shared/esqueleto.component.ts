@@ -1,20 +1,27 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 /**
  * Placeholder de carregamento (decorativo, aria-hidden). O host é display: contents: os cartões viram
  * itens da grade de quem usa. Marque o contêiner com aria-busy="true" enquanto carrega.
  */
 @Component({
-  selector: 'uz-esqueleto',
-  template: `
-    <div *ngFor="let _ of itens" class="esq" [class.esq--cartao]="formato === 'cartao'">
-      <div *ngIf="formato === 'cartao'" class="esq__bloco esq__foto"></div>
-      <div class="esq__bloco esq__barra"></div>
-      <div *ngIf="formato === 'cartao'" class="esq__bloco esq__barra esq__barra--curta"></div>
-    </div>
-  `,
-  host: { 'aria-hidden': 'true' },
-  styles: [`
+    selector: 'uz-esqueleto',
+    template: `
+    @for (_ of itens; track _) {
+      <div class="esq" [class.esq--cartao]="formato === 'cartao'">
+        @if (formato === 'cartao') {
+          <div class="esq__bloco esq__foto"></div>
+        }
+        <div class="esq__bloco esq__barra"></div>
+        @if (formato === 'cartao') {
+          <div class="esq__bloco esq__barra esq__barra--curta"></div>
+        }
+      </div>
+    }
+    `,
+    host: { 'aria-hidden': 'true' },
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styles: [`
     :host {
       display: contents;
     }
@@ -47,7 +54,7 @@ import { Component, Input } from '@angular/core';
     @media (prefers-reduced-motion: reduce) {
       .esq__bloco { animation: none; }
     }
-  `],
+  `]
 })
 export class EsqueletoComponent {
   @Input() formato: 'cartao' | 'linha' = 'linha';

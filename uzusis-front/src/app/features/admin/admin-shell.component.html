@@ -1,72 +1,76 @@
-<mat-sidenav-container class="admin" *ngIf="{ largo: (largo$ | async) === true } as vm">
-  <mat-sidenav
-    #menu
-    class="admin__menu"
-    [mode]="vm.largo ? 'side' : 'over'"
-    [opened]="vm.largo"
-    [fixedInViewport]="true"
-  >
-    <div class="menu">
-      <div class="menu__topo">
-        <a routerLink="/admin" class="marca" aria-label="Uzusis, painel da administração">
-          <img src="assets/logoUzu.png" alt="" width="40" height="32" />
-          <span class="marca__texto">UZUSIS</span>
-        </a>
-        <button *ngIf="!vm.largo" mat-icon-button type="button" aria-label="Fechar menu" (click)="menu.close()">
-          <uz-icone nome="fechar" [tamanho]="24"></uz-icone>
-        </button>
-      </div>
-
-      <nav aria-label="Administração">
-        <a
-          class="menu__link"
-          routerLink="/admin"
-          routerLinkActive="menu__link--ativo"
-          ariaCurrentWhenActive="page"
-          [routerLinkActiveOptions]="{ exact: true }"
-          >Painel</a
-        >
-        <a class="menu__link" routerLink="/admin/produtos" routerLinkActive="menu__link--ativo" ariaCurrentWhenActive="page"
-          >Produtos</a
-        >
-        <a
-          class="menu__link"
-          routerLink="/admin/pedidos"
-          routerLinkActive="menu__link--ativo"
-          ariaCurrentWhenActive="page"
-          [routerLinkActiveOptions]="{ exact: true }"
-          >Pedidos a enviar</a
-        >
-        <a
-          class="menu__link"
-          routerLink="/admin/pedidos/historico"
-          routerLinkActive="menu__link--ativo"
-          ariaCurrentWhenActive="page"
-          >Histórico</a
-        >
-      </nav>
-
-      <div class="menu__rodape">
-        <a class="menu__link" routerLink="/">Ver loja</a>
-        <button class="menu__link" type="button" (click)="auth.logout()">Sair</button>
-      </div>
-    </div>
-  </mat-sidenav>
-
-  <mat-sidenav-content class="admin__conteudo">
-    <header class="barra">
-      <button *ngIf="!vm.largo" mat-icon-button type="button" aria-label="Abrir menu" (click)="menu.open()">
-        <uz-icone nome="menu" [tamanho]="24"></uz-icone>
-      </button>
-      <span class="barra__titulo">Administração</span>
-      <span *ngIf="usuario$ | async as usuario" class="barra__usuario">
-        <uz-icone nome="usuario"></uz-icone>
-        <span class="barra__nome">{{ usuario.nome }}</span>
-      </span>
-    </header>
-
-    <main id="conteudo" class="admin__main" tabindex="-1">
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+@if ({ largo: (largo$ | async) === true }; as vm) {
+  <mat-sidenav-container class="admin">
+    <mat-sidenav
+      #menu
+      class="admin__menu"
+      [mode]="vm.largo ? 'side' : 'over'"
+      [opened]="vm.largo"
+      [fixedInViewport]="true"
+      >
+      <div class="menu">
+        <div class="menu__topo">
+          <a routerLink="/admin" class="marca" aria-label="Uzusis, painel da administração">
+            <img src="assets/logoUzu.png" alt="" width="40" height="32" />
+            <span class="marca__texto">UZUSIS</span>
+          </a>
+          @if (!vm.largo) {
+            <button mat-icon-button type="button" aria-label="Fechar menu" (click)="menu.close()">
+              <uz-icone nome="fechar" [tamanho]="24"></uz-icone>
+            </button>
+          }
+        </div>
+        <nav aria-label="Administração">
+          <a
+            class="menu__link"
+            routerLink="/admin"
+            routerLinkActive="menu__link--ativo"
+            ariaCurrentWhenActive="page"
+            [routerLinkActiveOptions]="{ exact: true }"
+            >Painel</a
+            >
+            <a class="menu__link" routerLink="/admin/produtos" routerLinkActive="menu__link--ativo" ariaCurrentWhenActive="page"
+              >Produtos</a
+              >
+              <a
+                class="menu__link"
+                routerLink="/admin/pedidos"
+                routerLinkActive="menu__link--ativo"
+                ariaCurrentWhenActive="page"
+                [routerLinkActiveOptions]="{ exact: true }"
+                >Pedidos a enviar</a
+                >
+                <a
+                  class="menu__link"
+                  routerLink="/admin/pedidos/historico"
+                  routerLinkActive="menu__link--ativo"
+                  ariaCurrentWhenActive="page"
+                  >Histórico</a
+                  >
+                </nav>
+                <div class="menu__rodape">
+                  <a class="menu__link" routerLink="/">Ver loja</a>
+                  <button class="menu__link" type="button" (click)="auth.logout()">Sair</button>
+                </div>
+              </div>
+            </mat-sidenav>
+            <mat-sidenav-content class="admin__conteudo">
+              <header class="barra">
+                @if (!vm.largo) {
+                  <button mat-icon-button type="button" aria-label="Abrir menu" (click)="menu.open()">
+                    <uz-icone nome="menu" [tamanho]="24"></uz-icone>
+                  </button>
+                }
+                <span class="barra__titulo">Administração</span>
+                @if (usuario$ | async; as usuario) {
+                  <span class="barra__usuario">
+                    <uz-icone nome="usuario"></uz-icone>
+                    <span class="barra__nome">{{ usuario.nome }}</span>
+                  </span>
+                }
+              </header>
+              <main id="conteudo" class="admin__main" tabindex="-1">
+                <router-outlet></router-outlet>
+              </main>
+            </mat-sidenav-content>
+          </mat-sidenav-container>
+        }

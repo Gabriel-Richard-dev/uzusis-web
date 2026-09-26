@@ -1,7 +1,7 @@
 import { formatDate } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { mensagemDeErro } from '../../core/api/erros';
@@ -10,6 +10,12 @@ import { PerfilService } from '../../core/api/perfil.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { criarFormEndereco } from '../../core/util/endereco-form';
 import { AvisoService } from '../../core/util/aviso.service';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatFormField, MatLabel, MatHint, MatError } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MascaraDirective } from '../../shared/mascara.directive';
+import { MatButton } from '@angular/material/button';
+import { EnderecoFormComponent } from '../../shared/endereco-form.component';
 
 const digitos = (v: unknown) => String(v ?? '').replace(/\D/g, '');
 
@@ -47,9 +53,11 @@ const MENSAGENS: Record<string, string> = {
 
 /** /conta/dados: dados pessoais (I2), endereço (I3), e-mail só leitura e troca de senha no Keycloak. */
 @Component({
-  selector: 'uz-conta-dados',
-  templateUrl: './dados.component.html',
-  styleUrls: ['./dados.component.scss'],
+    selector: 'uz-conta-dados',
+    templateUrl: './dados.component.html',
+    styleUrls: ['./dados.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, FormsModule, ReactiveFormsModule, MatFormField, MatLabel, MatInput, MatHint, MatError, MascaraDirective, MatButton, EnderecoFormComponent]
 })
 export class DadosComponent implements OnInit {
   private readonly api = inject(PerfilService);

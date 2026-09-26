@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
 import { FotoResposta } from '../../core/api/modelos';
 
@@ -7,9 +7,10 @@ import { FotoResposta } from '../../core/api/modelos';
  * faixa com scroll-snap e indicadores no mobile. O escondido (display: none) sai da ordem de foco e do leitor.
  */
 @Component({
-  selector: 'uz-galeria',
-  templateUrl: './galeria.component.html',
-  styleUrls: ['./galeria.component.scss'],
+    selector: 'uz-galeria',
+    templateUrl: './galeria.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    styleUrls: ['./galeria.component.scss']
 })
 export class GaleriaComponent {
   @Input({ required: true }) nome!: string;

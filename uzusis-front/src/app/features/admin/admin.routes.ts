@@ -1,5 +1,4 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Routes } from '@angular/router';
 
 import { AdminShellComponent } from './admin-shell.component';
 import { PainelComponent } from './painel.component';
@@ -7,8 +6,8 @@ import { PedidosAdminComponent } from './pedidos-admin.component';
 import { ProdutoFormComponent } from './produto-form.component';
 import { ProdutosComponent } from './produtos.component';
 
-// Fora do ShellComponent da loja (tem o próprio <main id="conteudo">). adminGuard (canMatch) no app-routing.
-const routes: Routes = [
+// Fora do ShellComponent da loja (tem o próprio <main id="conteudo">). adminGuard (canMatch) no app.routes.
+const ROTAS: Routes = [
   {
     path: '',
     component: AdminShellComponent,
@@ -33,8 +32,4 @@ const routes: Routes = [
   },
 ];
 
-@NgModule({
-  imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule],
-})
-export class AdminRoutingModule {}
+export default ROTAS;

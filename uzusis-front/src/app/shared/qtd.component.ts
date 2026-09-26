@@ -1,12 +1,14 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { MatIconButton } from '@angular/material/button';
+import { IconeComponent } from './icone.component';
 
 /**
  * Seletor de quantidade controlado: só emite (valorChange); quem usa atualiza [valor].
  * Use [(valor)] para estado local, ou [valor] + (valorChange) quando a mudança depende do servidor.
  */
 @Component({
-  selector: 'uz-qtd',
-  template: `
+    selector: 'uz-qtd',
+    template: `
     <div class="qtd" role="group" [attr.aria-label]="rotulo">
       <button
         mat-icon-button
@@ -40,7 +42,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
       </button>
     </div>
   `,
-  styles: [`
+    styles: [`
     .qtd {
       display: inline-flex;
       align-items: center;
@@ -64,6 +66,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
       margin: 0;
     }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatIconButton, IconeComponent]
 })
 export class QtdComponent {
   @Input() valor = 1;

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { filter, finalize, switchMap, tap } from 'rxjs';
 
 import { mensagemDeErro } from '../../core/api/erros';
@@ -6,12 +6,21 @@ import { PedidoResposta } from '../../core/api/modelos';
 import { PedidosService } from '../../core/api/pedidos.service';
 import { AvisoService } from '../../core/util/aviso.service';
 import { aplicarMascara } from '../../shared/mascara.directive';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatButton } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
+import { StatusPedidoComponent } from '../../shared/status-pedido.component';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelContent } from '@angular/material/expansion';
+import { LinhaDoTempoComponent } from '../../shared/linha-do-tempo.component';
+import { SlicePipe, CurrencyPipe, DatePipe } from '@angular/common';
 
 /** /conta/pedidos: O7 em cartões, com detalhes expansíveis e confirmação de recebimento (O9). */
 @Component({
-  selector: 'uz-conta-pedidos',
-  templateUrl: './pedidos.component.html',
-  styleUrls: ['./pedidos.component.scss'],
+    selector: 'uz-conta-pedidos',
+    templateUrl: './pedidos.component.html',
+    styleUrls: ['./pedidos.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [EstadoComponent, MatButton, RouterLink, StatusPedidoComponent, MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle, MatExpansionPanelContent, LinhaDoTempoComponent, SlicePipe, CurrencyPipe, DatePipe]
 })
 export class PedidosComponent implements OnInit {
   private readonly api = inject(PedidosService);

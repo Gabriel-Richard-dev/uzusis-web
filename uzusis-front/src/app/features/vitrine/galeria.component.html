@@ -1,22 +1,26 @@
-<div *ngIf="!fotos.length" class="galeria__vazia">Sem foto</div>
+@if (!fotos.length) {
+  <div class="galeria__vazia">Sem foto</div>
+}
 
-<ng-container *ngIf="fotos.length">
+@if (fotos.length) {
   <div class="galeria__desktop">
     <img class="galeria__principal" [src]="fotos[atual].url" [alt]="alt(atual)" width="600" height="800" />
-    <div *ngIf="fotos.length > 1" class="galeria__miniaturas">
-      <button
-        *ngFor="let f of fotos; let i = index"
-        type="button"
-        class="galeria__miniatura"
-        [attr.aria-label]="'Ver foto ' + (i + 1) + ' de ' + fotos.length"
-        [attr.aria-current]="i === atual ? 'true' : null"
-        (click)="atual = i"
-      >
-        <img [src]="f.url" alt="" width="64" height="85" loading="lazy" />
-      </button>
-    </div>
+    @if (fotos.length > 1) {
+      <div class="galeria__miniaturas">
+        @for (f of fotos; track f; let i = $index) {
+          <button
+            type="button"
+            class="galeria__miniatura"
+            [attr.aria-label]="'Ver foto ' + (i + 1) + ' de ' + fotos.length"
+            [attr.aria-current]="i === atual ? 'true' : null"
+            (click)="atual = i"
+            >
+            <img [src]="f.url" alt="" width="64" height="85" loading="lazy" />
+          </button>
+        }
+      </div>
+    }
   </div>
-
   <div class="galeria__mobile">
     <div
       #faixa
@@ -25,22 +29,26 @@
       role="region"
       [attr.aria-label]="'Fotos de ' + nome"
       (scroll)="aoRolar(faixa)"
-    >
-      <img
-        *ngFor="let f of fotos; let i = index"
-        [src]="f.url"
-        [alt]="alt(i)"
-        width="600"
-        height="800"
-        [attr.loading]="i ? 'lazy' : null"
-      />
+      >
+      @for (f of fotos; track f; let i = $index) {
+        <img
+          [src]="f.url"
+          [alt]="alt(i)"
+          width="600"
+          height="800"
+          [attr.loading]="i ? 'lazy' : null"
+          />
+      }
     </div>
-    <div *ngIf="fotos.length > 1" class="galeria__pontos" aria-hidden="true">
-      <span
-        *ngFor="let f of fotos; let i = index"
-        class="galeria__ponto"
-        [class.galeria__ponto--ativo]="i === atual"
-      ></span>
-    </div>
+    @if (fotos.length > 1) {
+      <div class="galeria__pontos" aria-hidden="true">
+        @for (f of fotos; track f; let i = $index) {
+          <span
+            class="galeria__ponto"
+            [class.galeria__ponto--ativo]="i === atual"
+          ></span>
+        }
+      </div>
+    }
   </div>
-</ng-container>
+}

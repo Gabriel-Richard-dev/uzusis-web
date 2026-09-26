@@ -1,6 +1,8 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 
 import { PedidoResposta, StatusPedido } from '../core/api/modelos';
+import { IconeComponent } from './icone.component';
+import { DatePipe } from '@angular/common';
 
 interface Etapa {
   rotulo: string;
@@ -29,30 +31,39 @@ export function montarEtapas(p: PedidoResposta): Etapa[] {
 
 /** CRIADO → PAGO → ENVIADO → RECEBIDO, ou o ramo cancelado (com motivo e data) destacado. */
 @Component({
-  selector: 'uz-linha-do-tempo',
-  template: `
+    selector: 'uz-linha-do-tempo',
+    template: `
     <ol class="linha">
-      <li
-        *ngFor="let e of etapas"
-        class="etapa"
-        [class.etapa--feita]="e.feita"
-        [class.etapa--cancelada]="e.cancelada"
-        [attr.aria-current]="e.atual ? 'step' : null"
-      >
-        <span class="etapa__marca" aria-hidden="true">
-          <uz-icone *ngIf="e.feita" [nome]="e.cancelada ? 'fechar' : 'check'" [tamanho]="14"></uz-icone>
-        </span>
-        <span class="etapa__texto">
-          <span class="etapa__rotulo">
-            {{ e.rotulo }}<span *ngIf="!e.feita" class="uz-visualmente-oculto"> (pendente)</span>
+      @for (e of etapas; track e) {
+        <li
+          class="etapa"
+          [class.etapa--feita]="e.feita"
+          [class.etapa--cancelada]="e.cancelada"
+          [attr.aria-current]="e.atual ? 'step' : null"
+          >
+          <span class="etapa__marca" aria-hidden="true">
+            @if (e.feita) {
+              <uz-icone [nome]="e.cancelada ? 'fechar' : 'check'" [tamanho]="14"></uz-icone>
+            }
           </span>
-          <span *ngIf="e.data" class="etapa__data">{{ e.data | date: 'dd/MM/yyyy HH:mm' }}</span>
-          <span *ngIf="e.detalhe" class="etapa__detalhe">{{ e.detalhe }}</span>
+          <span class="etapa__texto">
+            <span class="etapa__rotulo">
+              {{ e.rotulo }}@if (!e.feita) {
+              <span class="uz-visualmente-oculto"> (pendente)</span>
+            }
+          </span>
+          @if (e.data) {
+            <span class="etapa__data">{{ e.data | date: 'dd/MM/yyyy HH:mm' }}</span>
+          }
+          @if (e.detalhe) {
+            <span class="etapa__detalhe">{{ e.detalhe }}</span>
+          }
         </span>
       </li>
+    }
     </ol>
-  `,
-  styles: [`
+    `,
+    styles: [`
     .linha {
       list-style: none;
       margin: 0;
@@ -116,6 +127,8 @@ export function montarEtapas(p: PedidoResposta): Etapa[] {
       color: var(--uz-erro);
     }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [IconeComponent, DatePipe]
 })
 export class LinhaDoTempoComponent implements OnChanges {
   @Input({ required: true }) pedido!: PedidoResposta;

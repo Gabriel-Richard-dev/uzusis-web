@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl } from '@angular/forms';
-import { PageEvent } from '@angular/material/paginator';
-import { ActivatedRoute, Params, Router } from '@angular/router';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { PageEvent, MatPaginator } from '@angular/material/paginator';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, debounceTime, filter, finalize, map, of, switchMap, tap } from 'rxjs';
 
 import { CatalogoService } from '../../core/api/catalogo.service';
@@ -10,14 +10,25 @@ import { mensagemDeErro } from '../../core/api/erros';
 import { CATEGORIAS, CategoriaProduto, FiltroProdutosAdmin, Pagina, ProdutoResposta } from '../../core/api/modelos';
 import { AvisoService } from '../../core/util/aviso.service';
 import { SITUACOES, filtroDaSituacao, situacaoDo } from './admin-util';
+import { MatButton } from '@angular/material/button';
+import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatInput } from '@angular/material/input';
+import { MatSelect, MatOption } from '@angular/material/select';
+import { EsqueletoComponent } from '../../shared/esqueleto.component';
+import { EstadoComponent } from '../../shared/estado.component';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow } from '@angular/material/table';
+import { NgTemplateOutlet, NgClass, CurrencyPipe } from '@angular/common';
 
 const POR_PAGINA = 20;
 
 /** Lista do C4. Os filtros e a página moram na URL (?q, categoria, situacao, pagina). */
 @Component({
-  selector: 'uz-produtos',
-  templateUrl: './produtos.component.html',
-  styleUrls: ['./produtos.component.scss'],
+    selector: 'uz-produtos',
+    templateUrl: './produtos.component.html',
+    styleUrls: ['./produtos.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MatButton, RouterLink, MatFormField, MatLabel, MatInput, FormsModule, ReactiveFormsModule, MatSelect, MatOption, EsqueletoComponent, EstadoComponent, MatProgressBar, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, NgTemplateOutlet, MatHeaderRowDef, MatHeaderRow, MatRowDef, MatRow, MatPaginator, NgClass, CurrencyPipe]
 })
 export class ProdutosComponent {
   private readonly catalogo = inject(CatalogoService);

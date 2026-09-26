@@ -5,90 +5,101 @@
   </a>
   <h1 class="uz-titulo" tabindex="-1">{{ edicao ? 'Editar produto' : 'Novo produto' }}</h1>
 
-  <uz-estado *ngIf="carregando" tipo="carregando" mensagem="Carregando o produto…"></uz-estado>
+  @if (carregando) {
+    <uz-estado tipo="carregando" mensagem="Carregando o produto…"></uz-estado>
+  }
 
-  <uz-estado
-    *ngIf="erroCarga"
-    tipo="erro"
-    titulo="Não foi possível carregar o produto"
-    [mensagem]="mensagemDeErro(erroCarga)"
-    (tentarNovamente)="carregar()"
-  >
-    <a mat-stroked-button routerLink="/admin/produtos">Voltar para produtos</a>
-  </uz-estado>
-
-  <form *ngIf="!carregando && !erroCarga" class="form" [formGroup]="form" (ngSubmit)="salvar()">
-    <p *ngIf="produto && !produto.ativo" class="aviso" role="status">
-      Este produto está inativo e não aparece na loja. Reative-o na lista de produtos.
-    </p>
-
-    <section class="bloco uz-cartao" aria-labelledby="info-titulo">
-      <h2 id="info-titulo" class="bloco__titulo">Informações</h2>
-
-      <mat-form-field>
-        <mat-label>Nome</mat-label>
-        <input matInput formControlName="nome" maxlength="120" autocomplete="off" required />
-        <mat-error *ngIf="form.controls.nome.hasError('required')">Informe o nome.</mat-error>
-      </mat-form-field>
-
-      <div class="linha">
-        <mat-form-field>
-          <mat-label>Categoria</mat-label>
-          <mat-select formControlName="categoria" required>
-            <mat-option *ngFor="let c of categorias" [value]="c.valor">{{ c.nome }}</mat-option>
-          </mat-select>
-          <mat-error>Escolha a categoria.</mat-error>
-        </mat-form-field>
-
-        <mat-form-field>
-          <mat-label>Preço</mat-label>
-          <span matTextPrefix>R$&nbsp;</span>
-          <input matInput formControlName="preco" inputmode="decimal" autocomplete="off" required />
-          <mat-hint>Ex.: 59,90</mat-hint>
-          <mat-error *ngIf="form.controls.preco.hasError('required')">Informe o preço.</mat-error>
-          <mat-error *ngIf="form.controls.preco.hasError('preco')">Use o formato 59,90 (mínimo 0,01).</mat-error>
-        </mat-form-field>
-      </div>
-
-      <mat-form-field>
-        <mat-label>Descrição</mat-label>
-        <textarea matInput formControlName="descricao" rows="5" maxlength="2000" required></textarea>
-        <mat-hint align="end">{{ form.controls.descricao.value.length }} / 2000</mat-hint>
-        <mat-error>Informe a descrição.</mat-error>
-      </mat-form-field>
-    </section>
-
-    <fieldset class="bloco uz-cartao" formGroupName="estoque">
-      <legend><h2 class="bloco__titulo">Estoque por tamanho</h2></legend>
-      <p class="uz-texto-suave">Um tamanho criado não pode ser removido depois, só zerado.</p>
-      <div class="estoque">
-        <mat-form-field *ngFor="let s of siglas">
-          <mat-label>{{ s }}</mat-label>
-          <input matInput type="number" inputmode="numeric" min="0" max="9999" step="1" [formControlName]="s" />
-          <mat-error>De 0 a 9999</mat-error>
-        </mat-form-field>
-      </div>
-      <p
-        *ngIf="form.controls.estoque.hasError('semEstoque') && form.controls.estoque.touched"
-        class="erro"
-        role="alert"
+  @if (erroCarga) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar o produto"
+      [mensagem]="mensagemDeErro(erroCarga)"
+      (tentarNovamente)="carregar()"
       >
-        Informe o estoque de pelo menos um tamanho
-      </p>
-    </fieldset>
+      <a mat-stroked-button routerLink="/admin/produtos">Voltar para produtos</a>
+    </uz-estado>
+  }
 
-    <section class="bloco uz-cartao" aria-labelledby="fotos-titulo">
-      <h2 id="fotos-titulo" class="bloco__titulo">Fotos</h2>
-      <uz-gerenciador-fotos [produtoId]="produto?.id ?? null" [fotos]="produto?.fotos ?? []"></uz-gerenciador-fotos>
-    </section>
-
-    <p *ngIf="erroSalvar" class="erro erro--caixa" role="alert">{{ erroSalvar }}</p>
-
-    <div class="acoes">
-      <button mat-flat-button color="primary" type="submit" [disabled]="salvando">
-        {{ salvando ? 'Salvando…' : 'Salvar' }}
-      </button>
-      <a mat-stroked-button routerLink="/admin/produtos">Voltar para a lista</a>
-    </div>
-  </form>
+  @if (!carregando && !erroCarga) {
+    <form class="form" [formGroup]="form" (ngSubmit)="salvar()">
+      @if (produto && !produto.ativo) {
+        <p class="aviso" role="status">
+          Este produto está inativo e não aparece na loja. Reative-o na lista de produtos.
+        </p>
+      }
+      <section class="bloco uz-cartao" aria-labelledby="info-titulo">
+        <h2 id="info-titulo" class="bloco__titulo">Informações</h2>
+        <mat-form-field>
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" maxlength="120" autocomplete="off" required />
+          @if (form.controls.nome.hasError('required')) {
+            <mat-error>Informe o nome.</mat-error>
+          }
+        </mat-form-field>
+        <div class="linha">
+          <mat-form-field>
+            <mat-label>Categoria</mat-label>
+            <mat-select formControlName="categoria" required>
+              @for (c of categorias; track c) {
+                <mat-option [value]="c.valor">{{ c.nome }}</mat-option>
+              }
+            </mat-select>
+            <mat-error>Escolha a categoria.</mat-error>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Preço</mat-label>
+            <span matTextPrefix>R$&nbsp;</span>
+            <input matInput formControlName="preco" inputmode="decimal" autocomplete="off" required />
+            <mat-hint>Ex.: 59,90</mat-hint>
+            @if (form.controls.preco.hasError('required')) {
+              <mat-error>Informe o preço.</mat-error>
+            }
+            @if (form.controls.preco.hasError('preco')) {
+              <mat-error>Use o formato 59,90 (mínimo 0,01).</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <mat-form-field>
+          <mat-label>Descrição</mat-label>
+          <textarea matInput formControlName="descricao" rows="5" maxlength="2000" required></textarea>
+          <mat-hint align="end">{{ form.controls.descricao.value.length }} / 2000</mat-hint>
+          <mat-error>Informe a descrição.</mat-error>
+        </mat-form-field>
+      </section>
+      <fieldset class="bloco uz-cartao" formGroupName="estoque">
+        <legend><h2 class="bloco__titulo">Estoque por tamanho</h2></legend>
+        <p class="uz-texto-suave">Um tamanho criado não pode ser removido depois, só zerado.</p>
+        <div class="estoque">
+          @for (s of siglas; track s) {
+            <mat-form-field>
+              <mat-label>{{ s }}</mat-label>
+              <input matInput type="number" inputmode="numeric" min="0" max="9999" step="1" [formControlName]="s" />
+              <mat-error>De 0 a 9999</mat-error>
+            </mat-form-field>
+          }
+        </div>
+        @if (form.controls.estoque.hasError('semEstoque') && form.controls.estoque.touched) {
+          <p
+            class="erro"
+            role="alert"
+            >
+            Informe o estoque de pelo menos um tamanho
+          </p>
+        }
+      </fieldset>
+      <section class="bloco uz-cartao" aria-labelledby="fotos-titulo">
+        <h2 id="fotos-titulo" class="bloco__titulo">Fotos</h2>
+        <uz-gerenciador-fotos [produtoId]="produto?.id ?? null" [fotos]="produto?.fotos ?? []"></uz-gerenciador-fotos>
+      </section>
+      @if (erroSalvar) {
+        <p class="erro erro--caixa" role="alert">{{ erroSalvar }}</p>
+      }
+      <div class="acoes">
+        <button mat-flat-button color="primary" type="submit" [disabled]="salvando">
+          {{ salvando ? 'Salvando…' : 'Salvar' }}
+        </button>
+        <a mat-stroked-button routerLink="/admin/produtos">Voltar para a lista</a>
+      </div>
+    </form>
+  }
 </section>

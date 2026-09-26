@@ -13,22 +13,25 @@
 
         <h2 class="uz-legenda menu__secao" id="menu-categorias">Categorias</h2>
         <ul class="menu__lista" aria-labelledby="menu-categorias">
-          <li *ngFor="let c of categorias">
-            <a class="menu__link" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
-          </li>
+          @for (c of categorias; track c) {
+            <li>
+              <a class="menu__link" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+            </li>
+          }
         </ul>
 
         <h2 class="uz-legenda menu__secao">Conta</h2>
-        <ng-container *ngIf="usuario$ | async as usuario; else anonimo">
+        @if (usuario$ | async; as usuario) {
           <a class="menu__link" routerLink="/conta/dados">Minha conta</a>
           <a class="menu__link" routerLink="/conta/pedidos">Meus pedidos</a>
-          <a *ngIf="usuario.roles.includes('ADMIN')" class="menu__link" routerLink="/admin">Administração</a>
+          @if (usuario.roles.includes('ADMIN')) {
+            <a class="menu__link" routerLink="/admin">Administração</a>
+          }
           <button class="menu__link" type="button" (click)="auth.logout()">Sair</button>
-        </ng-container>
-        <ng-template #anonimo>
+        } @else {
           <button class="menu__link" type="button" (click)="auth.login()">Entrar</button>
           <button class="menu__link" type="button" (click)="auth.cadastrar()">Criar conta</button>
-        </ng-template>
+        }
       </nav>
     </div>
   </mat-sidenav>
@@ -40,7 +43,7 @@
     [fixedInViewport]="true"
     [opened]="(sacola.aberta$ | async) === true"
     (openedChange)="sacolaMudou($event)"
-  >
+    >
     <uz-sacola-drawer></uz-sacola-drawer>
   </mat-sidenav>
 

@@ -98,7 +98,8 @@ Sem chaves o sistema sobe normalmente: `/api/pagamentos/config` responde
 1. No `.env`: `STRIPE_SECRET_KEY=sk_test_…` e `STRIPE_PUBLISHABLE_KEY=pk_test_…`
    (Dashboard → Developers → API keys).
 2. Pegue o segredo de webhook do stripe-cli:
-   `docker compose run --rm stripe-cli listen --api-key sk_test_… --print-secret` → `whsec_…`.
+   `docker compose run --rm --no-deps stripe-cli listen --api-key sk_test_… --print-secret` → `whsec_…`
+   (o `--no-deps` evita recriar o `web`; o segredo é fixo por conta, basta pegar uma vez).
 3. No `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…` e `COMPOSE_PROFILES=stripe`
    (o stripe-cli passa a subir junto, com `restart: unless-stopped`, e encaminha os
    webhooks para `http://web/api/webhooks/stripe`).

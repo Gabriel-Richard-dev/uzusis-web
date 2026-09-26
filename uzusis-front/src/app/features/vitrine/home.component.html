@@ -6,7 +6,13 @@
     <a mat-flat-button color="primary" routerLink="/loja">Ver coleção</a>
   </div>
   <div class="hero__imagem">
-    <img *ngIf="fotoHero as foto" [src]="foto" alt="" width="600" height="750" />
+    <img
+      src="assets/banner-colecao.jpeg"
+      alt="Coleção Basic Sis da Uzusis: novas modelagens, peças em estoque. Compre online."
+      width="1366"
+      height="768"
+      fetchpriority="high"
+    />
   </div>
 </section>
 

@@ -33,11 +33,6 @@ export class HomeComponent {
       .subscribe({ next: p => (this.novidades = p.content), error: e => (this.erro = e) });
   }
 
-  /** 1ª foto do produto mais recente que tem foto; sem ela, o hero mostra só o bloco de cor. */
-  get fotoHero(): string | null {
-    return this.novidades?.find(p => p.fotos.length)?.fotos[0].url ?? null;
-  }
-
   porId(_: number, p: ProdutoResposta): number {
     return p.id;
   }

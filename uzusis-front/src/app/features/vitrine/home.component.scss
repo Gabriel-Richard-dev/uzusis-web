@@ -7,7 +7,7 @@
   padding-block: var(--uz-esp-6);
 
   @media (min-width: bp.$md) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: center;
     gap: var(--uz-esp-7);
     padding-block: var(--uz-esp-7);
@@ -27,14 +27,11 @@
 }
 
 // Sem foto (catálogo vazio ou erro), fica o bloco de areia.
+// Banner da coleção (16:9, com o texto da arte embutido): proporção igual à da imagem para não cortar nada.
 .hero__imagem {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--uz-areia);
-
-  @media (min-width: bp.$md) {
-    aspect-ratio: 4 / 5;
-  }
 
   img {
     width: 100%;

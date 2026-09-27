@@ -5,7 +5,7 @@
 @source '../libs/ui';
 
 /* Tema Uzusis (só claro). Hex de propósito: o checkout repassa estes valores ao Stripe, que não aceita oklch.
-   Contrastes: scratchpad/ui-v2/contraste.mjs */
+   Os pares de texto/fundo foram conferidos para contraste AA (4,5:1). */
 :root {
   color-scheme: light;
   --radius: 0.75rem;

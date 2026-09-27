@@ -1,0 +1,167 @@
+@import 'tailwindcss';
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+
+/* O helm gerado mora fora de src/. */
+@source '../libs/ui';
+
+/* Tema Uzusis (só claro). Hex de propósito: o checkout repassa estes valores ao Stripe, que não aceita oklch.
+   Os pares de texto/fundo foram conferidos para contraste AA (4,5:1). */
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+
+  --background: #faf8f5;          /* papel */
+  --foreground: #292524;
+  --card: #ffffff;
+  --card-foreground: #292524;
+  --popover: #ffffff;
+  --popover-foreground: #292524;
+  --primary: #1c1917;             /* quase preto: age e seleciona */
+  --primary-foreground: #faf8f5;
+  --secondary: #efe9e3;           /* areia: pills, blocos */
+  --secondary-foreground: #1c1917;
+  --muted: #efe9e3;
+  --muted-foreground: #6b645e;
+  --accent: #efe9e3;
+  --accent-foreground: #1c1917;
+  --destructive: #a8231c;
+  --border: #e6e0da;
+  --input: #958d85;               /* borda de campo: 3,08:1 */
+  --ring: #7a5a41;                /* foco = marca */
+
+  --chart-1: #7a5a41;
+  --chart-2: #2f6b45;
+  --chart-3: #b08968;
+  --chart-4: #5b6b7a;
+  --chart-5: #a8231c;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #292524;
+  --sidebar-primary: #1c1917;
+  --sidebar-primary-foreground: #faf8f5;
+  --sidebar-accent: #f3ece5;
+  --sidebar-accent-foreground: #654a35;
+  --sidebar-border: #e6e0da;
+  --sidebar-ring: #7a5a41;
+
+  /* Marca e status (fora do contrato shadcn) */
+  --brand: #7a5a41;
+  --brand-hover: #654a35;
+  --brand-muted: #f3ece5;
+  --brand-foreground: #ffffff;
+  --success: #2f6b45;
+  --success-muted: #e8f3ec;
+  --warning: #8a5a00;
+  --warning-muted: #fbf1dc;
+  --destructive-muted: #fbe9e7;
+
+  /* Toasts (sonner) na fonte do app */
+  --brn-sonner-font-family: 'Inter', system-ui, sans-serif;
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-destructive-muted: var(--destructive-muted);
+}
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Scope One', Georgia, serif;
+
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.25;
+  --text-h2: 1.75rem;
+  --text-h2--line-height: 1.2;
+  --text-h1: 2.25rem;
+  --text-h1--line-height: 1.15;
+  --text-hero: clamp(2rem, 5vw, 3rem);
+  --text-hero--line-height: 1.1;
+
+  --breakpoint-sm: 36rem;
+  --breakpoint-lg: 62rem;
+
+  --shadow-xs: 0 1px 2px 0 rgb(28 25 23 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(28 25 23 / 0.06), 0 2px 8px rgb(28 25 23 / 0.06);
+  --shadow-lg: 0 8px 24px rgb(28 25 23 / 0.12);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply min-h-svh bg-background font-sans text-base/normal text-foreground antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display font-normal;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+  }
+  h1 { @apply text-h1; }
+  h2 { @apply text-h2; }
+  h3 { @apply text-h3; }
+  /* Margens da v1 só no conteúdo das páginas; overlays (sheet, diálogo, menu, toast) ficam fora de <main>.
+     Sem data-slot: a descrição do hlmField (p[data-slot]) segue o gap do campo. */
+  :where(main) :where(h1, h2, h3, p:not([data-slot])) {
+    margin: 0 0 1rem;
+  }
+  /* Links de texto: marrom e sublinhados (a cor sozinha dá 2,4:1 contra o texto; WCAG 1.4.1).
+     Com data-slot (hlmBtn, item de menu…) o helm decide a cor; tire o sublinhado com no-underline. */
+  a:not([data-slot]) {
+    @apply text-brand underline underline-offset-[0.15em] hover:text-brand-hover;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2;
+  }
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0s !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0s !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .uz-container { @apply mx-auto w-full max-w-[80rem] px-4 md:px-8; }
+  .uz-titulo { @apply mt-8 mb-6 text-h2 md:text-h1; }
+  .uz-legenda { @apply text-xs tracking-[0.08em] text-muted-foreground uppercase; }
+  .uz-texto-suave { @apply text-muted-foreground; }
+  .uz-preco { @apply text-lg font-semibold text-brand; }
+  .uz-cartao { @apply rounded-xl bg-card text-card-foreground shadow-xs ring-1 ring-foreground/10; }
+  .uz-visualmente-oculto { @apply sr-only; }
+
+  /* Pill: tamanhos (radio + span) e chips de categoria (button[aria-pressed]). */
+  .uz-pill {
+    @apply inline-flex h-11 min-w-12 cursor-pointer items-center justify-center rounded-full bg-secondary px-4
+      text-sm font-medium whitespace-nowrap text-secondary-foreground shadow-xs ring-1 ring-foreground/5
+      transition-colors select-none hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_6%)];
+  }
+  .uz-pill[aria-pressed='true'],
+  :checked + .uz-pill {
+    @apply bg-primary text-primary-foreground ring-primary hover:bg-primary/85;
+  }
+  .uz-pill:focus-visible,
+  :focus-visible + .uz-pill {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  .uz-pill:disabled,
+  :disabled + .uz-pill {
+    @apply cursor-not-allowed bg-transparent text-muted-foreground line-through shadow-none ring-border
+      hover:bg-transparent;
+  }
+}

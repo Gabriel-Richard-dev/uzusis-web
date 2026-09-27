@@ -1,0 +1,206 @@
+<section class="uz-container pb-16">
+  <h1 class="uz-titulo" tabindex="-1">Finalizar compra</h1>
+
+  @if (passo === 'carregando') {
+    <uz-estado tipo="carregando" mensagem="Carregando sua compra…"></uz-estado>
+  }
+
+  @if (passo === 'erro') {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível abrir o checkout"
+      [mensagem]="erro"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
+
+  @if ((passo === 'entrega' || passo === 'pagamento') && (carrinho$ | async); as carrinho) {
+    @if (passo === 'entrega' && !carrinho.itens.length) {
+      <uz-estado
+        tipo="vazio"
+        titulo="Sua sacola está vazia"
+        mensagem="Escolha suas peças e volte para finalizar a compra."
+        >
+        <a hlmBtn routerLink="/loja">Explorar a loja</a>
+      </uz-estado>
+    } @else {
+      <!-- Mobile: resumo recolhível no topo. ≥ lg: formulário à esquerda e resumo fixo à direita. -->
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-12">
+        @if (resumo(carrinho); as r) {
+          <aside
+            hlmCard
+            class="gap-0 p-4 text-base lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1 lg:p-6"
+            aria-labelledby="resumo-titulo"
+            >
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="resumo-titulo" class="m-0 text-lg">Resumo do pedido</h2>
+              <button
+                hlmBtn
+                variant="ghost"
+                type="button"
+                class="-me-3 lg:hidden"
+                aria-controls="resumo-detalhes"
+                [attr.aria-expanded]="resumoAberto"
+                (click)="resumoAberto = !resumoAberto"
+                >
+                {{ resumoAberto ? 'Ocultar itens' : 'Ver itens (' + r.pecas + ')' }}
+              </button>
+            </div>
+            <div id="resumo-detalhes" class="lg:block" [class.hidden]="!resumoAberto">
+              <uz-itens-pedido [itens]="r.itens"></uz-itens-pedido>
+              <dl class="mt-3">
+                <div class="flex justify-between gap-3 py-1">
+                  <dt>Subtotal</dt>
+                  <dd class="text-right">{{ r.subtotal | currency }}</dd>
+                </div>
+                <div class="flex justify-between gap-3 py-1">
+                  <dt>Frete</dt>
+                  <dd class="text-right">
+                    @if (r.frete !== null) {
+                      {{ r.frete | currency }}
+                    } @else {
+                      <span class="text-muted-foreground">{{ calculandoFrete ? 'Calculando…' : 'Informe a UF' }}</span>
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </div>
+            <dl class="mt-3 border-t pt-3 text-lg font-semibold">
+              <div class="flex justify-between gap-3 py-1">
+                <dt>Total</dt>
+                <dd class="text-right">
+                  @if (r.total !== null) {
+                    <span class="text-brand">{{ r.total | currency }}</span>
+                  } @else {
+                    <span class="font-normal text-muted-foreground">Falta o frete</span>
+                  }
+                </dd>
+              </div>
+            </dl>
+          </aside>
+        }
+        <div class="flex min-w-0 flex-col gap-6">
+          <ol class="flex flex-wrap gap-6 text-muted-foreground" aria-label="Etapas da compra">
+            @for (e of etapas; track e.passo; let i = $index) {
+              <li
+                class="flex items-center gap-2"
+                [class.font-semibold]="passo === e.passo"
+                [class.text-foreground]="passo === e.passo"
+                [attr.aria-current]="passo === e.passo ? 'step' : null"
+                >
+                <span
+                  class="inline-flex size-7 items-center justify-center rounded-full text-sm"
+                  [class]="passo === e.passo ? 'bg-primary text-primary-foreground' : 'ring-1 ring-input'"
+                  aria-hidden="true"
+                  >{{ i + 1 }}</span
+                >
+                {{ e.rotulo }}
+              </li>
+            }
+          </ol>
+          @if (config && !config.habilitado) {
+            <div hlmAlert class="border-warning/30 bg-warning-muted text-warning" role="status">
+              <uz-icone nome="alerta"></uz-icone>
+              <p class="m-0">Pagamento ainda não configurado. Não é possível finalizar compras no momento.</p>
+            </div>
+          }
+          @if (passo === 'entrega' && form) {
+            <form
+              class="flex flex-col gap-6"
+              [formGroup]="form"
+              (ngSubmit)="criarPedido()"
+              novalidate
+              aria-labelledby="entrega-titulo"
+              >
+              <h2 id="entrega-titulo" class="sr-only">Entrega</h2>
+              <uz-endereco-form [form]="form"></uz-endereco-form>
+              <div hlmField orientation="horizontal" class="min-h-11">
+                <hlm-checkbox inputId="salvar-endereco" [formControl]="salvarNoPerfil" />
+                <label hlmFieldLabel for="salvar-endereco">Salvar este endereço no meu perfil</label>
+              </div>
+              <p class="m-0 empty:hidden" aria-live="polite">
+                @if (frete) {
+                  Frete para {{ frete.uf }}: <strong class="font-semibold">{{ frete.valor | currency }}</strong>
+                }
+                @if (erroFrete) {
+                  <span class="text-destructive">Não foi possível calcular o frete: {{ erroFrete }}</span>
+                }
+              </p>
+              @if (erroPedido) {
+                <div hlmAlert variant="destructive" role="alert">
+                  <uz-icone nome="alerta"></uz-icone>
+                  <p hlmAlertDescription class="m-0">
+                    {{ erroPedido }}
+                    @if (pedidoPendente) {
+                      <a routerLink="/conta/pedidos" class="font-semibold text-current">Ver meus pedidos</a>
+                    }
+                  </p>
+                </div>
+              }
+              <button
+                hlmBtn
+                size="lg"
+                type="submit"
+                class="w-full md:w-auto md:min-w-64 md:self-start"
+                [disabled]="!config?.habilitado || enviando"
+                >
+                @if (enviando) {
+                  <hlm-spinner aria-hidden="true" />
+                }
+                {{ enviando ? 'Criando pedido…' : 'Ir para o pagamento' }}
+              </button>
+            </form>
+          }
+          @if (passo === 'pagamento' && pedido) {
+            <section class="flex flex-col gap-4" aria-labelledby="pagamento-titulo">
+              <h2 id="pagamento-titulo" class="sr-only">Pagamento</h2>
+              <p class="m-0 text-muted-foreground">
+                Pedido #{{ pedido.id }}@if (pedido.expiraEm) {
+                · Conclua o pagamento até {{ pedido.expiraEm | date: 'HH:mm' }}
+              }
+            </p>
+            @if (config?.habilitado) {
+              @if (erroPreparo) {
+                <uz-estado
+                  tipo="erro"
+                  titulo="Pagamento indisponível"
+                  [mensagem]="erroPreparo"
+                  (tentarNovamente)="prepararPagamento()"
+                ></uz-estado>
+              }
+              <!-- Reserva a altura aproximada do Payment Element enquanto ele carrega (sem salto grande). -->
+              <div class="relative" [class.min-h-56]="!pronto && !erroPreparo">
+                @if (!pronto && !erroPreparo) {
+                  <uz-estado class="absolute inset-0" tipo="carregando" mensagem="Preparando o pagamento…"></uz-estado>
+                }
+                <div #elementoPagamento></div>
+              </div>
+              @if (erroPagamento) {
+                <div hlmAlert variant="destructive" role="alert">
+                  <uz-icone nome="alerta"></uz-icone>
+                  <p hlmAlertDescription class="m-0">{{ erroPagamento }}</p>
+                </div>
+              }
+              @if (!erroPreparo) {
+                <button
+                  hlmBtn
+                  size="lg"
+                  type="button"
+                  class="w-full md:w-auto md:min-w-64 md:self-start"
+                  [disabled]="!pronto || pagando || bloqueado"
+                  (click)="pagar()"
+                  >
+                  @if (pagando) {
+                    <hlm-spinner aria-hidden="true" />
+                  }
+                  {{ pagando ? 'Pagando…' : 'Pagar ' + (pedido.valorTotal | currency) }}
+                </button>
+              }
+            }
+          </section>
+        }
+      </div>
+    </div>
+  }
+}
+</section>

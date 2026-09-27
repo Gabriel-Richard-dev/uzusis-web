@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: notification-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/notifications}
+    username: ${DB_USER:notifications}
+    password: ${DB_PASSWORD:notifications}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+  flyway:
+    # Este serviço não tem tabela própria: só precisa do outbox e da
+    # idempotência que vêm do common.
+    locations: classpath:db/migration/common
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+      observation-enabled: true
+    template:
+      observation-enabled: true
+
+  mail:
+    host: ${EMAIL_SERVER:localhost}
+    port: ${EMAIL_PORT:1025}
+    username: ${EMAIL_USER:}
+    password: ${EMAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${EMAIL_AUTH:false}
+          starttls:
+            enable: ${EMAIL_TLS:false}
+          # Sem timeout o JavaMail espera para sempre e prende o consumidor do Kafka.
+          connectiontimeout: 5000
+          timeout: 10000
+          writetimeout: 10000
+
+  # Sem Accept-Language o resolver padrão usaria o locale da JVM.
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
+
+uzusis:
+  email:
+    remetente: "${EMAIL_FROM:Uzusis <nao-responda@uzusis.local>}"
+  # Base dos links dos e-mails.
+  loja-url: ${PUBLIC_URL:http://localhost:8080}
+
+server:
+  port: ${SERVER_PORT:8085}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  # O healthcheck do compose bate no health a cada 10 s; com o indicador de e-mail,
+  # cada batida seria um connect + AUTH no SMTP (provedores reais bloqueiam a conta).
+  health:
+    mail:
+      enabled: false
+  tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
+    sampling:
+      probability: ${TRACE_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

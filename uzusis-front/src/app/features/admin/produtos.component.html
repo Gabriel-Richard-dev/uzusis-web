@@ -1,0 +1,170 @@
+<section class="uz-container">
+  <div class="mt-8 mb-6 flex flex-wrap items-center justify-between gap-4">
+    <h1 class="uz-titulo m-0" tabindex="-1">Produtos</h1>
+    <a hlmBtn routerLink="/admin/produtos/novo">
+      <uz-icone nome="mais" [tamanho]="18" />
+      Novo produto
+    </a>
+  </div>
+
+  <div class="mb-6 grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr]" role="search" aria-label="Filtrar produtos">
+    <div hlmField class="sm:col-span-2 lg:col-span-1">
+      <label hlmFieldLabel>Buscar por nome</label>
+      <hlm-input-group>
+        <hlm-input-group-addon align="inline-start">
+          <uz-icone nome="busca" [tamanho]="18" />
+        </hlm-input-group-addon>
+        <input hlmInputGroupInput type="search" autocomplete="off" [formControl]="busca" />
+      </hlm-input-group>
+    </div>
+    <div hlmField>
+      <label hlmFieldLabel>Categoria</label>
+      <hlm-native-select [formControl]="categoria">
+        <option hlmNativeSelectOption value="">Todas</option>
+        @for (c of categorias; track c.valor) {
+          <option hlmNativeSelectOption [value]="c.valor">{{ c.nome }}</option>
+        }
+      </hlm-native-select>
+    </div>
+    <div hlmField>
+      <label hlmFieldLabel>Situação</label>
+      <hlm-native-select [formControl]="situacao">
+        <option hlmNativeSelectOption value="">Todas</option>
+        @for (s of situacoes; track s.valor) {
+          <option hlmNativeSelectOption [value]="s.valor">{{ s.nome }}</option>
+        }
+      </hlm-native-select>
+    </div>
+  </div>
+
+  @if (carregando && !pagina) {
+    <div aria-busy="true">
+      <span class="sr-only">Carregando produtos…</span>
+      <uz-esqueleto formato="linha" [quantidade]="8"></uz-esqueleto>
+    </div>
+  }
+
+  @if (!carregando && erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar os produtos"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
+
+  @if (pagina && !pagina.content.length && !carregando) {
+    @if (filtrando) {
+      <uz-estado tipo="vazio" titulo="Nenhum produto encontrado">
+        <button hlmBtn variant="outline" type="button" (click)="limparFiltros()">Limpar filtros</button>
+      </uz-estado>
+    } @else {
+      <uz-estado tipo="vazio" titulo="Nenhum produto cadastrado">
+        <a hlmBtn routerLink="/admin/produtos/novo">Novo produto</a>
+      </uz-estado>
+    }
+  }
+
+  @if (pagina && pagina.content.length) {
+    <div [attr.aria-busy]="carregando ? 'true' : null">
+      <!-- Altura reservada: a barra aparece na recarga sem empurrar a tabela. -->
+      <div class="mb-2 h-1">
+        @if (carregando) {
+          <hlm-progress class="h-1" aria-label="Atualizando a lista"><hlm-progress-indicator /></hlm-progress>
+        }
+      </div>
+      <div hlmCard class="gap-0 p-0">
+        <div hlmTableContainer>
+          <table hlmTable>
+            <caption hlmCaption class="sr-only">Produtos, página {{ pagina.number + 1 }} de {{ pagina.totalPages }}</caption>
+            <thead hlmTHead>
+              <tr hlmTr class="hover:bg-transparent">
+                <th hlmTh scope="col" class="w-20 ps-4"><span class="sr-only">Foto</span></th>
+                <th hlmTh scope="col">Nome</th>
+                <th hlmTh scope="col" class="hidden md:table-cell">Categoria</th>
+                <th hlmTh scope="col" class="hidden pe-8 text-end md:table-cell">Preço</th>
+                <th hlmTh scope="col" class="hidden md:table-cell">Estoque</th>
+                <th hlmTh scope="col" class="hidden md:table-cell">Situação</th>
+                <th hlmTh scope="col" class="pe-4"><span class="sr-only">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody hlmTBody>
+              @for (p of pagina.content; track p.id) {
+                <tr hlmTr>
+                  <td hlmTd class="py-3 ps-4 max-md:align-top">
+                    @if (p.fotos.length) {
+                      <img class="h-16 w-12 rounded-md bg-muted object-cover" [src]="p.fotos[0].url" alt="" width="48" height="64" loading="lazy" />
+                    } @else {
+                      <span class="block h-16 w-12 rounded-md bg-muted"></span>
+                    }
+                  </td>
+                  <td hlmTd class="min-w-32 py-3 whitespace-normal">
+                    <a class="flex py-1 font-medium [overflow-wrap:anywhere] md:min-h-11 md:items-center md:py-0" [routerLink]="['/admin/produtos', p.id]">{{ p.nome }}</a>
+                    <!-- Abaixo de md: categoria, preço, situação e estoque vão para a célula do nome. -->
+                    <div class="mt-1 flex flex-col items-start gap-1.5 md:hidden">
+                      <span class="text-muted-foreground">{{ p.categoriaNome }} · <span class="tabular-nums">{{ p.preco | currency }}</span></span>
+                      <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }" />
+                      <ng-container *ngTemplateOutlet="estoqueTpl; context: { $implicit: p }" />
+                    </div>
+                  </td>
+                  <td hlmTd class="hidden md:table-cell">{{ p.categoriaNome }}</td>
+                  <td hlmTd class="hidden pe-8 text-end tabular-nums md:table-cell">{{ p.preco | currency }}</td>
+                  <td hlmTd class="hidden whitespace-normal md:table-cell">
+                    <ng-container *ngTemplateOutlet="estoqueTpl; context: { $implicit: p }" />
+                  </td>
+                  <td hlmTd class="hidden md:table-cell">
+                    <ng-container *ngTemplateOutlet="situacaoTpl; context: { $implicit: p }" />
+                  </td>
+                  <td hlmTd class="py-3 pe-4">
+                    <!-- Em coluna até xl: o menu lateral come 16rem e a tabela não pode rolar de lado. -->
+                    <div class="flex flex-col items-stretch gap-2 xl:flex-row xl:justify-end">
+                      <a
+                        hlmBtn
+                        variant="outline"
+                        class="lg:h-9 lg:px-3.5"
+                        [routerLink]="['/admin/produtos', p.id]"
+                        [attr.aria-label]="'Editar ' + p.nome"
+                        >Editar</a
+                      >
+                      <button
+                        hlmBtn
+                        type="button"
+                        class="lg:h-9 lg:px-3.5 xl:w-24"
+                        [variant]="p.ativo ? 'destructive' : 'outline'"
+                        [disabled]="ocupados.has(p.id)"
+                        [attr.aria-label]="(p.ativo ? 'Desativar ' : 'Reativar ') + p.nome"
+                        (click)="alternarAtivo(p)"
+                      >
+                        {{ p.ativo ? 'Desativar' : 'Reativar' }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <uz-paginador [pagina]="pagina.number" [tamanho]="porPagina" [total]="pagina.totalElements" (mudar)="mudarPagina($event)" />
+    </div>
+  }
+</section>
+
+<ng-template #estoqueTpl let-p>
+  <ul class="flex flex-wrap gap-1" aria-label="Estoque por tamanho">
+    @for (t of p.tamanhos; track t.sigla) {
+      <li
+        class="inline-flex h-6 items-center rounded-full px-2 text-sm whitespace-nowrap tabular-nums"
+        [class]="t.quantidade === 0 ? 'bg-destructive-muted text-destructive' : 'bg-secondary text-secondary-foreground'"
+      >
+        {{ t.sigla }} {{ t.quantidade }}
+      </li>
+    }
+  </ul>
+</ng-template>
+
+<ng-template #situacaoTpl let-p>
+  <span class="inline-flex h-6 items-center rounded-full px-2.5 text-sm font-semibold whitespace-nowrap" [class]="corSituacao[situacaoDo(p)]">{{
+    rotuloSituacao[situacaoDo(p)]
+  }}</span>
+</ng-template>

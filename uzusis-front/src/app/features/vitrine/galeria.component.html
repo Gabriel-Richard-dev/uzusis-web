@@ -1,0 +1,58 @@
+@if (!fotos.length) {
+  <div class="grid aspect-[3/4] place-items-center rounded-xl bg-secondary text-muted-foreground">Sem foto</div>
+}
+
+@if (fotos.length) {
+  <div class="hidden md:block">
+    <img
+      class="aspect-[3/4] w-full rounded-xl bg-secondary object-cover"
+      [src]="fotos[atual].url"
+      [alt]="alt(atual)"
+      width="600"
+      height="800"
+    />
+    @if (fotos.length > 1) {
+      <div class="mt-3 flex flex-wrap gap-2">
+        @for (f of fotos; track f.id; let i = $index) {
+          <button
+            type="button"
+            class="h-[85px] w-16 cursor-pointer overflow-hidden rounded-md bg-secondary ring-2 ring-transparent hover:ring-input aria-[current=true]:ring-brand"
+            [attr.aria-label]="'Ver foto ' + (i + 1) + ' de ' + fotos.length"
+            [attr.aria-current]="i === atual ? 'true' : null"
+            (click)="atual = i"
+          >
+            <img class="size-full object-cover" [src]="f.url" alt="" width="64" height="85" loading="lazy" />
+          </button>
+        }
+      </div>
+    }
+  </div>
+  <div class="md:hidden">
+    <div
+      #faixa
+      class="flex snap-x snap-mandatory overflow-x-auto rounded-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      tabindex="0"
+      role="region"
+      [attr.aria-label]="'Fotos de ' + nome"
+      (scroll)="aoRolar(faixa)"
+    >
+      @for (f of fotos; track f.id; let i = $index) {
+        <img
+          class="aspect-[3/4] w-full flex-none snap-start bg-secondary object-cover"
+          [src]="f.url"
+          [alt]="alt(i)"
+          width="600"
+          height="800"
+          [attr.loading]="i ? 'lazy' : null"
+        />
+      }
+    </div>
+    @if (fotos.length > 1) {
+      <div class="mt-3 flex justify-center gap-2" aria-hidden="true">
+        @for (f of fotos; track f.id; let i = $index) {
+          <span class="size-2 rounded-full" [class.bg-brand]="i === atual" [class.bg-input]="i !== atual"></span>
+        }
+      </div>
+    }
+  </div>
+}

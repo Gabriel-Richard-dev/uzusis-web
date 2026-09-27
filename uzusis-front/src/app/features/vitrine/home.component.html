@@ -1,0 +1,185 @@
+<!-- No celular o banner vem primeiro (só visualmente: no DOM o h1 vem antes) e sangra até a borda, encostado no header. -->
+<section class="uz-container grid gap-6 pb-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-center md:gap-12 md:py-12">
+  <div>
+    <p class="uz-legenda">Moda feminina minimalista</p>
+    <h1 class="mt-2 mb-4 text-hero" tabindex="-1">Peças pensadas para o seu corpo</h1>
+    <p class="mb-6 max-w-[30rem] text-lg text-muted-foreground">
+      Linhas simples e tecidos leves, feitos de irmãs para as nossas Sis.
+    </p>
+    <a hlmBtn size="lg" routerLink="/loja" class="w-full sm:w-auto">Ver coleção</a>
+  </div>
+  <!-- Banner da coleção (16:9, com o texto da arte embutido): proporção igual à da imagem para não cortar nada. -->
+  <div class="-mx-4 aspect-video overflow-hidden bg-secondary max-md:order-first md:mx-0 md:rounded-xl md:shadow-sm">
+    <img
+      class="size-full object-cover"
+      src="assets/banner-colecao.jpeg"
+      alt="Coleção Basic Sis da Uzusis: novas modelagens, peças em estoque. Compre online."
+      width="1366"
+      height="768"
+      fetchpriority="high"
+    />
+  </div>
+</section>
+
+<!-- Trilho de círculos abaixo de lg, 9 colunas a partir de lg. py-1/p-1: o overflow-x também corta no eixo y (anel e foco). -->
+<section class="uz-container py-8" aria-labelledby="home-categorias">
+  <h2 id="home-categorias">Compre por categoria</h2>
+  <ul
+    role="list"
+    class="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 py-1 md:-mx-8 md:scroll-px-8 md:px-8 lg:mx-0 lg:grid lg:grid-cols-9 lg:gap-4 lg:overflow-visible lg:px-0"
+  >
+    @for (c of categorias; track c.valor) {
+      <li class="w-24 shrink-0 snap-start lg:w-auto">
+        <a
+          class="group flex flex-col items-center gap-2 rounded-lg p-1 text-center text-[0.8125rem] font-medium text-foreground no-underline hover:text-foreground lg:text-sm"
+          routerLink="/loja"
+          [queryParams]="{ categoria: c.valor }"
+        >
+          <span
+            class="block size-[4.5rem] overflow-hidden rounded-full bg-secondary ring-2 ring-brand/40 ring-offset-2 ring-offset-background transition-shadow group-hover:ring-brand lg:size-20 xl:size-28"
+          >
+            @if (!capas) {
+              <span hlmSkeleton class="size-full rounded-full"></span>
+            } @else if (capas?.get(c.valor); as url) {
+              <img class="size-full object-cover" [src]="url" alt="" width="112" height="112" loading="lazy" decoding="async" />
+            } @else {
+              <span class="grid size-full place-items-center font-display text-2xl text-brand" aria-hidden="true">{{ c.nome[0] }}</span>
+            }
+          </span>
+          <span class="group-hover:underline">{{ c.nome }}</span>
+        </a>
+      </li>
+    }
+  </ul>
+</section>
+
+<section class="uz-container py-8" aria-labelledby="home-novidades">
+  <div class="mb-6 flex items-baseline justify-between gap-4">
+    <h2 id="home-novidades" class="m-0">Novidades</h2>
+    <a routerLink="/loja" class="inline-flex min-h-11 items-center font-medium whitespace-nowrap">Ver tudo</a>
+  </div>
+
+  @if (erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar as novidades"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
+
+  <!-- Esqueleto no mesmo formato do trilho/grade (uz-esqueleto é display: contents, então vai um por item). -->
+  @if (!novidades && !erro) {
+    <div
+      class="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-6 md:px-0 lg:grid-cols-4"
+      aria-busy="true"
+    >
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+        <div class="w-[42%] shrink-0 md:w-auto"><uz-esqueleto formato="cartao" [quantidade]="1"></uz-esqueleto></div>
+      }
+    </div>
+  }
+
+  @if (novidades && !novidades.length) {
+    <uz-estado tipo="vazio" titulo="Novidades chegando em breve">
+      <a hlmBtn variant="outline" href="https://www.instagram.com/_uzusis/" rel="noopener">Acompanhe no Instagram</a>
+    </uz-estado>
+  }
+
+  <!-- Celular: trilho com cards de 42% (2 inteiros + a ponta do 3º) e card final "Ver todas". md+: a grade de sempre. -->
+  @if (novidades?.length) {
+    <ul
+      role="list"
+      class="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-4"
+    >
+      @for (p of novidades; track p.id) {
+        <li class="w-[42%] shrink-0 snap-start md:w-auto"><uz-produto-card [produto]="p"></uz-produto-card></li>
+      }
+      @if (total > novidades.length) {
+        <li class="w-[42%] shrink-0 snap-start md:hidden">
+          <a
+            routerLink="/loja"
+            class="flex aspect-[3/4] flex-col items-center justify-center gap-3 rounded-lg bg-secondary p-4 text-center font-display text-lg text-foreground no-underline hover:bg-brand-muted hover:text-foreground"
+          >
+            Ver todas as {{ total }} peças <uz-icone nome="seta-direita" [tamanho]="24"></uz-icone>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<!-- ponytail: 4 SVGs inline (lucide, ISC) porque shared/icone.component.ts está fora da posse da vitrine.
+     Mover para ICONES quando alguém dono de shared/ puder. -->
+<section class="uz-container py-8" aria-labelledby="home-beneficios">
+  <h2 id="home-beneficios" class="sr-only">Envio, pagamento e trocas</h2>
+  <ul role="list" class="uz-cartao grid grid-cols-1 gap-x-4 gap-y-5 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:p-8">
+    <li class="flex gap-3 lg:gap-4">
+      <svg class="shrink-0 text-brand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14M19 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM9 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+      </svg>
+      <div>
+        <p class="m-0 text-sm font-semibold">Enviamos para todo o Brasil</p>
+        <p class="m-0 text-sm text-muted-foreground">Frete por estado, calculado no checkout.</p>
+      </div>
+    </li>
+    <li class="flex gap-3 lg:gap-4">
+      <svg class="shrink-0 text-brand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      <div>
+        <p class="m-0 text-sm font-semibold">Pagamento seguro com cartão</p>
+        <p class="m-0 text-sm text-muted-foreground">Processado pela Stripe.</p>
+      </div>
+    </li>
+    <li class="flex gap-3 lg:gap-4">
+      <svg class="shrink-0 text-brand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM22 7l-8.99 5.73a2 2 0 0 1-2.02 0L2 7" />
+      </svg>
+      <div>
+        <p class="m-0 text-sm font-semibold">Trocas e atendimento</p>
+        <p class="m-0 text-sm text-muted-foreground">
+          Pelo e-mail <a href="mailto:uzusis@gmail.com">uzusis&#64;gmail.com</a> ou no Instagram
+          <a href="https://www.instagram.com/_uzusis/" rel="noopener">&#64;_uzusis</a>.
+        </p>
+      </div>
+    </li>
+    <li class="flex gap-3 lg:gap-4">
+      <svg class="shrink-0 text-brand" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42zM7.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" />
+      </svg>
+      <div>
+        <p class="m-0 text-sm font-semibold">Peças em quantidade limitada</p>
+        <p class="m-0 text-sm text-muted-foreground">Quando restam poucas, avisamos com “Últimas unidades”.</p>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- Texto literal da marca; o "Sobre a loja" do rodapé traz o resto, sem repetir. -->
+<section class="uz-container py-12 text-center md:py-16" aria-labelledby="home-historia">
+  <p class="uz-legenda">Nossa história</p>
+  <h2 id="home-historia" class="mx-auto mt-2 max-w-[20ch] text-h2 text-balance md:text-h1">Sonhada desde 2022, finalmente ganhamos forma.</h2>
+  <p class="mx-auto mb-0 max-w-[36rem] text-lg text-muted-foreground">
+    Com o desejo de vestir mulheres com almas grandes em corpos pequenos, desenvolvemos peças exclusivas e do tamanho da
+    sua liberdade.
+  </p>
+</section>
+
+<!-- -mb-16 cola a faixa no rodapé (que tem mt-16). -->
+<section class="-mb-16 bg-brand-muted" aria-labelledby="home-instagram">
+  <div class="uz-container flex flex-col items-center gap-6 py-12 text-center md:flex-row md:justify-center md:gap-10 md:text-start">
+    <span class="grid size-24 shrink-0 place-items-center rounded-full bg-card ring-2 ring-brand ring-offset-4 ring-offset-brand-muted">
+      <img src="assets/logoUzu.png" alt="" width="55" height="39" class="w-12 brightness-[.3]" />
+    </span>
+    <div class="w-full md:w-auto">
+      <p class="uz-legenda">&#64;_uzusis</p>
+      <h2 id="home-instagram" class="mt-2 mb-2">Siga a Uzusis no Instagram</h2>
+      <p class="mb-6 text-muted-foreground">Lançamentos, bastidores e combinações de looks, primeiro por lá.</p>
+      <div class="flex flex-col gap-3 sm:flex-row sm:justify-center md:justify-start">
+        <a hlmBtn size="lg" class="w-full sm:w-auto" href="https://www.instagram.com/_uzusis/" rel="noopener">Seguir &#64;_uzusis</a>
+        <a hlmBtn size="lg" variant="outline" class="w-full sm:w-auto" href="https://ig.me/m/_uzusis" rel="noopener">Chamar no direct</a>
+      </div>
+    </div>
+  </div>
+</section>

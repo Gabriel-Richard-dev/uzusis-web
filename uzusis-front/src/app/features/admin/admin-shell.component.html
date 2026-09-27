@@ -1,0 +1,58 @@
+<!-- A página rola na janela (scrollPositionRestoration funciona); o menu lateral fica fixo a partir de lg. -->
+<ng-template #menu>
+  <div class="flex flex-1 flex-col px-4 pb-6">
+    <div class="flex h-16 shrink-0 items-center pe-14">
+      <a
+        routerLink="/admin"
+        class="inline-flex min-h-11 items-center gap-2 text-foreground no-underline hover:text-foreground"
+        aria-label="Uzusis, painel da administração"
+      >
+        <img src="assets/logoUzu.png" alt="" width="55" height="39" class="h-7 w-10 object-contain brightness-[.3]" />
+        <span class="font-display text-lg tracking-[0.2em]">UZUSIS</span>
+      </a>
+    </div>
+    <nav aria-label="Administração" class="mt-2 flex flex-col gap-1">
+      <a [class]="link" routerLink="/admin" routerLinkActive ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }">Painel</a>
+      <a [class]="link" routerLink="/admin/produtos" routerLinkActive ariaCurrentWhenActive="page">Produtos</a>
+      <a [class]="link" routerLink="/admin/pedidos" routerLinkActive ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{ exact: true }">Pedidos a enviar</a>
+      <a [class]="link" routerLink="/admin/pedidos/historico" routerLinkActive ariaCurrentWhenActive="page">Histórico</a>
+    </nav>
+    <div class="mt-auto flex flex-col gap-1 border-t border-border pt-4">
+      <a [class]="link" routerLink="/">Ver loja</a>
+      <button [class]="link" type="button" (click)="auth.logout()">Sair</button>
+    </div>
+  </div>
+</ng-template>
+
+<div class="fixed inset-y-0 left-0 z-20 hidden w-64 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar lg:flex">
+  <ng-container [ngTemplateOutlet]="menu" />
+</div>
+
+<!-- Abaixo de lg. Sheet = diálogo do CDK: foco preso, Esc, rolagem travada, foco devolvido ao hambúrguer. -->
+<hlm-sheet side="left" [state]="menuAberto() ? 'open' : 'closed'" (closed)="menuAberto.set(false)">
+  <hlm-sheet-content
+    *hlmSheetPortal
+    class="gap-0 overflow-y-auto p-0 data-[side=left]:w-[min(16rem,85vw)] data-[side=left]:sm:max-w-none"
+  >
+    <h2 hlmSheetTitle class="sr-only">Menu da administração</h2>
+    <ng-container [ngTemplateOutlet]="menu" />
+  </hlm-sheet-content>
+</hlm-sheet>
+
+<div class="flex min-h-svh flex-col lg:ps-64">
+  <header class="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4 md:px-8">
+    <button hlmBtn variant="ghost" size="icon" type="button" class="-ms-2 lg:hidden" aria-label="Abrir menu" (click)="menuAberto.set(true)">
+      <uz-icone nome="menu" [tamanho]="24" />
+    </button>
+    <span class="font-display text-lg">Administração</span>
+    @if (usuario$ | async; as usuario) {
+      <span class="ms-auto inline-flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+        <uz-icone nome="usuario" class="shrink-0" />
+        <span class="truncate">{{ usuario.nome }}</span>
+      </span>
+    }
+  </header>
+  <main id="conteudo" class="flex-1 pb-12" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

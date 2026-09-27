@@ -1,0 +1,18 @@
+# Override do e2e (scripts/e2e-compra.sh): Stripe falso e webhook assinado localmente.
+# O stripe-mock não entra no produto; só existe aqui.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+services:
+  stripe-mock:
+    image: stripe/stripe-mock:latest
+    restart: unless-stopped
+    mem_limit: 64m
+
+  payment-service:
+    environment:
+      STRIPE_SECRET_KEY: sk_test_e2emock   # o stripe-mock recusa chave com mais de 3 partes (sk_test_x_y)
+      STRIPE_PUBLISHABLE_KEY: pk_test_e2emock
+      STRIPE_WEBHOOK_SECRET: ${E2E_WEBHOOK_SECRET:-whsec_e2e_uzusis_local}
+      STRIPE_API_BASE: http://stripe-mock:12111
+    depends_on:
+      stripe-mock: { condition: service_started }

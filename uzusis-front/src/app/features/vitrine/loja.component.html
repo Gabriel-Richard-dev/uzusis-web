@@ -1,0 +1,115 @@
+<section class="uz-container pb-8">
+  <div class="flex flex-wrap items-baseline gap-x-4">
+    <h1 class="uz-titulo mb-2" tabindex="-1">{{ titulo }}</h1>
+    <p class="mb-2 text-muted-foreground" aria-live="polite">
+      @if (pagina) {
+        {{ pagina.totalElements === 1 ? '1 peça' : pagina.totalElements + ' peças' }}
+        @if (filtro.q) {
+          para “{{ filtro.q }}”
+        }
+      }
+    </p>
+  </div>
+
+  <div class="mt-4 mb-8 flex flex-col gap-4">
+    <!-- Rolagem horizontal só dentro da faixa (p-1 dá espaço ao anel de foco); no celular a faixa vai até a borda da tela. -->
+    <div
+      class="-mx-4 -my-1 flex scroll-px-4 gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:thin] md:-m-1 md:p-1 lg:flex-wrap lg:overflow-visible"
+      role="group"
+      aria-label="Filtrar por categoria"
+    >
+      <button
+        type="button"
+        class="uz-pill shrink-0"
+        [attr.aria-pressed]="!filtro.categoria"
+        (click)="filtrar({ categoria: null })"
+      >
+        Todas
+      </button>
+      @for (c of categorias; track c.valor) {
+        <button
+          type="button"
+          class="uz-pill shrink-0"
+          [attr.aria-pressed]="filtro.categoria === c.valor"
+          (click)="filtrar({ categoria: c.valor })"
+        >
+          {{ c.nome }}
+        </button>
+      }
+    </div>
+
+    <div class="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_14rem]">
+      <div hlmField>
+        <label hlmFieldLabel>Buscar na loja</label>
+        <hlm-input-group>
+          <hlm-input-group-addon>
+            <uz-icone nome="busca" [tamanho]="18"></uz-icone>
+          </hlm-input-group-addon>
+          <input
+            hlmInputGroupInput
+            type="search"
+            autocomplete="off"
+            class="[&::-webkit-search-cancel-button]:appearance-none"
+            [formControl]="busca"
+          />
+          @if (busca.value) {
+            <hlm-input-group-addon align="inline-end">
+              <button hlmInputGroupButton size="icon-sm" type="button" aria-label="Limpar busca" (click)="busca.setValue('')">
+                <uz-icone nome="fechar"></uz-icone>
+              </button>
+            </hlm-input-group-addon>
+          }
+        </hlm-input-group>
+      </div>
+
+      <div hlmField>
+        <label hlmFieldLabel>Ordenar por</label>
+        <hlm-native-select [value]="filtro.ordem" (valueChange)="filtrar({ ordem: $event })">
+          @for (o of ordens; track o.valor) {
+            <option hlmNativeSelectOption [value]="o.valor">{{ o.nome }}</option>
+          }
+        </hlm-native-select>
+      </div>
+    </div>
+  </div>
+
+  @if (erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar as peças"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
+
+  @if (!pagina && carregando) {
+    <div class="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:grid-cols-4" aria-busy="true">
+      <uz-esqueleto formato="cartao" [quantidade]="12"></uz-esqueleto>
+    </div>
+  }
+
+  @if (pagina && !produtos.length) {
+    <uz-estado tipo="vazio" titulo="Nenhuma peça encontrada" mensagem="Tente outra categoria ou outra busca.">
+      <button hlmBtn variant="outline" type="button" (click)="limparFiltros()">Limpar filtros</button>
+    </uz-estado>
+  }
+
+  @if (pagina && produtos.length) {
+    <ul class="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:grid-cols-4">
+      @for (p of produtos; track p.id) {
+        <li><uz-produto-card [produto]="p"></uz-produto-card></li>
+      }
+    </ul>
+    <div class="mt-8 flex flex-col items-center gap-3">
+      <p class="m-0 text-muted-foreground" aria-live="polite">Mostrando {{ produtos.length }} de {{ pagina.totalElements }}</p>
+      @if (!pagina.last) {
+        <button hlmBtn variant="outline" size="lg" type="button" [disabled]="carregando" (click)="carregar(pagina.number + 1)">
+          @if (carregando) {
+            <hlm-spinner aria-hidden="true" />
+          }
+          {{ carregando ? 'Carregando…' : 'Carregar mais' }}
+        </button>
+      }
+    </div>
+  }
+</section>

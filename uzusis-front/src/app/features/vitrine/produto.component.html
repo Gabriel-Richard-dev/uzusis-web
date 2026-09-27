@@ -1,0 +1,125 @@
+<section class="uz-container pt-6 pb-8">
+  @if (!produto && !naoEncontrado && !erro) {
+    <uz-estado tipo="carregando" mensagem="Carregando produto…"></uz-estado>
+  }
+
+  @if (naoEncontrado) {
+    <h1 class="uz-titulo" tabindex="-1">Produto não encontrado</h1>
+    <uz-estado tipo="vazio" mensagem="A peça pode ter saído da loja, ou o endereço está errado.">
+      <a hlmBtn routerLink="/loja">Ver a loja</a>
+    </uz-estado>
+  }
+
+  @if (erro) {
+    <h1 class="uz-titulo" tabindex="-1">Não foi possível carregar o produto</h1>
+    <uz-estado tipo="erro" [mensagem]="mensagemDeErro(erro)" (tentarNovamente)="carregar()"></uz-estado>
+  }
+
+  @if (produto; as p) {
+    <div class="grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:items-start md:gap-12">
+      <uz-galeria [fotos]="p.fotos" [nome]="p.nome"></uz-galeria>
+
+      <!-- A página rola na janela (shell), então o sticky funciona. -->
+      <div class="flex min-w-0 flex-col items-start lg:sticky lg:top-6">
+        <a
+          class="uz-legenda inline-flex min-h-11 items-center text-muted-foreground no-underline hover:text-brand hover:underline"
+          routerLink="/loja"
+          [queryParams]="{ categoria: p.categoria }"
+        >
+          {{ p.categoriaNome }}
+        </a>
+        <h1 class="mb-2 text-h2 md:text-h1" tabindex="-1">{{ p.nome }}</h1>
+        <p class="mb-6 text-xl font-semibold text-brand">{{ p.preco | currency }}</p>
+
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-3 self-stretch">
+          <span id="rotulo-tamanho" class="text-sm font-medium">Tamanho</span>
+          <button hlmBtn variant="link" type="button" class="-me-2 px-2" (click)="abrirGuia()">
+            <uz-icone nome="regua" [tamanho]="18"></uz-icone>
+            Guia de medidas
+          </button>
+        </div>
+        <!-- Rádios nativos: setas trocam o tamanho e pulam o esgotado (disabled). O nome vem do aria-label.
+             O rádio fica transparente POR CIMA da pill (não sr-only): o clique e o hover caem nele, e não no label. -->
+        <div role="radiogroup" aria-labelledby="rotulo-tamanho" class="flex flex-wrap gap-2">
+          @for (t of p.tamanhos; track t.sigla) {
+            <label class="relative flex">
+              <input
+                type="radio"
+                name="tamanho"
+                class="peer absolute inset-0 m-0 cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed"
+                [value]="t.sigla"
+                [checked]="tamanho === t.sigla"
+                [disabled]="t.quantidade === 0"
+                [attr.aria-label]="t.quantidade === 0 ? t.sigla + ', esgotado' : t.sigla"
+                (change)="escolherTamanho(t.sigla)"
+              />
+              <span
+                class="uz-pill peer-[:checked:hover]:bg-primary/85 peer-[:enabled:not(:checked):hover]:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_6%)]"
+                aria-hidden="true"
+              >
+                {{ t.sigla }}
+              </span>
+            </label>
+          }
+        </div>
+        <p class="mt-2 mb-4 min-h-[1.5em] text-sm font-medium text-warning" aria-live="polite">
+          {{ estoque === 1 ? 'Resta 1 neste tamanho' : estoque > 1 && estoque <= 3 ? 'Restam ' + estoque + ' neste tamanho' : '' }}
+        </p>
+
+        <div class="mb-2 flex flex-wrap items-center justify-between gap-3 self-stretch">
+          <span class="text-sm font-medium" aria-hidden="true">Quantidade</span>
+          <uz-qtd [(valor)]="quantidade" [max]="maxQtd" rotulo="Quantidade" [desabilitado]="!tamanho"></uz-qtd>
+        </div>
+        <button
+          hlmBtn
+          size="lg"
+          type="button"
+          class="mt-4 w-full"
+          [disabled]="!tamanho || adicionando"
+          [attr.aria-describedby]="tamanho ? null : 'ajuda-adicionar'"
+          (click)="adicionar()"
+        >
+          @if (adicionando) {
+            <hlm-spinner aria-hidden="true" />
+          }
+          {{ adicionando ? 'Adicionando…' : 'Adicionar à sacola' }}
+        </button>
+        @if (!tamanho) {
+          <p id="ajuda-adicionar" class="mt-2 mb-0 text-sm text-muted-foreground">
+            {{ p.disponivel ? 'Escolha um tamanho' : 'Produto esgotado' }}
+          </p>
+        }
+        @if (erroAdicionar) {
+          <div hlmAlert variant="destructive" class="mt-3">
+            <uz-icone nome="alerta" [tamanho]="18"></uz-icone>
+            <div hlmAlertTitle>{{ erroAdicionar }}</div>
+          </div>
+        }
+
+        <div class="mt-8 self-stretch border-b border-border">
+          <details class="group border-t border-border" open>
+            <summary
+              class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 py-4 font-medium [&::-webkit-details-marker]:hidden"
+            >
+              Descrição
+              <uz-icone nome="seta-baixo" class="transition-transform group-open:rotate-180"></uz-icone>
+            </summary>
+            <p class="m-0 pb-4 whitespace-pre-line text-muted-foreground">{{ p.descricao }}</p>
+          </details>
+          <details class="group border-t border-border">
+            <summary
+              class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 py-4 font-medium [&::-webkit-details-marker]:hidden"
+            >
+              Trocas e envio
+              <uz-icone nome="seta-baixo" class="transition-transform group-open:rotate-180"></uz-icone>
+            </summary>
+            <div class="pb-4 text-muted-foreground">
+              <p>Frete calculado no checkout conforme o estado.</p>
+              <p class="m-0">Para trocas, fale com a gente pelo e-mail uzusis&#64;gmail.com ou pelo Instagram &#64;_uzusis.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  }
+</section>

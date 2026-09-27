@@ -1,0 +1,8 @@
+# Em config/ e não na raiz do classpath: um application.yml de teste na raiz
+# esconde o de src/main inteiro (o classpath de teste vem antes). Em config/ os
+# dois são lidos e este só sobrescreve.
+spring:
+  kafka:
+    listener:
+      # Sem Kafka no teste: o contexto sobe sem os consumidores conectarem.
+      auto-startup: false

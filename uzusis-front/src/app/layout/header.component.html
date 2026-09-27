@@ -1,0 +1,122 @@
+<header class="border-b border-border bg-background">
+  <!-- Faixa de avisos: estática (sem rotação nem região viva), sem números: o frete vem da configuração. -->
+  <div class="bg-primary text-primary-foreground">
+    <ul
+      role="list"
+      aria-label="Avisos da loja"
+      class="uz-container flex h-9 items-center justify-center gap-8 text-xs font-medium tracking-[0.04em]"
+    >
+      <li>Enviamos para todo o Brasil</li>
+      <li class="hidden md:block">Pagamento seguro com cartão via Stripe</li>
+      <li class="hidden lg:block">
+        Trocas e atendimento:
+        <!-- O foco global marrom some no preto (~2,8:1): aqui o contorno é claro. -->
+        <a
+          class="text-primary-foreground underline underline-offset-2 hover:text-primary-foreground/80 focus-visible:outline-primary-foreground"
+          href="mailto:uzusis@gmail.com"
+          >uzusis&#64;gmail.com</a
+        >
+      </li>
+    </ul>
+  </div>
+  <!-- Mobile: [menu] [logo centralizado] [busca, conta, sacola] · ≥ lg: [logo] [Loja, Categorias] [busca] [conta, sacola] -->
+  <div
+    class="uz-container grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-x-1 lg:grid-cols-[auto_auto_1fr_auto] lg:gap-x-6"
+  >
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon"
+      type="button"
+      class="justify-self-start lg:hidden"
+      aria-label="Abrir menu"
+      (click)="abrirMenu.emit()"
+    >
+      <uz-icone nome="menu" [tamanho]="24"></uz-icone>
+    </button>
+
+    <a
+      routerLink="/"
+      class="inline-flex min-h-11 items-center gap-2 justify-self-center text-foreground no-underline hover:text-foreground lg:justify-self-start"
+      aria-label="Uzusis, página inicial"
+    >
+      <!-- A marca original é taupe claro (≈2,3:1 no papel): o filtro escurece sem trocar o arquivo. -->
+      <img src="assets/logoUzu.png" alt="" width="55" height="39" class="h-[23px] w-8 object-contain brightness-[.3] max-[359px]:hidden lg:h-7 lg:w-10" />
+      <span class="font-display text-lg tracking-[0.2em] lg:text-h3">UZUSIS</span>
+    </a>
+
+    <nav class="hidden gap-1 lg:flex" aria-label="Principal">
+      <a hlmBtn variant="ghost" routerLink="/loja">Loja</a>
+      <button hlmBtn variant="ghost" type="button" [hlmDropdownMenuTrigger]="menuCategorias">
+        Categorias
+        <uz-icone nome="seta-baixo" [tamanho]="16"></uz-icone>
+      </button>
+    </nav>
+
+    <uz-busca class="hidden w-full max-w-[22rem] justify-self-end lg:block" />
+
+    <div class="flex items-center justify-self-end">
+      <button
+        hlmBtn
+        variant="ghost"
+        size="icon"
+        type="button"
+        class="lg:hidden"
+        aria-label="Buscar peças"
+        aria-haspopup="dialog"
+        (click)="abrirBusca.emit()"
+      >
+        <uz-icone nome="busca" [tamanho]="24"></uz-icone>
+      </button>
+      <button hlmBtn variant="ghost" size="icon" type="button" aria-label="Conta" [hlmDropdownMenuTrigger]="menuConta" align="end">
+        <uz-icone nome="usuario" [tamanho]="24"></uz-icone>
+      </button>
+      @if ({ n: (quantidade$ | async) ?? 0 }; as sacolaVm) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          class="relative"
+          [attr.aria-label]="sacolaVm.n === 1 ? 'Sacola, 1 item' : 'Sacola, ' + sacolaVm.n + ' itens'"
+          (click)="sacola.abrir()"
+        >
+          <uz-icone nome="sacola" [tamanho]="24"></uz-icone>
+          @if (sacolaVm.n > 0) {
+            <span
+              hlmBadge
+              aria-hidden="true"
+              class="absolute -top-0.5 -right-0.5 h-5 min-w-5 bg-brand px-1 text-brand-foreground tabular-nums"
+              >{{ sacolaVm.n }}</span
+            >
+          }
+        </button>
+      }
+    </div>
+  </div>
+</header>
+
+<ng-template #menuCategorias>
+  <hlm-dropdown-menu class="w-56">
+    @for (c of categorias; track c) {
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+    }
+  </hlm-dropdown-menu>
+</ng-template>
+
+<ng-template #menuConta>
+  <hlm-dropdown-menu class="w-56">
+    @if (usuario$ | async; as usuario) {
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/conta/dados">Minha conta</a>
+      <a hlmDropdownMenuItem class="min-h-11" routerLink="/conta/pedidos">Meus pedidos</a>
+      @if (usuario.roles.includes('ADMIN')) {
+        <a hlmDropdownMenuItem class="min-h-11" routerLink="/admin">Administração</a>
+      }
+      <hlm-dropdown-menu-separator />
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.logout()">Sair</button>
+    } @else {
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.login()">Entrar</button>
+      <button hlmDropdownMenuItem class="min-h-11" type="button" (click)="auth.cadastrar()">Criar conta</button>
+    }
+  </hlm-dropdown-menu>
+</ng-template>

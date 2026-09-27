@@ -1,0 +1,82 @@
+@if (!perfil && !erro) {
+  <uz-estado tipo="carregando" mensagem="Carregando seus dados…" />
+}
+
+@if (erro) {
+  <uz-estado tipo="erro" titulo="Não foi possível carregar seus dados" [mensagem]="erro" (tentarNovamente)="carregar()" />
+}
+
+@if (perfil && formEndereco) {
+  <div class="flex max-w-3xl flex-col gap-6">
+    <section hlmCard aria-labelledby="titulo-pessoais">
+      <div hlmCardContent class="px-4 sm:px-6">
+        <h2 id="titulo-pessoais" class="mb-5 text-h3">Dados pessoais</h2>
+        <form [formGroup]="formPessoal" (ngSubmit)="salvarPessoal()">
+          <div class="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+            <div hlmField class="sm:col-span-2">
+              <label hlmFieldLabel>Nome para entrega</label>
+              <input hlmInput formControlName="nome" autocomplete="name" maxlength="200" />
+              <p hlmFieldDescription>Usado como destinatário padrão. O nome da conta é o do cadastro.</p>
+              <hlm-field-error>{{ erroPessoal('nome') }}</hlm-field-error>
+            </div>
+            <div hlmField>
+              <label hlmFieldLabel>CPF</label>
+              <input hlmInput formControlName="cpf" uzMascara="cpf" inputmode="numeric" />
+              <hlm-field-error>{{ erroPessoal('cpf') }}</hlm-field-error>
+            </div>
+            <div hlmField>
+              <label hlmFieldLabel>Celular</label>
+              <input hlmInput formControlName="celular" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
+              <hlm-field-error>{{ erroPessoal('celular') }}</hlm-field-error>
+            </div>
+            <div hlmField>
+              <label hlmFieldLabel>Data de nascimento</label>
+              <input hlmInput type="date" formControlName="dataNascimento" autocomplete="bday" min="1900-01-01" [max]="hoje" />
+              <hlm-field-error>{{ erroPessoal('dataNascimento') }}</hlm-field-error>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button hlmBtn type="submit" [disabled]="salvandoPessoal">
+              @if (salvandoPessoal) {
+                <hlm-spinner aria-hidden="true" />
+              }
+              {{ salvandoPessoal ? 'Salvando…' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section hlmCard aria-labelledby="titulo-endereco">
+      <div hlmCardContent class="px-4 sm:px-6">
+        <h2 id="titulo-endereco" class="mb-1 text-h3">Endereço</h2>
+        <p class="mb-5 text-muted-foreground">Vem preenchido na entrega do checkout.</p>
+        <form [formGroup]="formEndereco" (ngSubmit)="salvarEndereco()">
+          <uz-endereco-form [form]="formEndereco" />
+          <div class="mt-6 flex flex-wrap gap-3">
+            <button hlmBtn type="submit" [disabled]="salvandoEndereco">
+              @if (salvandoEndereco) {
+                <hlm-spinner aria-hidden="true" />
+              }
+              {{ salvandoEndereco ? 'Salvando…' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section hlmCard aria-labelledby="titulo-acesso">
+      <div hlmCardContent class="px-4 sm:px-6">
+        <h2 id="titulo-acesso" class="mb-5 text-h3">E-mail e senha</h2>
+        <div hlmField>
+          <label hlmFieldLabel>E-mail</label>
+          <input hlmInput class="bg-muted" type="email" [value]="perfil.email ?? ''" readonly />
+          <p hlmFieldDescription>E-mail e senha são gerenciados no login.</p>
+        </div>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button hlmBtn variant="outline" type="button" (click)="auth.alterarSenha()">Alterar senha</button>
+        </div>
+      </div>
+    </section>
+  </div>
+}

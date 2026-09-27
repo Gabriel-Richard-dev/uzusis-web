@@ -1,0 +1,151 @@
+<section class="uz-container">
+  <h1 class="uz-titulo mb-2" tabindex="-1">{{ modo === 'enviar' ? 'Pedidos a enviar' : 'Histórico de pedidos' }}</h1>
+  <p class="mb-6 text-muted-foreground">
+    {{
+      modo === 'enviar'
+        ? 'Pedidos pagos, dos mais antigos para os mais novos.'
+        : 'Pedidos enviados e recebidos, dos envios mais recentes para os mais antigos.'
+    }}
+  </p>
+
+  @if (carregando && !pagina) {
+    <uz-estado tipo="carregando" mensagem="Carregando pedidos…"></uz-estado>
+  }
+
+  @if (!carregando && erro) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar os pedidos"
+      [mensagem]="mensagemDeErro(erro)"
+      (tentarNovamente)="carregar()"
+    ></uz-estado>
+  }
+
+  @if (pagina && !pagina.content.length && !carregando) {
+    @if (modo === 'enviar') {
+      <uz-estado tipo="vazio" titulo="Nenhum pedido a enviar" mensagem="Os pedidos pagos aparecem aqui.">
+        <a hlmBtn variant="outline" routerLink="/admin/pedidos/historico">Ver histórico</a>
+      </uz-estado>
+    } @else {
+      <uz-estado tipo="vazio" titulo="Nenhum pedido enviado ainda" mensagem="Os pedidos marcados como enviados aparecem aqui.">
+        <a hlmBtn variant="outline" routerLink="/admin/pedidos">Ver pedidos a enviar</a>
+      </uz-estado>
+    }
+  }
+
+  @if (pagina && pagina.content.length) {
+    <div [attr.aria-busy]="carregando ? 'true' : null">
+      <!-- Altura reservada: a barra aparece na recarga sem empurrar a lista. -->
+      <div class="mb-2 h-1">
+        @if (carregando) {
+          <hlm-progress class="h-1" aria-label="Atualizando a lista"><hlm-progress-indicator /></hlm-progress>
+        }
+      </div>
+      <ul class="mb-4 flex flex-col gap-4">
+        @for (p of pagina.content; track p.id) {
+          <li>
+            <article hlmCard class="pedido gap-4 p-4 text-base md:p-5" [attr.aria-labelledby]="'pedido-' + p.id">
+              <header class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                <h2 class="m-0 text-h3" [id]="'pedido-' + p.id">Pedido #{{ p.id }}</h2>
+                <uz-status-pedido [status]="p.status"></uz-status-pedido>
+              </header>
+              <!-- No celular as datas viram grade de 2 colunas para alinhar os valores. -->
+              <dl class="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1 text-sm md:flex md:flex-wrap md:gap-x-6 md:gap-y-2">
+                <div class="contents md:flex md:gap-1.5">
+                  <dt class="text-muted-foreground">Pago em</dt>
+                  <dd>{{ p.pagoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                </div>
+                @if (p.enviadoEm) {
+                  <div class="contents md:flex md:gap-1.5">
+                    <dt class="text-muted-foreground">Enviado em</dt>
+                    <dd>{{ p.enviadoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                  </div>
+                }
+                @if (p.recebidoEm) {
+                  <div class="contents md:flex md:gap-1.5">
+                    <dt class="text-muted-foreground">Recebido em</dt>
+                    <dd>{{ p.recebidoEm | date: 'dd/MM/yyyy HH:mm' }}</dd>
+                  </div>
+                }
+              </dl>
+              <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1.5fr]">
+                <section>
+                  <h3 class="uz-legenda mb-2 font-sans font-semibold">Cliente</h3>
+                  <p class="m-0 [overflow-wrap:anywhere]">
+                    {{ p.cliente.nome }}<br />
+                    <a [href]="'mailto:' + p.cliente.email">{{ p.cliente.email }}</a>
+                    @if (p.endereco.telefone) {
+                      <br />
+                      Telefone: <a [href]="'tel:+55' + p.endereco.telefone">{{ telefone(p) }}</a>
+                    }
+                  </p>
+                </section>
+                <section>
+                  <h3 class="uz-legenda mb-2 font-sans font-semibold">Entrega</h3>
+                  <address class="not-italic [overflow-wrap:anywhere]">
+                    {{ p.endereco.destinatario }}<br />
+                    {{ p.endereco.rua }}, {{ p.endereco.numero }}@if (p.endereco.complemento) {
+                      — {{ p.endereco.complemento }}
+                    }<br />
+                    {{ p.endereco.bairro }}<br />
+                    {{ p.endereco.cidade }}/{{ p.endereco.uf }}<br />
+                    CEP {{ p.endereco.cep }}
+                  </address>
+                </section>
+                <section class="md:col-span-2 xl:col-span-1">
+                  <h3 class="uz-legenda mb-2 font-sans font-semibold">Itens ({{ pecas(p) }} {{ pecas(p) === 1 ? 'peça' : 'peças' }})</h3>
+                  <ul class="flex flex-col gap-2">
+                    @for (item of p.itens; track $index) {
+                      <li class="flex items-center gap-3">
+                        @if (item.fotoUrl) {
+                          <img class="h-16 w-12 flex-none rounded-md bg-muted object-cover" [src]="item.fotoUrl" alt="" width="48" height="64" loading="lazy" />
+                        } @else {
+                          <span class="h-16 w-12 flex-none rounded-md bg-muted"></span>
+                        }
+                        <span class="flex min-w-0 flex-col text-sm">
+                          <span class="font-semibold [overflow-wrap:anywhere]">{{ item.nomeProduto }}</span>
+                          <span class="text-muted-foreground">Tamanho {{ item.sigla }} · {{ item.quantidade }} un.</span>
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                </section>
+              </div>
+              <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                <dl class="flex flex-wrap gap-x-6 gap-y-1">
+                  <div class="flex gap-2">
+                    <dt class="text-muted-foreground">Subtotal</dt>
+                    <dd class="tabular-nums">{{ p.subtotal | currency }}</dd>
+                  </div>
+                  <div class="flex gap-2">
+                    <dt class="text-muted-foreground">Frete</dt>
+                    <dd class="tabular-nums">{{ p.frete | currency }}</dd>
+                  </div>
+                  <div class="flex gap-2 font-semibold">
+                    <dt>Total</dt>
+                    <dd class="text-brand tabular-nums">{{ p.valorTotal | currency }}</dd>
+                  </div>
+                </dl>
+                @if (modo === 'enviar') {
+                  <button
+                    hlmBtn
+                    type="button"
+                    [disabled]="enviando.has(p.id)"
+                    [attr.aria-describedby]="'pedido-' + p.id"
+                    (click)="marcarEnviado(p)"
+                  >
+                    @if (enviando.has(p.id)) {
+                      <hlm-spinner aria-hidden="true" />
+                    }
+                    {{ enviando.has(p.id) ? 'Marcando…' : 'Marcar como enviado' }}
+                  </button>
+                }
+              </footer>
+            </article>
+          </li>
+        }
+      </ul>
+      <uz-paginador [pagina]="pagina.number" [tamanho]="porPagina" [total]="pagina.totalElements" (mudar)="mudarPagina($event)" />
+    </div>
+  }
+</section>

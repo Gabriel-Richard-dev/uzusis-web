@@ -1,78 +1,362 @@
-# Sobe o sistema inteiro: banco, storage, API e front atrás do nginx.
-# Configuração vem toda do .env (copie de .env.example) — nada fica no código.
+# Uzusis: microserviços Java + front Angular, tudo em contêiner.
+#
+#   docker compose up -d --build        → loja em http://localhost:8080 (WEB_PORT)
+#
+# Só o web (nginx) e o Mailpit publicam porta, em 127.0.0.1. O nginx é a origem única:
+# /api → gateway, /auth → Keycloak, /storage → MinIO. Nenhuma variável é
+# obrigatória; o .env.example documenta todas. Perfis opcionais:
+#   stripe         → stripe-cli encaminhando webhooks (precisa das chaves)
+#   observability  → Jaeger (com TRACING_ENABLED=true)
+#
+# NUNCA rode "docker compose down -v": apaga o Postgres (pedidos, clientes), as fotos e o Kafka.
+
+name: uzusis
+
+x-java: &java
+  image: uzusis-api:dev
+  build: { context: ./uzusis-api }           # igual nos 6 → um build só (o bake deduplica)
+  restart: unless-stopped
+  mem_limit: 512m
+  healthcheck:
+    test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:$${SERVER_PORT}/actuator/health || exit 1"]
+    interval: 10s
+    timeout: 5s
+    retries: 30
+    start_period: 60s
+
+# Senhas dos usuários de banco: o init.sql cria com elas (só com o pg-data vazio;
+# depois é ALTER USER, README "Fora de dev"), os serviços e o Debezium entram com elas.
+x-db-senhas: &db-senhas
+  CATALOG_DB_PASSWORD: ${CATALOG_DB_PASSWORD:-catalog}
+  ORDERS_DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders}
+  PAYMENTS_DB_PASSWORD: ${PAYMENTS_DB_PASSWORD:-payments}
+  NOTIFICATIONS_DB_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD:-notifications}
+  IDENTITY_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:-identity}
+
+x-java-env: &java-env
+  # MaxRAMPercentage lê o mem_limit (cgroup); 50% porque metaspace, code cache e pilhas ficam fora do heap.
+  JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=50 -XX:+UseSerialGC -Xss512k -XX:TieredStopAtLevel=1 -XX:+ExitOnOutOfMemoryError"
+  KAFKA_BOOTSTRAP: kafka:9092
+  # iss = URL pública (a do navegador); as chaves vêm pela rede interna.
+  KEYCLOAK_ISSUER: ${PUBLIC_URL:-http://localhost:${WEB_PORT:-8080}}/auth/realms/uzusis
+  KEYCLOAK_JWKS_URI: http://keycloak:8080/auth/realms/uzusis/protocol/openid-connect/certs
+  MANAGEMENT_TRACING_ENABLED: ${TRACING_ENABLED:-false}
+  OTLP_ENDPOINT: http://jaeger:4318/v1/traces
 
 services:
-  db:
-    image: mysql:8.0
+  web:
+    build: ./uzusis-front
+    image: uzusis-web:dev
     restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    volumes:
-      - db-data:/var/lib/mysql
+    ports: ["${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:80"]   # WEB_BIND=0.0.0.0 abre para a rede
+    mem_limit: 64m
+    depends_on:
+      gateway: { condition: service_started }
+      keycloak: { condition: service_started }
+      minio: { condition: service_started }
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      retries: 10
+
+  gateway:
+    <<: *java
+    mem_limit: 384m
+    environment:
+      <<: *java-env
+      MODULO: gateway
+      SERVER_PORT: "8080"
+      CATALOG_URL: http://catalog-service:8082
+      ORDER_URL: http://order-service:8083
+      PAYMENT_URL: http://payment-service:8084
+      IDENTITY_URL: http://identity-service:8086
+
+  catalog-service:
+    <<: *java
+    depends_on:
+      postgres: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    environment:
+      <<: *java-env
+      MODULO: catalog-service
+      SERVER_PORT: "8082"
+      DB_URL: jdbc:postgresql://postgres:5432/catalog
+      DB_USER: catalog
+      DB_PASSWORD: ${CATALOG_DB_PASSWORD:-catalog}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-uzusis}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-uzusis-minio-dev}
+      MINIO_BUCKET: ${MINIO_BUCKET:-produtos}
+      MINIO_PUBLIC_PREFIX: /storage
+
+  order-service:
+    <<: *java
+    depends_on:
+      postgres: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+    environment:
+      <<: *java-env
+      MODULO: order-service
+      SERVER_PORT: "8083"
+      DB_URL: jdbc:postgresql://postgres:5432/orders
+      DB_USER: orders
+      DB_PASSWORD: ${ORDERS_DB_PASSWORD:-orders}
+      CATALOG_URL: http://catalog-service:8082
+      FRETE_PADRAO: ${FRETE_PADRAO:-40.00}
+      FRETE_POR_UF: ${FRETE_POR_UF:-CE=10.00}
+      PEDIDO_EXPIRACAO_MINUTOS: ${PEDIDO_EXPIRACAO_MINUTOS:-30}
+
+  payment-service:
+    <<: *java
+    depends_on:
+      postgres: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+    environment:
+      <<: *java-env
+      MODULO: payment-service
+      SERVER_PORT: "8084"
+      DB_URL: jdbc:postgresql://postgres:5432/payments
+      DB_USER: payments
+      DB_PASSWORD: ${PAYMENTS_DB_PASSWORD:-payments}
+      # Vazias = pagamento desabilitado (o stack sobe e o checkout avisa).
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_API_BASE: ${STRIPE_API_BASE:-}
+      STRIPE_MOEDA: ${STRIPE_MOEDA:-brl}
+
+  notification-service:
+    <<: *java
+    depends_on:
+      postgres: { condition: service_healthy }
+      kafka: { condition: service_healthy }
+      mailpit: { condition: service_started }
+    environment:
+      <<: *java-env
+      MODULO: notification-service
+      SERVER_PORT: "8085"
+      DB_URL: jdbc:postgresql://postgres:5432/notifications
+      DB_USER: notifications
+      DB_PASSWORD: ${NOTIFICATIONS_DB_PASSWORD:-notifications}
+      # os mesmos SMTP_* do Keycloak: um lugar só para configurar o e-mail
+      EMAIL_SERVER: ${SMTP_HOST:-mailpit}
+      EMAIL_PORT: ${SMTP_PORT:-1025}
+      EMAIL_USER: ${SMTP_USER:-}
+      EMAIL_PASSWORD: ${SMTP_PASSWORD:-}
+      EMAIL_AUTH: ${SMTP_AUTH:-false}
+      EMAIL_TLS: ${SMTP_STARTTLS:-false}
+      EMAIL_FROM: ${EMAIL_FROM:-Uzusis <nao-responda@uzusis.local>}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${WEB_PORT:-8080}}
+
+  identity-service:
+    <<: *java
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      <<: *java-env
+      MODULO: identity-service
+      SERVER_PORT: "8086"
+      DB_URL: jdbc:postgresql://postgres:5432/identity
+      DB_USER: identity
+      DB_PASSWORD: ${IDENTITY_DB_PASSWORD:-identity}
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    # wal_level=logical: o Debezium lê o WAL. max_slot_wal_keep_size: um slot
+    # parado não enche o disco (ver "Debezium" no README).
+    command: >
+      postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
+               -c max_slot_wal_keep_size=1GB
+    environment:
+      <<: *db-senhas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./uzusis-api/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    mem_limit: 512m
+    healthcheck:
+      # -h 127.0.0.1: durante o init.sql o servidor temporário só escuta no socket
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 30
 
+  kafka:
+    image: apache/kafka:3.8.0
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    mem_limit: 768m
+    healthcheck:
+      # nc e não kafka-topics.sh: uma 2ª JVM não cabe nos mesmos 768m
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  connect:
+    image: quay.io/debezium/connect:3.0.0.Final
+    restart: unless-stopped
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: uzusis-connect
+      CONFIG_STORAGE_TOPIC: connect.configs
+      OFFSET_STORAGE_TOPIC: connect.offsets
+      STATUS_STORAGE_TOPIC: connect.status
+      KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      HEAP_OPTS: "-Xms256m -Xmx512m"
+    mem_limit: 768m
+    depends_on:
+      kafka: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  # One-shot: registra os conectores do outbox depois do Flyway dos serviços.
+  connect-init:
+    image: quay.io/debezium/connect:3.0.0.Final
+    restart: "no"
+    entrypoint: ["bash", "/registrar.sh"]
+    environment:
+      <<: *db-senhas
+      CONNECT_URL: http://connect:8083
+    volumes:
+      - ./uzusis-api/infra/debezium/registrar-conectores.sh:/registrar.sh:ro
+    mem_limit: 128m
+    depends_on:
+      connect: { condition: service_healthy }
+      # a publication filtrada exige public.outbox, criada pelo Flyway de cada serviço
+      catalog-service: { condition: service_healthy }
+      order-service: { condition: service_healthy }
+      payment-service: { condition: service_healthy }
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    restart: unless-stopped
+    # --import-realm só importa se o realm não existe (ver "Reimportar o realm" no README)
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      KC_HTTP_RELATIVE_PATH: /auth
+      # URL completa: todas as URLs do discovery (issuer, token, jwks...) saem dela,
+      # e não da requisição; atrás de TLS na borda, PUBLIC_URL=https://... basta.
+      KC_HOSTNAME: ${PUBLIC_URL:-http://localhost:${WEB_PORT:-8080}}/auth
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_KC_HEAP: "-Xms128m -Xmx512m"
+      # placeholders do realm (redirect URIs e SMTP dos e-mails de cadastro/reset)
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:${WEB_PORT:-8080}}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_AUTH: ${SMTP_AUTH:-false}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+      SMTP_FROM: ${SMTP_FROM:-nao-responda@uzusis.local}
+    volumes:
+      - ./uzusis-api/infra/keycloak/import:/opt/keycloak/data/import:ro
+      - ./uzusis-api/infra/keycloak/themes/uzusis:/opt/keycloak/themes/uzusis:ro
+    mem_limit: 1g
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      # a imagem não tem curl; a porta 9000 é a de gerenciamento
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /auth/health/ready HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  # pgsty/minio: build comunitário do MinIO (minio/minio e minio/mc saíram do Docker Hub).
   minio:
-    image: minio/minio:latest
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-uzusis}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-uzusis-minio-dev}
     volumes:
-      - minio-data:/data
-    ports:
-      - "${MINIO_API_PORT:-9000}:9000"     # usado pelo proxy do `ng serve`
-      - "${MINIO_CONSOLE_PORT:-9001}:9001" # console web do MinIO
+      - fotos-data:/data
+    mem_limit: 256m
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 5s
       timeout: 5s
       retries: 30
 
-  api:
-    build: ./uzusis-api
+  # "download" anônimo também libera ListBucket; quem fecha a listagem é o nginx.
+  minio-init:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: "no"
+    entrypoint: ["sh", "-c"]
+    command:
+      - >
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing "local/$$MINIO_BUCKET" &&
+        mc anonymous set download "local/$$MINIO_BUCKET"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-uzusis}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-uzusis-minio-dev}
+      MINIO_BUCKET: ${MINIO_BUCKET:-produtos}
+    mem_limit: 64m
+    depends_on:
+      minio: { condition: service_healthy }
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports: ["127.0.0.1:${MAILPIT_PORT:-8025}:8025"]
+    mem_limit: 64m
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    profiles: [observability]
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ConnectionStrings__DefaultConnection: "server=db;port=3306;user=${DB_USER};password=${DB_PASSWORD};database=${DB_NAME}"
-      JwtSettings__Key: ${JWT_KEY}
-      # Admin inicial (opcional): em branco, nada é criado.
-      Admin__SeedName: ${ADMIN_NAME:-Administrador}
-      Admin__SeedEmail: ${ADMIN_EMAIL:-}
-      Admin__SeedPassword: ${ADMIN_PASSWORD:-}
-      EmailConfiguration__User: ${EMAIL_USER}
-      EmailConfiguration__Password: ${EMAIL_PASSWORD}
-      EmailConfiguration__Server: ${EMAIL_SERVER}
-      EmailConfiguration__Port: ${EMAIL_PORT}
-      Minio__Endpoint: minio:9000
-      Minio__AccessKey: ${MINIO_ROOT_USER}
-      Minio__SecretKey: ${MINIO_ROOT_PASSWORD}
-      Minio__Bucket: ${MINIO_BUCKET}
-      # Relativo: o browser busca as fotos no mesmo domínio, o nginx encaminha.
-      Minio__PublicBaseUrl: /storage
-    ports:
-      - "${API_PORT:-5141}:8080" # usado pelo proxy do `ng serve`
-    depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+      COLLECTOR_OTLP_ENABLED: "true"
+      MEMORY_MAX_TRACES: "5000"
+    ports: ["127.0.0.1:16686:16686"]
+    mem_limit: 256m
 
-  web:
-    build: ./uzusis-front
-    restart: unless-stopped
-    ports:
-      - "${WEB_PORT:-8080}:80"
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    profiles: [stripe]
+    restart: unless-stopped   # volta sozinho; enquanto estiver fora, a reconciliação de 2 min confirma os pagamentos
+    command: ["listen", "--api-key", "${STRIPE_SECRET_KEY:-}", "--forward-to", "http://web/api/webhooks/stripe",
+              "--events", "payment_intent.succeeded,payment_intent.payment_failed"]
+    mem_limit: 128m
     depends_on:
-      - api
+      web: { condition: service_started }
 
 volumes:
-  db-data:
-  minio-data:
+  pg-data:
+  kafka-data:
+  fotos-data:

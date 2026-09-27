@@ -1,0 +1,114 @@
+<section class="uz-container">
+  <a hlmBtn variant="link" routerLink="/admin/produtos" class="mt-3 -ms-1 gap-1 px-1">
+    <uz-icone nome="seta-esquerda" [tamanho]="16" />
+    Produtos
+  </a>
+  <h1 class="uz-titulo mt-2" tabindex="-1">{{ edicao ? 'Editar produto' : 'Novo produto' }}</h1>
+
+  @if (carregando) {
+    <uz-estado tipo="carregando" mensagem="Carregando o produto…"></uz-estado>
+  }
+
+  @if (erroCarga) {
+    <uz-estado
+      tipo="erro"
+      titulo="Não foi possível carregar o produto"
+      [mensagem]="mensagemDeErro(erroCarga)"
+      (tentarNovamente)="carregar()"
+    >
+      <a hlmBtn variant="outline" routerLink="/admin/produtos">Voltar para produtos</a>
+    </uz-estado>
+  }
+
+  @if (!carregando && !erroCarga) {
+    <form class="flex max-w-[60rem] flex-col gap-6" [formGroup]="form" (ngSubmit)="salvar()">
+      @if (produto && !produto.ativo) {
+        <div hlmAlert class="border-warning/30 bg-warning-muted text-warning" role="status">
+          <uz-icone nome="alerta" />
+          <p hlmAlertTitle class="m-0">Este produto está inativo e não aparece na loja. Reative-o na lista de produtos.</p>
+        </div>
+      }
+
+      <section hlmCard class="gap-5 p-4 md:p-6" aria-labelledby="info-titulo">
+        <h2 id="info-titulo" class="m-0 text-h3">Informações</h2>
+        <div hlmField>
+          <label hlmFieldLabel>Nome</label>
+          <input hlmInput formControlName="nome" maxlength="120" autocomplete="off" required />
+          <hlm-field-error validator="required">Informe o nome.</hlm-field-error>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2">
+          <div hlmField>
+            <label hlmFieldLabel>Categoria</label>
+            <hlm-native-select formControlName="categoria" required>
+              <option hlmNativeSelectOption value="">Escolha a categoria</option>
+              @for (c of categorias; track c.valor) {
+                <option hlmNativeSelectOption [value]="c.valor">{{ c.nome }}</option>
+              }
+            </hlm-native-select>
+            <hlm-field-error>Escolha a categoria.</hlm-field-error>
+          </div>
+          <div hlmField>
+            <label hlmFieldLabel>Preço</label>
+            <hlm-input-group>
+              <hlm-input-group-addon align="inline-start">
+                <span hlmInputGroupText>R$</span>
+              </hlm-input-group-addon>
+              <input hlmInputGroupInput formControlName="preco" inputmode="decimal" autocomplete="off" required />
+            </hlm-input-group>
+            <p hlmFieldDescription class="m-0">Ex.: 59,90</p>
+            <hlm-field-error validator="required">Informe o preço.</hlm-field-error>
+            <hlm-field-error validator="preco">Use o formato 59,90 (mínimo 0,01).</hlm-field-error>
+          </div>
+        </div>
+        <div hlmField>
+          <label hlmFieldLabel>Descrição</label>
+          <textarea hlmTextarea class="min-h-32" formControlName="descricao" rows="5" maxlength="2000" required></textarea>
+          <p hlmFieldDescription class="m-0 text-end tabular-nums">{{ form.controls.descricao.value.length }} / 2000</p>
+          <hlm-field-error>Informe a descrição.</hlm-field-error>
+        </div>
+      </section>
+
+      <section hlmCard class="p-4 md:p-6">
+        <!-- Fieldset sem borda nem padding: a legenda fica no fluxo, sem o hack de float. -->
+        <fieldset class="min-w-0" formGroupName="estoque">
+          <legend><h2 class="m-0 text-h3">Estoque por tamanho</h2></legend>
+          <p class="mt-2 mb-5 text-muted-foreground">Um tamanho criado não pode ser removido depois, só zerado.</p>
+          <div class="grid grid-cols-3 gap-x-3 gap-y-4 sm:grid-cols-5">
+            @for (s of siglas; track s) {
+              <div hlmField class="gap-2">
+                <label hlmFieldLabel>{{ s }}</label>
+                <input hlmInput type="number" inputmode="numeric" min="0" max="9999" step="1" [formControlName]="s" />
+                <hlm-field-error>De 0 a 9999</hlm-field-error>
+              </div>
+            }
+          </div>
+          @if (form.controls.estoque.hasError('semEstoque') && form.controls.estoque.touched) {
+            <p class="mt-4 mb-0 text-sm text-destructive" role="alert">Informe o estoque de pelo menos um tamanho</p>
+          }
+        </fieldset>
+      </section>
+
+      <section hlmCard class="gap-4 p-4 md:p-6" aria-labelledby="fotos-titulo">
+        <h2 id="fotos-titulo" class="m-0 text-h3">Fotos</h2>
+        <uz-gerenciador-fotos [produtoId]="produto?.id ?? null" [fotos]="produto?.fotos ?? []"></uz-gerenciador-fotos>
+      </section>
+
+      @if (erroSalvar) {
+        <div hlmAlert variant="destructive">
+          <uz-icone nome="alerta" />
+          <p hlmAlertTitle class="m-0">{{ erroSalvar }}</p>
+        </div>
+      }
+
+      <div class="flex flex-wrap gap-3">
+        <button hlmBtn size="lg" type="submit" [disabled]="salvando">
+          @if (salvando) {
+            <hlm-spinner aria-hidden="true" />
+          }
+          {{ salvando ? 'Salvando…' : 'Salvar' }}
+        </button>
+        <a hlmBtn variant="outline" size="lg" routerLink="/admin/produtos">Voltar para a lista</a>
+      </div>
+    </form>
+  }
+</section>

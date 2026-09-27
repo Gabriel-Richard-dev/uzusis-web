@@ -1,0 +1,376 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Scope+One&display=swap');
+
+/* Tema Uzusis sobre o tema "keycloak": só cores, fontes e o logo. */
+:root {
+  --pf-global--primary-color--100: #1c1917;
+  --pf-global--primary-color--200: #484643;
+  --pf-global--link--Color: #7a5a41;
+  --pf-global--link--Color--hover: #654a35;
+  --pf-global--FontFamily--sans-serif: 'Inter', system-ui, sans-serif;
+  --pf-global--FontFamily--heading--sans-serif: 'Scope One', Georgia, serif;
+}
+
+.login-pf body {
+  background: #faf8f5;
+  color: #292524;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+#kc-header {
+  color: #292524;
+}
+
+#kc-header-wrapper,
+.uz-logo {
+  font-family: 'Scope One', Georgia, serif;
+  color: #292524;
+  letter-spacing: .2em;
+  text-align: center;
+}
+
+#kc-header-wrapper::before {
+  content: "";
+  display: block;
+  width: 101px;
+  height: 80px;
+  margin: 0 auto 8px;
+  background: url("../img/logo.png") no-repeat center / contain;
+}
+
+/* cartão = hlmCard do app */
+.login-pf-page .card-pf {
+  background-color: #ffffff;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px rgba(28, 25, 23, 0.1), 0 1px 2px rgba(28, 25, 23, 0.06);
+}
+
+/* rodapé do cartão ("Novo usuário?", instruções): papel em vez do cinza do PatternFly */
+.login-pf-page .login-pf-signup {
+  background-color: #faf8f5;
+  border-top: 1px solid #e6e0da;
+  border-radius: 0 0 16px 16px;
+  color: #6b645e;
+}
+
+/* no desktop o cinza vem do wrapper interno (#kc-info-wrapper do login.css), por cima do papel */
+.login-pf-page #kc-info-wrapper {
+  background-color: transparent;
+}
+
+/* cadastro: título centralizado em cima, "* Campos obrigatórios" embaixo, alinhado aos campos
+   (o PatternFly põe o aviso antes e o título numa coluna de 10/12, descentralizado) */
+.login-pf-page .login-pf-header > div {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+.login-pf-page .login-pf-header > div > [class*="col-"] {
+  float: none;
+  width: 100%;
+  padding: 0;
+}
+
+.login-pf-page .login-pf-header .subtitle {
+  text-align: left;
+  padding-top: 8px;
+  color: #6b645e;
+}
+
+h1#kc-page-title {
+  font-family: 'Scope One', Georgia, serif;
+  color: #292524;
+  font-weight: 400;
+}
+
+.login-pf a,
+.login-pf a:visited {
+  color: #7a5a41;
+}
+
+.login-pf a:hover,
+.login-pf a:focus {
+  color: #654a35;
+}
+
+/* botão principal: preto em pílula, 44 px (= hlmBtn do app) */
+.pf-c-button {
+  --pf-c-button--BorderRadius: 9999px;
+  --pf-c-button--after--BorderRadius: 9999px;
+}
+
+.pf-c-button.pf-m-primary,
+.btn-primary {
+  min-height: 44px;
+  background-color: #1c1917;
+  border-color: #1c1917;
+  border-radius: 9999px;
+  color: #faf8f5;
+  font-weight: 500;
+}
+
+.pf-c-button.pf-m-primary:hover,
+.pf-c-button.pf-m-primary:focus,
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #484643;
+  border-color: #484643;
+  color: #faf8f5;
+}
+
+.pf-c-button:focus-visible,
+.login-pf a:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid #7a5a41;
+  outline-offset: 2px;
+}
+
+/* campos: 44 px, raio 10 px, borda 3:1, rótulo acima (= hlmInput + hlmFieldLabel do app) */
+.pf-c-form__label,
+.pf-c-form__label-text {
+  display: inline-block;
+  margin-bottom: 0;
+  padding-bottom: 8px;
+  color: #292524;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* cadastro: todos os campos são obrigatórios, então sem asteriscos nem "* Campos obrigatórios"
+   (o "*" do register.ftl é texto solto ao lado do rótulo: some com font-size 0 no contêiner) */
+#kc-register-form .form-group > div:has(> .pf-c-form__label) {
+  font-size: 0;
+}
+
+.login-pf-page .login-pf-header .subtitle {
+  display: none;
+}
+
+.pf-c-form-control,
+.form-control {
+  /* o PF4 fixa altura e padding de foco em regras mais específicas (:not(textarea), :focus): via variáveis */
+  --pf-c-form-control--Height: 44px;
+  --pf-c-form-control--focus--PaddingBottom: 0;
+  --pf-c-form-control--focus--BorderBottomWidth: 1px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #958d85;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.06);
+  color: #292524;
+  font-size: 16px;
+}
+
+.pf-c-form-control:focus,
+.form-control:focus {
+  border-color: #7a5a41;
+  outline: 2px solid #7a5a41;
+  outline-offset: 0;
+}
+
+/* inválido: borda de 1 px no #a8231c, sem o ícone "!" do PF4, e o botão do olho acompanha a cor */
+.pf-c-form-control[aria-invalid="true"] {
+  --pf-c-form-control--invalid--BorderBottomWidth: 1px;
+  --pf-c-form-control--invalid--BackgroundUrl: none;
+  --pf-c-form-control--invalid--PaddingRight: 12px;
+  border-color: #a8231c;
+}
+
+.pf-c-form-control[aria-invalid="true"]:focus {
+  border-color: #a8231c;
+  outline-color: #a8231c;
+}
+
+.pf-c-input-group > .pf-c-form-control[aria-invalid="true"] + .pf-c-button.pf-m-control {
+  border-color: #a8231c;
+}
+
+.pf-c-input-group > .pf-c-form-control {
+  border-radius: 10px 0 0 10px;
+}
+
+.pf-c-input-group > .pf-c-button.pf-m-control {
+  height: 44px;
+  border: 1px solid #958d85;
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+  background-color: #ffffff;
+}
+
+/* a borda do PF4 no botão de controle vem do ::after (dobrava com a nossa) */
+.pf-c-input-group > .pf-c-button.pf-m-control::after {
+  display: none;
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1c1917;
+}
+
+/* "Mantenha-me conectado" / "Esqueceu sua senha?" / "Voltar para o login": 14 px e alvo de 44 px */
+#kc-form-options label,
+#kc-form-options a,
+.login-pf-settings a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+#kc-form-options .checkbox {
+  margin: 0;
+}
+
+/* o Bootstrap põe o checkbox em absolute com margin-left -20px (contando com padding no label) */
+#kc-form-options .checkbox input[type="checkbox"] {
+  position: static;
+  margin: 0;
+}
+
+#kc-form-options label {
+  padding-left: 0;
+  color: #292524;
+  font-weight: 400;
+}
+
+/* cadastro e reset: botão principal logo após o último campo, "Voltar para o login" embaixo dele */
+.form-group:has(> #kc-form-options):has(> #kc-form-buttons) {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+/* o clearfix do Bootstrap (::before/::after) viraria item flex e somaria gaps */
+.form-group:has(> #kc-form-options):has(> #kc-form-buttons)::before,
+.form-group:has(> #kc-form-options):has(> #kc-form-buttons)::after {
+  display: none;
+}
+
+.form-group:has(> #kc-form-options):has(> #kc-form-buttons) > #kc-form-buttons {
+  margin-top: 8px;
+}
+
+.form-group:has(> #kc-form-options):has(> #kc-form-buttons) > #kc-form-options {
+  text-align: center;
+}
+
+/* reset: a instrução vem antes do campo, como texto normal (não no rodapé, depois do "Enviar") */
+#kc-content-wrapper:has(#kc-reset-password-form) {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-pf-page #kc-content-wrapper:has(#kc-reset-password-form) #kc-info {
+  order: -1;
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #6b645e;
+  font-size: 14px;
+  text-align: left;
+}
+
+.login-pf-page #kc-content-wrapper:has(#kc-reset-password-form) #kc-info-wrapper {
+  padding: 0;
+  font-size: 14px;
+}
+
+/* links no meio do texto do rodapé ("Clique aqui", "Cadastre-se"): sublinhados, não só pela cor (WCAG 1.4.1) */
+.login-pf-signup a,
+#kc-info a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}
+
+.pf-c-form__helper-text.pf-m-error,
+#input-error {
+  color: #a8231c;
+}
+
+/* alertas = hlmAlert do app: borda de 1 px, sem a barra colorida do PF4, texto de 14 px */
+.pf-c-alert {
+  --pf-c-alert--BorderTopWidth: 0;
+  border: 1px solid rgba(28, 25, 23, 0.1);
+  border-radius: 10px;
+  box-shadow: none;
+  margin-bottom: 16px;
+}
+
+.pf-c-alert::before {
+  display: none;
+}
+
+.pf-c-alert.pf-m-warning {
+  background: #fbf1dc;
+  color: #8a5a00;
+  border-color: rgba(138, 90, 0, 0.3);
+}
+
+.pf-c-alert.pf-m-success {
+  background: #e8f3ec;
+  color: #2f6b45;
+  border-color: rgba(47, 107, 69, 0.3);
+}
+
+.pf-c-alert.pf-m-danger {
+  background: #fbeceb;
+  color: #a8231c;
+  border-color: rgba(168, 35, 28, 0.3);
+}
+
+.pf-c-alert__title,
+.pf-c-alert .kc-feedback-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: inherit;
+}
+
+.pf-c-alert__icon,
+.pf-c-alert.pf-m-warning .pf-c-alert__icon,
+.pf-c-alert.pf-m-success .pf-c-alert__icon,
+.pf-c-alert.pf-m-danger .pf-c-alert__icon {
+  color: currentColor;
+}
+
+@media (max-width: 767px) {
+  .login-pf body {
+    background: #faf8f5;
+  }
+
+  #kc-header-wrapper {
+    font-size: 22px;
+    padding: 24px 0 8px;
+    color: #292524;
+    letter-spacing: .2em;
+  }
+
+  .login-pf-page .card-pf {
+    margin: 0 16px;
+    padding: 20px 16px 16px;
+    border: 0;
+  }
+
+  /* em 390 o PF encolhe o h1 para ~16 px cinza, do tamanho dos rótulos */
+  h1#kc-page-title {
+    font-size: 22px;
+    color: #292524;
+  }
+
+  .login-pf-page #kc-info-wrapper {
+    padding: 0;
+  }
+
+  /* as margens negativas do PatternFly (-40px/-30px) passam do cartão em 390px: rodapé encostado nas bordas dele */
+  .login-pf-page #kc-info {
+    margin: 20px -16px -16px;
+    padding: 16px;
+    border-radius: 0 0 16px 16px;
+  }
+}

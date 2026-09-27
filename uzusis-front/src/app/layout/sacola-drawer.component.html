@@ -1,0 +1,88 @@
+<!-- Dentro do hlm-sheet-content (shell). O X "Fechar" vem do próprio sheet. -->
+<div hlmSheetHeader class="border-b border-border py-3 pe-16">
+  <h2 hlmSheetTitle class="flex min-h-11 items-center">Sacola</h2>
+</div>
+
+<p class="sr-only" aria-live="polite">{{ anuncio }}</p>
+
+@if (vm$ | async; as vm) {
+  @if (!vm.logado) {
+    <uz-estado tipo="vazio" titulo="Entre para ver sua sacola">
+      <button hlmBtn type="button" (click)="auth.login()">Entrar</button>
+    </uz-estado>
+  } @else {
+    @if (vm.erro && !vm.carrinho.itens.length) {
+      <uz-estado
+        tipo="erro"
+        titulo="Não foi possível carregar a sacola"
+        [mensagem]="vm.erro"
+        (tentarNovamente)="sacola.carregar()"
+      ></uz-estado>
+    }
+    @if (vm.carregando && !vm.carrinho.itens.length) {
+      <uz-estado tipo="carregando"></uz-estado>
+    }
+    @if (!vm.carregando && !vm.erro && !vm.carrinho.itens.length) {
+      <uz-estado tipo="vazio" titulo="Sua sacola está vazia">
+        <a hlmBtn variant="outline" routerLink="/loja">Explorar a loja</a>
+      </uz-estado>
+    }
+    @if (vm.carrinho.itens.length) {
+      <ul class="min-h-0 flex-1 overflow-y-auto px-4" [attr.aria-busy]="vm.carregando ? 'true' : null">
+        @for (item of vm.carrinho.itens; track item.id) {
+          <li class="item grid grid-cols-[72px_minmax(0,1fr)_auto] gap-3 border-b border-border py-4">
+            @if (item.fotoUrl) {
+              <img
+                class="h-24 w-[72px] rounded-md object-cover"
+                [src]="item.fotoUrl"
+                alt=""
+                width="72"
+                height="96"
+                loading="lazy"
+              />
+            } @else {
+              <span class="block h-24 w-[72px] rounded-md bg-secondary"></span>
+            }
+            <div class="flex flex-col items-start gap-1">
+              <a
+                class="font-medium text-foreground no-underline hover:text-foreground hover:underline"
+                [routerLink]="['/produto', item.produtoId]"
+                >{{ item.nomeProduto }}</a
+              >
+              <span class="text-sm text-muted-foreground">Tamanho {{ item.sigla }}</span>
+              <uz-qtd
+                [valor]="item.quantidade"
+                [max]="99"
+                [rotulo]="'Quantidade de ' + item.nomeProduto"
+                [desabilitado]="ocupados.has(item.id)"
+                (valorChange)="alterar(item, $event)"
+              ></uz-qtd>
+            </div>
+            <div class="flex flex-col items-end justify-between">
+              <span class="font-semibold whitespace-nowrap">{{ item.valorTotal | currency }}</span>
+              <button
+                hlmBtn
+                variant="ghost"
+                size="icon"
+                type="button"
+                [disabled]="ocupados.has(item.id)"
+                [attr.aria-label]="'Remover ' + item.nomeProduto + ', tamanho ' + item.sigla"
+                (click)="remover(item)"
+              >
+                <uz-icone nome="lixeira"></uz-icone>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+      <div hlmSheetFooter class="mt-0 gap-0 border-t border-border bg-card">
+        <p class="m-0 mb-1 flex justify-between text-lg">
+          <span>Subtotal</span>
+          <strong class="font-semibold">{{ vm.carrinho.valorTotal | currency }}</strong>
+        </p>
+        <p class="m-0 mb-4 text-sm text-muted-foreground">Frete calculado no checkout</p>
+        <a hlmBtn size="lg" class="w-full" routerLink="/checkout">Finalizar compra</a>
+      </div>
+    }
+  }
+}

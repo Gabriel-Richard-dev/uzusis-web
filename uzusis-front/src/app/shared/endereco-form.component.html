@@ -1,0 +1,81 @@
+<!-- Rótulo acima (hlmFieldLabel); o label se liga ao campo sozinho (for/id automáticos do hlmField). -->
+<div class="grid gap-x-4 gap-y-5 sm:grid-cols-6" [formGroup]="form">
+  @if (form.contains('destinatario')) {
+    <div hlmField class="sm:col-span-4">
+      <label hlmFieldLabel>Destinatário</label>
+      <input hlmInput formControlName="destinatario" autocomplete="name" maxlength="200" required />
+      <hlm-field-error>Informe quem vai receber o pedido</hlm-field-error>
+    </div>
+  }
+
+  @if (form.contains('telefone')) {
+    <div hlmField class="sm:col-span-2">
+      <label hlmFieldLabel>Telefone</label>
+      <input hlmInput formControlName="telefone" uzMascara="celular" autocomplete="tel-national" inputmode="tel" />
+      <p hlmFieldDescription>Opcional</p>
+      <hlm-field-error>Informe DDD + número (10 ou 11 dígitos)</hlm-field-error>
+    </div>
+  }
+
+  <div hlmField class="sm:col-span-2">
+    <label hlmFieldLabel>CEP</label>
+    <hlm-input-group>
+      <input
+        hlmInputGroupInput
+        formControlName="cep"
+        uzMascara="cep"
+        autocomplete="postal-code"
+        inputmode="numeric"
+        required
+      />
+      @if (buscandoCep) {
+        <hlm-input-group-addon align="inline-end">
+          <hlm-spinner aria-label="Buscando CEP" />
+        </hlm-input-group-addon>
+      }
+    </hlm-input-group>
+    <p hlmFieldDescription aria-live="polite">{{ cepNaoEncontrado ? 'CEP não encontrado; preencha o endereço' : '' }}</p>
+    <hlm-field-error>CEP inválido (00000-000)</hlm-field-error>
+  </div>
+
+  <div hlmField class="sm:col-span-4">
+    <label hlmFieldLabel>Rua</label>
+    <input hlmInput formControlName="rua" autocomplete="address-line1" maxlength="200" required />
+    <hlm-field-error>Informe a rua</hlm-field-error>
+  </div>
+
+  <div hlmField class="sm:col-span-2">
+    <label hlmFieldLabel>Número</label>
+    <input hlmInput formControlName="numero" maxlength="20" required />
+    <hlm-field-error>Informe o número</hlm-field-error>
+  </div>
+
+  <div hlmField class="sm:col-span-4">
+    <label hlmFieldLabel>Complemento</label>
+    <input hlmInput formControlName="complemento" autocomplete="address-line2" maxlength="100" />
+    <p hlmFieldDescription>Opcional</p>
+  </div>
+
+  <div hlmField class="sm:col-span-2">
+    <label hlmFieldLabel>Bairro</label>
+    <input hlmInput formControlName="bairro" maxlength="100" required />
+    <hlm-field-error>Informe o bairro</hlm-field-error>
+  </div>
+
+  <div hlmField class="sm:col-span-2">
+    <label hlmFieldLabel>Cidade</label>
+    <input hlmInput formControlName="cidade" autocomplete="address-level2" maxlength="100" required />
+    <hlm-field-error>Informe a cidade</hlm-field-error>
+  </div>
+
+  <div hlmField class="sm:col-span-2">
+    <label hlmFieldLabel>UF</label>
+    <hlm-native-select formControlName="uf" required>
+      <option hlmNativeSelectOption value="">Selecione</option>
+      @for (uf of ufs; track uf) {
+        <option hlmNativeSelectOption [value]="uf">{{ uf }}</option>
+      }
+    </hlm-native-select>
+    <hlm-field-error>Escolha a UF</hlm-field-error>
+  </div>
+</div>

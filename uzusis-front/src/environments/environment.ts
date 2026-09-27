@@ -1,6 +1,5 @@
+// issuer null = mesma origem: location.origin + '/auth/realms/uzusis' (nginx faz o proxy de /auth).
 export const environment = {
-    production: false,
-    apiUrl: '/api',
-    sessionPrefix: 'EST-REUTILIZAVEL',
-    logging: true,
-  };
+  production: true,
+  issuer: null as string | null,
+};

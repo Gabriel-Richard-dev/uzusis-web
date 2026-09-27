@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: payment-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/payments}
+    username: ${DB_USER:payments}
+    password: ${DB_PASSWORD:payments}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    # A varredura é recursiva: pega também db/migration/common/V0 do jar common.
+    locations: classpath:db/migration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: payment-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      ack-mode: record
+      observation-enabled: true
+    template:
+      observation-enabled: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
+
+  web:
+    # Sem Accept-Language (curl, stripe-cli), o padrão seria o locale da JVM.
+    locale: pt_BR
+    locale-resolver: fixed
+
+uzusis:
+  kafka:
+    # Compensação da saga: retentada sem limite, nunca para a DLQ (KafkaErrorHandlerConfig).
+    compensacoes: order.order.cancelled.v1
+  stripe:
+    # Nunca no repositório: variável de ambiente, secret do Kubernetes ou vault.
+    # As três vazias = pagamento desabilitado (o stack sobe mesmo assim).
+    secret-key: ${STRIPE_SECRET_KEY:}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    # Só no e2e (stripe-mock); vazio = api.stripe.com.
+    api-base: ${STRIPE_API_BASE:}
+    moeda: ${STRIPE_MOEDA:brl}
+    reconciliar-ms: 120000
+  webhook:
+    intervalo-ms: 1000
+  reconciliacao:
+    cron: "0 0 3 * * *"
+
+server:
+  port: ${SERVER_PORT:8084}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
+    sampling:
+      probability: ${TRACE_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

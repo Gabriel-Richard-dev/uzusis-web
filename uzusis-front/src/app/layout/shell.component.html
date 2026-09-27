@@ -1,0 +1,67 @@
+<!-- A página rola na janela: scrollPositionRestoration e position: sticky das features funcionam. -->
+<div class="flex min-h-svh flex-col">
+  <uz-header (abrirMenu)="menuAberto.set(true)" (abrirBusca)="buscaAberta.set(true)"></uz-header>
+  <main id="conteudo" class="flex-1" tabindex="-1">
+    <router-outlet></router-outlet>
+  </main>
+  <uz-footer></uz-footer>
+</div>
+
+<!-- Menu mobile. Sheet = diálogo do CDK: foco preso, Esc, rolagem travada, foco devolvido ao hambúrguer. -->
+<hlm-sheet side="left" [state]="menuAberto() ? 'open' : 'closed'" (closed)="menuAberto.set(false)">
+  <hlm-sheet-content
+    *hlmSheetPortal
+    class="gap-0 overflow-y-auto px-4 pt-3 pb-8 data-[side=left]:w-[min(20rem,85vw)] data-[side=left]:sm:max-w-none"
+  >
+    <div class="flex h-11 items-center">
+      <h2 hlmSheetTitle class="sr-only">Menu</h2>
+      <span class="font-display text-lg tracking-[0.2em]" aria-hidden="true">UZUSIS</span>
+    </div>
+    <nav aria-label="Menu" class="mt-3 text-base">
+      <a [class]="link" routerLink="/">Início</a>
+      <a [class]="link" routerLink="/loja">Loja</a>
+
+      <h3 class="uz-legenda mt-6 mb-1 px-3 font-sans font-semibold" id="menu-categorias">Categorias</h3>
+      <ul aria-labelledby="menu-categorias">
+        @for (c of categorias; track c) {
+          <li>
+            <a [class]="link" routerLink="/loja" [queryParams]="{ categoria: c.valor }">{{ c.nome }}</a>
+          </li>
+        }
+      </ul>
+
+      <h3 class="uz-legenda mt-6 mb-1 px-3 font-sans font-semibold">Conta</h3>
+      @if (usuario$ | async; as usuario) {
+        <a [class]="link" routerLink="/conta/dados">Minha conta</a>
+        <a [class]="link" routerLink="/conta/pedidos">Meus pedidos</a>
+        @if (usuario.roles.includes('ADMIN')) {
+          <a [class]="link" routerLink="/admin">Administração</a>
+        }
+        <button [class]="link" type="button" (click)="auth.logout()">Sair</button>
+      } @else {
+        <button [class]="link" type="button" (click)="auth.login()">Entrar</button>
+        <button [class]="link" type="button" (click)="auth.cadastrar()">Criar conta</button>
+      }
+    </nav>
+  </hlm-sheet-content>
+</hlm-sheet>
+
+<!-- Busca no celular: tela cheia. Foco preso, Esc, rolagem travada e foco devolvido ao ⌕ vêm do CDK. -->
+<hlm-sheet side="top" [state]="buscaAberta() ? 'open' : 'closed'" (closed)="buscaAberta.set(false)">
+  <hlm-sheet-content *hlmSheetPortal [showCloseButton]="false" class="gap-0 p-0 data-[side=top]:h-dvh data-[side=top]:border-b-0">
+    <h2 hlmSheetTitle class="sr-only">Buscar peças</h2>
+    <uz-busca modo="tela" class="flex min-h-0 flex-1 flex-col">
+      <button hlmBtn variant="ghost" type="button" hlmSheetClose>Cancelar</button>
+    </uz-busca>
+  </hlm-sheet-content>
+</hlm-sheet>
+
+<!-- Sacola: 100% da largura no celular, 25rem a partir de sm. -->
+<hlm-sheet side="right" [state]="sacolaAberta() ? 'open' : 'closed'" (closed)="sacola.fechar()">
+  <hlm-sheet-content
+    *hlmSheetPortal
+    class="gap-0 p-0 max-sm:data-[side=right]:border-l-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[25rem]"
+  >
+    <uz-sacola-drawer></uz-sacola-drawer>
+  </hlm-sheet-content>
+</hlm-sheet>

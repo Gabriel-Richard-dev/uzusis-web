@@ -1,5 +1,8 @@
-<app-notificacao></app-notificacao>
-<div class="loader-overlay" role="status" aria-live="polite" *ngIf="carregando$ | async">
-  <div class="loader" aria-label="Carregando"></div>
-</div>
+<a
+  href="#conteudo"
+  class="fixed top-2 left-2 z-[1100] -translate-y-[200%] rounded-md bg-primary px-4 py-3 text-primary-foreground no-underline focus:translate-y-0"
+  (click)="pularParaConteudo($event)"
+  >Pular para o conteúdo</a
+>
 <router-outlet></router-outlet>
+<hlm-toaster position="bottom-center" />

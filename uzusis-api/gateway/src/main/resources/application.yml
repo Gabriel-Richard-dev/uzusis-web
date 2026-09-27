@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # iss = URL pública; as chaves vêm pela rede interna, sem discovery na URL pública.
+          issuer-uri: ${KEYCLOAK_ISSUER:http://localhost:8080/auth/realms/uzusis}
+          jwk-set-uri: ${KEYCLOAK_JWKS_URI:http://localhost:8080/auth/realms/uzusis/protocol/openid-connect/certs}
+
+  cloud:
+    gateway:
+      default-filters:
+        # O front chama /api/...; os serviços expõem /produtos, /carrinho etc.
+        - StripPrefix=1
+      routes:
+        - id: catalog
+          uri: ${CATALOG_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/produtos/**
+
+        - id: order
+          uri: ${ORDER_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/carrinho/**,/api/pedidos/**
+
+        - id: payment
+          uri: ${PAYMENT_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/pagamentos/**,/api/webhooks/stripe
+
+        - id: identity
+          uri: ${IDENTITY_URL:http://localhost:8086}
+          predicates:
+            - Path=/api/perfil/**
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  tracing:
+    enabled: ${MANAGEMENT_TRACING_ENABLED:false}
+    sampling:
+      probability: ${TRACE_SAMPLING:1.0}
+  otlp:
+    tracing:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}

@@ -1,0 +1,111 @@
+<form role="search" [class]="modo() === 'tela' ? 'flex min-h-0 flex-1 flex-col' : 'relative'" (submit)="enviar($event)" (focusout)="aoSair($event)">
+  <div [class]="modo() === 'tela' ? 'flex h-16 shrink-0 items-center gap-2 border-b border-border px-4' : ''">
+    <label class="sr-only" [for]="id + '-campo'">Buscar peças</label>
+    <hlm-input-group class="flex-1 rounded-full">
+      <input
+        hlmInputGroupInput
+        [id]="id + '-campo'"
+        type="search"
+        role="combobox"
+        aria-autocomplete="list"
+        [attr.aria-expanded]="visivel()"
+        [attr.aria-controls]="id + '-lista'"
+        [attr.aria-activedescendant]="ativoId()"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        enterkeyhint="search"
+        maxlength="100"
+        placeholder="Buscar peças"
+        class="ps-4 text-base lg:text-sm [&::-webkit-search-cancel-button]:appearance-none"
+        [value]="termo()"
+        (input)="digitar($event)"
+        (click)="aberto.set(true)"
+        (keydown)="tecla($event)"
+      />
+      <hlm-input-group-addon align="inline-end">
+        <button hlmInputGroupButton size="icon-sm" type="submit" aria-label="Buscar"><uz-icone nome="busca" /></button>
+      </hlm-input-group-addon>
+    </hlm-input-group>
+    <!-- "Cancelar" do sheet: depois do campo, que recebe o foco inicial do CDK. -->
+    <ng-content />
+  </div>
+
+  @if (visivel()) {
+    @let p = painel();
+    @let tela = modo() === 'tela';
+    <!-- mousedown sem default: o foco fica no campo e o clique escolhe a opção. -->
+    <div
+      [class]="
+        tela
+          ? 'min-h-0 flex-1 scroll-pb-18 overflow-y-auto overscroll-contain px-2 pt-1 pb-8'
+          : 'absolute top-full right-0 z-50 mt-3 max-h-[min(36rem,calc(100svh-8rem))] w-[min(28rem,calc(100vw-2rem))] scroll-pb-18 overflow-y-auto overscroll-contain rounded-xl bg-popover p-2 text-popover-foreground shadow-lg ring-1 ring-foreground/10'
+      "
+      (mousedown)="$event.preventDefault()"
+    >
+      @if (p.mensagem) {
+        <p class="m-0 flex items-start gap-2 px-2 pt-2 pb-1 text-sm" [class.text-destructive]="p.erro">
+          @if (p.erro) {
+            <uz-icone nome="alerta" [tamanho]="18" />
+          }
+          {{ p.mensagem }}
+        </p>
+      }
+
+      <div role="listbox" [id]="id + '-lista'" aria-label="Sugestões de busca" [attr.aria-busy]="p.carregando || null">
+        @for (g of p.grupos; track g.id) {
+          <div role="group" [attr.aria-labelledby]="g.id" [class]="g.pilulas ? 'flex flex-wrap gap-2 px-2 pb-1' : ''" [class.opacity-60]="g.esmaecido">
+            <div role="presentation" [id]="g.id" class="uz-legenda w-full pt-3 pb-1" [class.px-2]="!g.pilulas">{{ g.rotulo }}</div>
+            @for (o of g.opcoes; track o.id) {
+              <div role="option" [id]="o.id" [attr.aria-selected]="o.id === ativoId()" [class]="classe(o)" (click)="escolher(o)">
+                @if (o.produto; as prod) {
+                  <span class="aspect-[3/4] shrink-0 overflow-hidden rounded-md bg-secondary" [class]="tela ? 'w-12' : 'w-10'">
+                    @if (prod.fotos[0]; as foto) {
+                      <img class="size-full object-cover" [src]="foto.url" alt="" loading="lazy" decoding="async" width="40" height="53" />
+                    }
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate">{{ o.partes![0] }}<strong class="font-semibold">{{ o.partes![1] }}</strong>{{ o.partes![2] }}</span>
+                    <span class="block text-xs text-muted-foreground">
+                      {{ prod.categoriaNome }} <span aria-hidden="true">·</span>&ngsp;<span class="font-semibold text-brand">{{ prod.preco | currency }}</span>
+                    </span>
+                  </span>
+                } @else {
+                  @if (o.tipo === 'recente') {
+                    <uz-icone nome="busca" [tamanho]="16" class="text-muted-foreground" />
+                  }
+                  <span class="min-w-0 truncate">{{ o.rotulo }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (p.esqueleto) {
+          <!-- 1ª carga de um termo: só visual, fora da árvore de acessibilidade (o listbox já diz aria-busy). -->
+          <div aria-hidden="true" class="px-2 pt-3">
+            @for (i of [1, 2, 3]; track i) {
+              <div class="flex items-center gap-3 py-1.5">
+                <span class="shrink-0" [class]="tela ? 'w-12' : 'w-10'"><span hlmSkeleton class="aspect-[3/4] w-full"></span></span>
+                <span class="flex flex-1 flex-col gap-2">
+                  <span hlmSkeleton class="h-3 w-3/4"></span>
+                  <span hlmSkeleton class="h-3 w-1/3"></span>
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Fixo no pé do painel: com muitos resultados o "Ver todos" não fica cortado. -->
+        <div class="sticky bottom-0 mt-2 border-t border-border bg-popover pt-2" [class]="tela ? 'pb-2' : '-mx-2 -mb-2 px-2 pb-2'">
+          <div role="option" [id]="p.final.id" [attr.aria-selected]="p.final.id === ativoId()" [class]="classe(p.final)" (click)="escolher(p.final)">
+            <span class="min-w-0 flex-1 truncate">{{ p.final.rotulo }}</span>
+            <uz-icone nome="seta-direita" [tamanho]="16" />
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <p role="status" class="sr-only">{{ anuncio() }}</p>
+</form>

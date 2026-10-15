@@ -91,6 +91,43 @@ alcança a loja. Antes de expor o stack:
    real do cliente, ative o `set_real_ip_from` comentado em `uzusis-front/nginx.conf`
    (e `docker compose up -d --build web`).
 
+## CI/CD e deploy
+
+O [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) roda no GitHub Actions:
+
+- **Todo PR e push na `main`** (CI): compila e testa a API (`mvn package`, Java 21) e
+  builda o front (`ng build`, Node 22). Build quebrado trava o merge.
+- **Push na `main`** (CD): publica duas imagens no GHCR —
+  `ghcr.io/gabriel-richard-dev/uzusis-api` (as 6 services Java, escolhidas por `MODULO`)
+  e `ghcr.io/gabriel-richard-dev/uzusis-web` (o front/nginx), com tags `latest` e `sha` —
+  e faz o deploy por SSH.
+
+**Deploy:** o [`docker-compose.prod.yml`](docker-compose.prod.yml) é um override que
+troca `build:` por `image:` (puxa do GHCR em vez de buildar na máquina). O job de deploy
+entra por SSH na prod e roda, em essência:
+
+```bash
+git fetch origin main && git checkout -f main && git reset --hard origin/main
+docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+```
+
+O `.env` da prod sobrevive (é gitignored); dá pra rodar esses comandos na mão também.
+A prod precisa estar na branch `main`.
+
+**Secrets do repo** (Settings → Secrets and variables → Actions) usados pelo deploy:
+
+| Secret | O quê |
+|---|---|
+| `PROD_HOST` | IP ou domínio da prod |
+| `PROD_USER` | usuário SSH |
+| `PROD_SSH_KEY` | chave **privada** (a pública vai no `authorized_keys` da prod) |
+| `PROD_PATH` | caminho **absoluto** do repo na prod (ex.: `/home/user/uzusis-web`) |
+| `PROD_PORT` | porta SSH (opcional, padrão 22) |
+
+As imagens nascem **privadas** no GHCR: deixe os packages públicos (Settings do package
+no GitHub) ou rode `docker login ghcr.io` na prod uma vez.
+
 ## Pagamentos (Stripe)
 
 Sem chaves o sistema sobe normalmente: `/api/pagamentos/config` responde

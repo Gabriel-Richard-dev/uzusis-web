@@ -1,0 +1,34 @@
+# Override de produção: usa as imagens publicadas no GHCR em vez de buildar na
+# máquina. As 6 services Java compartilham a imagem uzusis-api (o MODULO vem do
+# compose base); o front usa a uzusis-web.
+#
+# Deploy (feito pelo CI, mas dá pra rodar na mão):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+#
+# Imagens privadas por padrão no GHCR: ou deixe os packages públicos (Settings do
+# package no GitHub), ou faça `docker login ghcr.io` na prod antes do pull.
+
+services:
+  web:
+    image: ghcr.io/gabriel-richard-dev/uzusis-web:latest
+    pull_policy: always
+
+  gateway:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always
+  catalog-service:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always
+  order-service:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always
+  payment-service:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always
+  notification-service:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always
+  identity-service:
+    image: ghcr.io/gabriel-richard-dev/uzusis-api:latest
+    pull_policy: always

@@ -348,7 +348,6 @@ services:
 
   stripe-cli:
     image: stripe/stripe-cli:latest
-    profiles: [stripe]
     restart: unless-stopped   # volta sozinho; enquanto estiver fora, a reconciliação de 2 min confirma os pagamentos
     command: ["listen", "--api-key", "${STRIPE_SECRET_KEY:-}", "--forward-to", "http://web/api/webhooks/stripe",
               "--events", "payment_intent.succeeded,payment_intent.payment_failed"]

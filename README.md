@@ -1,14 +1,12 @@
 # Uzusis
 
-Loja de roupas femininas: microserviços Java (Spring Boot, Kafka, Postgres,
-Keycloak, Stripe, MinIO) e front Angular 22 (Tailwind 4 + spartan/ui) servido
-por nginx, tudo em Docker Compose. Detalhes do backend em
-[`uzusis-api/README.md`](uzusis-api/README.md); a especificação completa está no
-[`SPEC.md`](SPEC.md).
+Loja de roupas femininas em microserviços Java (Spring Boot, Kafka, Postgres,
+Keycloak, Stripe, MinIO) e front Angular 22 (Tailwind 4 + spartan/ui) atrás de
+nginx, tudo em Docker Compose. Backend em [`uzusis-api/README.md`](uzusis-api/README.md);
+especificação completa no [`SPEC.md`](SPEC.md).
 
-> **Nunca rode `docker compose down -v`.** O `-v` apaga os volumes: as fotos dos
-> produtos, os pedidos e os usuários do Keycloak. Para parar, use
-> `docker compose stop` ou `docker compose down` (sem `-v`).
+> **Nunca rode `docker compose down -v`** — o `-v` apaga os volumes (fotos, pedidos,
+> usuários do Keycloak). Para parar: `docker compose stop` ou `down` (sem `-v`).
 
 ## Subir
 
@@ -16,95 +14,70 @@ por nginx, tudo em Docker Compose. Detalhes do backend em
 docker compose up -d --build
 ```
 
-Não precisa de `.env`: toda variável tem padrão. O [`.env.example`](.env.example)
-documenta todas; para mudar alguma, copie para `.env` ou use `env VAR=valor docker compose ...`.
+Sobe sem `.env` (tudo tem padrão; veja o [`.env.example`](.env.example)). A primeira vez
+leva alguns minutos (build Maven + Angular + import do realm). Ao fim, `docker compose ps -a`
+mostra tudo `healthy`/`running` e os one-shots `minio-init`/`connect-init` em `Exited (0)`.
 
-- Na primeira vez sobe tudo em alguns minutos (build Maven + Angular, import do realm).
-- Em máquina com pouca RAM (menos de ~4 GB livres), construa o front antes do resto,
-  para o `ng build` e o Maven não rodarem juntos:
-  `docker compose build web && docker compose up -d --build`.
-- Porta 8080 ocupada? Mude as duas juntas:
-  `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose up -d --build`
-  (e veja [Reimportar o realm](#reimportar-o-realm) se o Keycloak já tinha subido em outra porta).
-  Para não esquecer as duas num comando futuro, ponha `WEB_PORT` e `PUBLIC_URL` no `.env`.
-
-`docker compose ps -a` deve mostrar tudo `healthy`/`running`, e os one-shots
-`minio-init` (bucket de fotos) e `connect-init` (conectores do Debezium) em `Exited (0)`.
+- **Pouca RAM** (<~4 GB): `docker compose build web && docker compose up -d --build`
+  (evita `ng build` junto com o Maven).
+- **Porta 8080 ocupada:** `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose up -d --build`
+  (ponha as duas no `.env` pra não esquecer; se o Keycloak já subiu em outra porta, veja
+  [Reimportar o realm](#reimportar-o-realm)).
 
 ## Endereços e portas
 
-Só duas portas vão para o host, ambas em `127.0.0.1` (só esta máquina alcança;
-`WEB_BIND=0.0.0.0` abre a loja para a rede). O resto fica na rede interna do compose.
+Só duas portas vão ao host, em `127.0.0.1` (`WEB_BIND=0.0.0.0` abre pra rede); o resto
+fica na rede interna do compose.
 
 | O quê | Endereço |
 |---|---|
 | Loja e painel admin | http://localhost:8080 (`WEB_PORT`) |
-| Console do Keycloak | http://localhost:8080/auth/admin (`admin` / `admin`) |
+| Console do Keycloak | http://localhost:8080/auth/admin (`admin`/`admin`) |
 | E-mails de dev (Mailpit) | http://127.0.0.1:8025 (`MAILPIT_PORT`) |
 | Traces (Jaeger, perfil `observability`) | http://127.0.0.1:16686 |
 
-O nginx do `web` é a origem única: `/` é o SPA, `/api` vai para o gateway,
-`/auth` para o Keycloak e `/storage` para as fotos no MinIO (só GET de objeto;
-listar o bucket dá 404). `/actuator` não é exposto.
+O nginx do `web` é a origem única: `/` SPA, `/api` gateway, `/auth` Keycloak, `/storage`
+fotos no MinIO (só GET). `/actuator` não é exposto.
 
-Usuários de teste do realm (só dev): `admin@uzusis.local` / `admin123` (ADMIN) e
-`cliente@uzusis.local` / `cliente123` (CUSTOMER). Cadastro, verificação de
-e-mail e "esqueci minha senha" são do Keycloak; os e-mails caem no Mailpit.
+Usuários de teste (só dev): `admin@uzusis.local`/`admin123` (ADMIN) e
+`cliente@uzusis.local`/`cliente123` (CUSTOMER). Cadastro, verificação de e-mail e reset
+de senha são do Keycloak; os e-mails caem no Mailpit.
 
 ### Fora de dev
 
-As senhas acima são públicas; em dev isso é aceitável porque só esta máquina
-alcança a loja. Antes de expor o stack:
+As senhas acima são públicas (ok em dev, só esta máquina alcança). Antes de expor:
 
-1. **Antes do primeiro `up`**, ponha no `.env` senhas fortes em `POSTGRES_PASSWORD`,
-   `KEYCLOAK_ADMIN_PASSWORD`, `MINIO_ROOT_PASSWORD` e nas dos usuários de banco
-   (`CATALOG_DB_PASSWORD`, `ORDERS_DB_PASSWORD`, `PAYMENTS_DB_PASSWORD`,
-   `NOTIFICATIONS_DB_PASSWORD`, `IDENTITY_DB_PASSWORD`; o `init.sql`, os serviços e
-   o registrar do Debezium leem todas daí). O Postgres e o Keycloak só usam essas
-   senhas ao criar os dados: mudar o `.env` depois não troca a senha do admin do
-   Keycloak (`admin`/`admin` continua valendo) e faz o Keycloak e os serviços
-   falharem ao entrar no Postgres com a senha nova.
-2. **Stack que já subiu uma vez**: troque primeiro onde a senha mora, depois no
-   `.env`, e rode `docker compose up -d` (recria quem usa a senha):
+1. **Senhas fortes no `.env` antes do 1º `up`:** `POSTGRES_PASSWORD`, `KEYCLOAK_ADMIN_PASSWORD`,
+   `MINIO_ROOT_PASSWORD` e as de banco (`CATALOG`/`ORDERS`/`PAYMENTS`/`NOTIFICATIONS`/`IDENTITY_DB_PASSWORD`).
+   Postgres e Keycloak só gravam a senha na criação — mudar depois não troca (veja abaixo).
+2. **Stack já no ar:** troque na origem e depois no `.env`, e `docker compose up -d`:
    - Postgres: `docker compose exec postgres psql -U postgres -c "ALTER USER postgres PASSWORD 'nova'"`
-     (e o mesmo para `catalog`, `orders`, `payments`, `notifications` e `identity`);
-   - admin do Keycloak: console `/auth/admin`, realm `master` → Users → `admin` →
-     Credentials → Reset password (com "Temporary" desligado);
-   - MinIO: basta o `.env`.
-3. **Usuários de teste do realm**: no console, realm `uzusis` → Users → Add user,
-   crie o seu admin ("Email verified" ligado; depois Credentials → Set password e
-   Role mapping → Assign role → filtro "Filter by realm roles" → `ADMIN`), entre com
-   ele e apague `admin@uzusis.local` e `cliente@uzusis.local`. Ou, antes do primeiro
-   `up`, tire o bloco `users` de `uzusis-api/infra/keycloak/import/uzusis-realm.json`
-   (o e2e e o `seed-dev.sh` usam esses usuários; por isso eles existem em dev).
-4. **Password grant**: realm `uzusis` → Clients → `admin-cli` → Capability config →
-   desligue "Direct access grants" (só os scripts de dev usam).
-5. **SMTP real**: `SMTP_*`, `EMAIL_FROM` e `SMTP_FROM` (só o endereço) no `.env`. O
-   notification-service lê a cada `up`; o Keycloak (verificação de cadastro e
-   "esqueci minha senha") só no import do realm. Stack que já subiu: realm `uzusis` →
-   Realm settings → Email, ou [reimporte o realm](#reimportar-o-realm).
-6. **TLS**: um proxy de borda com TLS na frente do `web`, `PUBLIC_URL=https://…`
-   ([reimporte o realm](#reimportar-o-realm) se já subiu com outra) e
-   `WEB_BIND=0.0.0.0` se o proxy estiver em outra máquina. As URLs do Keycloak
-   (issuer, token, jwks) saem todas de `PUBLIC_URL`, e o nginx repassa ao Keycloak o
-   `X-Forwarded-Proto`/`X-Forwarded-Host` que o proxy mandar. Para o Keycloak registrar o IP
-   real do cliente, ative o `set_real_ip_from` comentado em `uzusis-front/nginx.conf`
-   (e `docker compose up -d --build web`).
+     (idem `catalog`, `orders`, `payments`, `notifications`, `identity`);
+   - admin Keycloak: console → realm `master` → Users → `admin` → Reset password (sem "Temporary");
+   - MinIO: só o `.env`.
+3. **Usuários de teste:** crie seu admin no console (realm `uzusis`, "Email verified" + role
+   `ADMIN`), entre com ele e apague `admin@`/`cliente@uzusis.local` — ou remova o bloco `users`
+   de `uzusis-api/infra/keycloak/import/uzusis-realm.json` antes do 1º `up` (o e2e/seed usam eles).
+4. **Password grant:** realm `uzusis` → Clients → `admin-cli` → desligue "Direct access grants".
+5. **SMTP real:** `SMTP_*`, `EMAIL_FROM`, `SMTP_FROM` no `.env` (notification-service lê a cada
+   `up`; Keycloak só no import — stack no ar: Realm settings → Email, ou [reimporte](#reimportar-o-realm)).
+6. **TLS:** proxy de borda na frente do `web`, `PUBLIC_URL=https://…` ([reimporte](#reimportar-o-realm)
+   se mudou) e `WEB_BIND=0.0.0.0` se o proxy for em outra máquina. As URLs do Keycloak saem do
+   `PUBLIC_URL`; o nginx repassa `X-Forwarded-Proto/Host`. Pro IP real do cliente, ative o
+   `set_real_ip_from` em `uzusis-front/nginx.conf`.
 
 ## CI/CD e deploy
 
 O [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) roda no GitHub Actions:
 
-- **Todo PR e push na `main`** (CI): compila e testa a API (`mvn package`, Java 21) e
-  builda o front (`ng build`, Node 22). Build quebrado trava o merge.
+- **PR e push na `main`** (CI): compila e testa a API (`mvn package`, Java 21) e builda o
+  front (`ng build`, Node 22).
 - **Push na `main`** (CD): publica duas imagens no GHCR —
-  `ghcr.io/gabriel-richard-dev/uzusis-api` (as 6 services Java, escolhidas por `MODULO`)
-  e `ghcr.io/gabriel-richard-dev/uzusis-web` (o front/nginx), com tags `latest` e `sha` —
-  e faz o deploy por SSH.
+  `ghcr.io/gabriel-richard-dev/uzusis-api` (as 6 services Java, por `MODULO`) e
+  `…/uzusis-web` (front/nginx), tags `latest` e `sha` — e faz deploy por SSH.
 
-**Deploy:** o [`docker-compose.prod.yml`](docker-compose.prod.yml) é um override que
-troca `build:` por `image:` (puxa do GHCR em vez de buildar na máquina). O job de deploy
-entra por SSH na prod e roda, em essência:
+**Deploy:** o [`docker-compose.prod.yml`](docker-compose.prod.yml) troca `build:` por `image:`
+(puxa do GHCR). O job entra por SSH na prod (que precisa estar na branch `main`) e roda:
 
 ```bash
 git fetch origin main && git checkout -f main && git reset --hard origin/main
@@ -112,112 +85,73 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
 ```
 
-O `.env` da prod sobrevive (é gitignored); dá pra rodar esses comandos na mão também.
-A prod precisa estar na branch `main`.
-
-**Secrets do repo** (Settings → Secrets and variables → Actions) usados pelo deploy:
-
-| Secret | O quê |
-|---|---|
-| `PROD_HOST` | IP ou domínio da prod |
-| `PROD_USER` | usuário SSH |
-| `PROD_SSH_KEY` | chave **privada** (a pública vai no `authorized_keys` da prod) |
-| `PROD_PATH` | caminho **absoluto** do repo na prod (ex.: `/home/user/uzusis-web`) |
-| `PROD_PORT` | porta SSH (opcional, padrão 22) |
-
-As imagens nascem **privadas** no GHCR: deixe os packages públicos (Settings do package
-no GitHub) ou rode `docker login ghcr.io` na prod uma vez.
+O `.env` da prod sobrevive (é gitignored). **Secrets** (Settings → Secrets → Actions):
+`PROD_HOST`, `PROD_USER`, `PROD_SSH_KEY` (chave **privada**; a pública no `authorized_keys`
+da prod), `PROD_PATH` (caminho absoluto do repo na prod) e `PROD_PORT` (opcional, 22).
+As imagens nascem **privadas** no GHCR: deixe os packages públicos ou `docker login ghcr.io` na prod.
 
 ## Pagamentos (Stripe)
 
-Sem chaves o sistema sobe normalmente: `/api/pagamentos/config` responde
-`{"habilitado":false}` e o checkout avisa "Pagamento ainda não configurado".
+Sem chaves, sobe normal: `/api/pagamentos/config` → `{"habilitado":false}` e o checkout avisa.
+Com chaves de teste:
 
-**Em dev, com chaves de teste:**
-
-1. No `.env`: `STRIPE_SECRET_KEY=sk_test_…` e `STRIPE_PUBLISHABLE_KEY=pk_test_…`
-   (Dashboard → Developers → API keys).
-2. Pegue o segredo de webhook do stripe-cli:
-   `docker compose run --rm --no-deps stripe-cli listen --api-key sk_test_… --print-secret` → `whsec_…`
-   (o `--no-deps` evita recriar o `web`, do qual o stripe-cli depende; o segredo é fixo
-   por conta, basta pegar uma vez).
-3. No `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…` e `COMPOSE_PROFILES=stripe` (o
-   stripe-cli passa a subir junto, com `restart: unless-stopped`, e encaminha os
-   webhooks para `http://web/api/webhooks/stripe`). Se a loja não está na 8080,
-   ponha também `WEB_PORT` e `PUBLIC_URL` no `.env`: assim todo `docker compose …`
-   usa a mesma porta e o mesmo perfil, e um `up` sem as variáveis não volta a loja
-   para a 8080 (o que quebraria o login até [reimportar o realm](#reimportar-o-realm)).
+1. `.env`: `STRIPE_SECRET_KEY=sk_test_…`, `STRIPE_PUBLISHABLE_KEY=pk_test_…` (Dashboard → API keys).
+2. Segredo do webhook: `docker compose run --rm --no-deps stripe-cli listen --api-key sk_test_… --print-secret`
+   → `whsec_…` (fixo por conta, pega uma vez).
+3. `.env`: `STRIPE_WEBHOOK_SECRET=whsec_…`. O `stripe-cli` **sobe junto** (`restart: unless-stopped`)
+   e encaminha os webhooks pra `http://web/api/webhooks/stripe` — logo precisa do `STRIPE_SECRET_KEY`,
+   senão fica reiniciando.
 4. `docker compose up -d`.
 
-Cartão aprovado: `4242 4242 4242 4242`. Recusado: `4000 0000 0000 0002` → o
-pedido vai para `CANCELADO` e os itens voltam para a sacola.
+Cartão aprovado `4242 4242 4242 4242`; recusado `4000 0000 0000 0002` (pedido → `CANCELADO`,
+itens voltam à sacola).
 
-**Em produção:** sem stripe-cli. Cadastre no Dashboard o endpoint
-`${PUBLIC_URL}/api/webhooks/stripe` com os eventos `payment_intent.succeeded` e
-`payment_intent.payment_failed`, e use o `whsec_…` dele.
-
-Sem stripe-cli nem endpoint cadastrado, o webhook se perde, mas a reconciliação
-do payment-service confere os pagamentos pendentes a cada 2 min: o pedido é
-confirmado com alguns minutos de atraso, bem antes de expirar (30 min).
+Em vez do túnel do stripe-cli, dá pra cadastrar no Dashboard o endpoint
+`${PUBLIC_URL}/api/webhooks/stripe` (eventos `payment_intent.succeeded`/`…payment_failed`). Sem
+webhook algum, a reconciliação do payment-service confirma os pendentes a cada 2 min (antes dos
+30 min de expiração).
 
 ## Teste ponta a ponta (e2e)
 
-Roda a compra inteira pela API com um Stripe falso (`stripe-mock`, só no
-override) e webhooks assinados localmente. Precisa de `curl`, `jq` e `openssl`.
+Compra inteira pela API com Stripe falso (`stripe-mock`) e webhooks assinados localmente.
+Precisa de `curl`, `jq`, `openssl`.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
 bash scripts/e2e-compra.sh            # termina com "E2E OK"
-docker compose up -d --remove-orphans # volta ao produto (sem o stripe-mock)
+docker compose up -d --remove-orphans # volta ao normal
 ```
 
-Com outra porta: `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 docker compose ...`
-(ou as duas no `.env`) e `env BASE_URL=http://localhost:8088 bash scripts/e2e-compra.sh`.
-O e2e desativa o produto que cria, mas deixa alguns pedidos (pagos e enviado) para as
-telas do admin.
+Outra porta: `env WEB_PORT=8088 PUBLIC_URL=http://localhost:8088 …` e
+`env BASE_URL=http://localhost:8088 bash scripts/e2e-compra.sh`. Deixa alguns pedidos pras telas do admin.
 
 ## Dados de exemplo
 
 ```bash
-bash scripts/seed-dev.sh              # ou: env BASE_URL=http://localhost:8088 bash scripts/seed-dev.sh
+bash scripts/seed-dev.sh
 ```
 
-Cria uns 12 produtos com estoque PP–GG e fotos geradas, pela API do catálogo
-(token do `admin@uzusis.local`). Rodar de novo pula os que já existem.
+~12 produtos (estoque PP–GG, fotos geradas) pela API do catálogo. Rodar de novo pula os que já existem.
 
 ## Front (Angular 22)
 
-`uzusis-front/` é Angular 22 standalone com Tailwind 4 e componentes
-[spartan/ui](https://www.spartan.ng) no estilo shadcn (gerados em `libs/ui`, código
-do projeto). Testes em Vitest + jsdom; o build (esbuild) sai em
-`dist/uzusis/browser`, que o `Dockerfile` copia para o nginx.
-
-O Angular 22 exige Node `^22.22.3 || ^24.15`. Sem esse Node no host, rode tudo no
-contêiner `node:22-alpine`, a partir da raiz do repositório (vale em bash e em fish):
+Standalone, Tailwind 4 e [spartan/ui](https://www.spartan.ng) (shadcn, em `libs/ui`). Testes
+Vitest+jsdom; build esbuild em `dist/uzusis/browser`, copiado pro nginx. Exige Node
+`^22.22.3 || ^24.15` — sem ele no host, rode no contêiner a partir da raiz:
 
 ```bash
 alias dnode='docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -e npm_config_cache=/tmp/.npm -v "$HOME/.npm":/tmp/.npm -v "$PWD/uzusis-front":/app -w /app node:22-alpine'
-mkdir -p ~/.npm                       # senão o Docker cria a pasta como root
-dnode npm ci --no-audit --no-fund     # uma vez, e depois de mudar o package-lock.json
-dnode npx ng build                    # produção → uzusis-front/dist/uzusis/browser
-dnode npx ng test --watch=false       # Vitest + jsdom
+mkdir -p ~/.npm
+dnode npm ci --no-audit --no-fund     # após mudar o package-lock.json
+dnode npx ng build                    # → uzusis-front/dist/uzusis/browser
+dnode npx ng test --watch=false
 ```
 
-Servidor de desenvolvimento (recarrega ao salvar), com o compose no ar:
-
-```bash
-docker run --rm -it --network host -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/uzusis-front":/app -w /app node:22-alpine npx ng serve
-```
-
-Abre em http://localhost:4200. O `proxy.conf.json` manda `/api` e `/storage` para
-`http://localhost:8080`, e o login usa o Keycloak de
-`src/environments/environment.development.ts` (também 8080). Com o compose em outra
-porta, ajuste os dois arquivos localmente (sem commitar).
-
-Para gerar outro componente spartan: instale o `@spartan-ng/cli@1.5.0` só durante a
-geração (ele puxa o Nx, ~200 MB), rode `npx ng g @spartan-ng/cli:ui <nome>` e
-desinstale; os ajustes feitos à mão no `libs/ui` (44 px, foco, textos em pt-BR)
-estão no `SPEC.md` (§7.4).
+Dev server (com o compose no ar):
+`docker run --rm -it --network host -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/uzusis-front":/app -w /app node:22-alpine npx ng serve`
+→ http://localhost:4200 (o `proxy.conf.json` e `environment.development.ts` apontam pra 8080;
+ajuste local se mudar a porta). Novo componente spartan: instale `@spartan-ng/cli@1.5.0` só na
+geração (`npx ng g @spartan-ng/cli:ui <nome>`) e desinstale; ajustes à mão no `SPEC.md` §7.4.
 
 ## Observabilidade
 
@@ -225,20 +159,13 @@ estão no `SPEC.md` (§7.4).
 env TRACING_ENABLED=true docker compose --profile observability up -d
 ```
 
-Jaeger em http://127.0.0.1:16686. Sem o perfil, os serviços não exportam traces.
+Jaeger em http://127.0.0.1:16686. Sem o perfil, sem traces.
 
 ## Reimportar o realm
 
-O Keycloak só importa `uzusis-api/infra/keycloak/import/uzusis-realm.json`
-quando o realm ainda não existe, e as URLs de redirect do login (`${PUBLIC_URL}/*`)
-ficam congeladas nesse primeiro boot. **Reimportar é obrigatório** quando:
-
-- `PUBLIC_URL` ou `WEB_PORT` mudarem depois do primeiro boot (sintoma: "Invalid
-  redirect uri" / "URL de redirecionamento inválida" no login);
-- um primeiro `up` falhou (por exemplo, porta ocupada) depois de o Keycloak já ter importado;
-- o `uzusis-realm.json` mudou.
-
-Sem apagar fotos nem pedidos:
+O Keycloak só importa `uzusis-api/infra/keycloak/import/uzusis-realm.json` quando o realm não
+existe (as URLs de redirect congelam no 1º boot). **Obrigatório** quando `PUBLIC_URL`/`WEB_PORT`
+mudam ("Invalid redirect uri"), um 1º `up` falhou após o import, ou o `uzusis-realm.json` mudou:
 
 ```bash
 docker compose stop keycloak
@@ -246,22 +173,19 @@ docker compose exec postgres psql -U postgres -c 'DROP DATABASE keycloak WITH (F
 docker compose up -d keycloak
 ```
 
-O reimport recria **todos** os usuários do realm. Os criados pelo cadastro somem, e
-`admin@uzusis.local` e `cliente@uzusis.local` voltam com outro `sub` (o arquivo do
-realm não fixa o id deles). Pedidos, sacola e perfil continuam no banco, mas presos
-ao `sub` antigo: não são mais de ninguém (somem de "Minha conta"; o painel admin
-ainda lista os pedidos), e as contas recriadas começam vazias.
+Recria **todos** os usuários do realm (os do cadastro somem; `admin@`/`cliente@` voltam com
+outro `sub`). Pedidos/sacola/perfil ficam no banco mas presos ao `sub` antigo (somem de "Minha
+conta"; o admin ainda os lista).
 
 ## Debezium (outbox → Kafka)
 
-Os eventos da saga saem da tabela `outbox` de catalog, order e payment pelo
-Debezium. O `connect-init` registra os três conectores a cada `up` (é idempotente).
+Os eventos da saga saem da tabela `outbox` (catalog, order, payment) via Debezium; `connect-init`
+registra os conectores a cada `up` (idempotente).
 
 - Diagnóstico: `docker compose exec connect curl -s 'http://localhost:8083/connectors?expand=status'`
-  (os três `outbox-*` e suas tasks em `RUNNING`).
-- Um slot de replicação parado segura WAL no Postgres (limitado a 1 GB por
-  `max_slot_wal_keep_size`). Se o slot for invalidado, a saga para **em silêncio**.
-  Para recuperar um serviço (`catalog`, `order` ou `payment`; database `catalog`, `orders` ou `payments`):
+  (os `outbox-*` em `RUNNING`).
+- Slot de replicação parado segura WAL (limite 1 GB); se invalidar, a saga para **em silêncio**.
+  Recuperar (ex. order):
 
   ```bash
   docker compose exec connect curl -s -X DELETE http://localhost:8083/connectors/outbox-order
@@ -269,30 +193,15 @@ Debezium. O `connect-init` registra os três conectores a cada `up` (é idempote
   docker compose up connect-init
   ```
 
-  Os offsets sobrevivem ao `DELETE`, mas o conector usa `snapshot.mode=when_needed`:
-  ao ver que a posição salva não existe no slot novo, ele refaz o snapshot da outbox
-  (as linhas nunca são apagadas) e reenvia tudo; os consumidores ignoram o que já processaram.
+  Com `snapshot.mode=when_needed` ele refaz o snapshot da outbox e reenvia; os consumidores
+  ignoram o já processado.
 
 ## Volume antigo do MySQL
 
-O volume `uzusis_db-data` guarda o MySQL 8.0 da versão .NET da loja, que já saiu do
-repositório. Ele continua no disco, mas nada do projeto o usa: o compose não o monta
-nem o apaga (nem com `down -v`). Não apague: é o que sobrou daqueles dados.
-
-Se um dia quiserem migrar esses dados, faça um backup e abra num contêiner avulso
-(as credenciais originais do MySQL não estão no repositório):
-
-```bash
-docker run --rm -v uzusis_db-data:/v -v "$PWD":/b alpine tar czf /b/db-data.tgz -C /v .
-docker run --rm -d --name uzusis-mysql-antigo -v uzusis_db-data:/var/lib/mysql mysql:8.0
-docker exec -it uzusis-mysql-antigo mysql -uroot -p uzusis   # alguns segundos depois do run
-docker stop uzusis-mysql-antigo       # o --rm apaga o contêiner; o volume fica
-```
-
-O mapeamento para o Postgres e o Keycloak está no Apêndice A do [`SPEC.md`](SPEC.md).
+`uzusis_db-data` guarda o MySQL da versão .NET (fora do repo). Nada usa, o compose não toca
+(nem com `down -v`). Para migrar um dia, veja o Apêndice A do [`SPEC.md`](SPEC.md).
 
 ## Notas
 
-- **MinIO**: a imagem é `pgsty/minio` (build comunitário do mesmo binário), porque
-  `minio/minio` e `minio/mc` saíram do Docker Hub. As fotos ficam no volume
-  `uzusis_fotos-data`.
+- **MinIO**: imagem `pgsty/minio` (mesmo binário; `minio/minio` saiu do Docker Hub). Fotos no
+  volume `uzusis_fotos-data`.
